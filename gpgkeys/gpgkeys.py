@@ -10,6 +10,10 @@
 import os, sys, cmd
 import readline
 import atexit
+import subprocess
+
+from completion import completer
+from completion import completion
 
 from escape import escape
 from escape import unescape
@@ -21,13 +25,14 @@ gnupg_exe = 'gpg'
 UMASK = 0077
 
 GLOBAL = []
-KEY    = ['--openpgp', '--expert']
+KEY    = ['--openpgp']
 SIGN   = ['--local-user']
 CHECK  = ['--trusted-key']
 LIST   = ['--fingerprint', '--with-colons']
 INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
+EXPERT = ['--expert']
 
 
 class GPGKeys(cmd.Cmd):
@@ -46,7 +51,9 @@ class GPGKeys(cmd.Cmd):
         command = ' '.join(args)
         if self._verbose:
             self.stdout.write('>>> %s\n' % command)
-        return os.system(command)
+        process = subprocess.Popen(command, shell=True)
+        process.communicate()
+        return process.returncode
 
     def gnupg(self, *args):
         return self.system(gnupg_exe, *args)
@@ -69,8 +76,9 @@ class GPGKeys(cmd.Cmd):
     def preloop(self):
         cmd.Cmd.preloop(self)
         os.umask(UMASK)
-        self.init_completer_delims()
         self.init_history()
+        self.init_completer()
+        self.update_keyspecs()
 
     def emptyline(self):
         pass
@@ -99,6 +107,7 @@ class GPGKeys(cmd.Cmd):
         """Generate a new key pair (Usage: genkey)"""
         args = split(args)
         self.gnupg('--gen-key', *args)
+        self.update_keyspecs()
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
@@ -109,11 +118,13 @@ class GPGKeys(cmd.Cmd):
         """Import public keys from a file (Usage: import <filename>)"""
         args = split(args)
         self.gnupg('--import', *args)
+        self.update_keyspecs()
 
     def do_importsec(self, args):
         """Import secret and public keys from a file (Usage: importsec <filename>)"""
         args = split(args)
         self.gnupg('--import --allow-secret-key', *args)
+        self.update_keyspecs()
 
     def do_export(self, args):
         """Export public keys to stdout or to a file (Usage: export <keyspec>)"""
@@ -158,6 +169,7 @@ class GPGKeys(cmd.Cmd):
         """Enter the gpg key edit menu (Usage: edit <keyspec>)"""
         args = split(args)
         self.gnupg('--edit-key', *args)
+        self.update_keyspecs()
 
     def do_e(self, args):
         return self.do_edit(args)
@@ -176,16 +188,19 @@ class GPGKeys(cmd.Cmd):
         """Delete a public key (Usage: del <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-key', *args)
+        self.update_keyspecs()
 
     def do_delsec(self, args):
         """Delete a secret key (Usage: delsec <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-key', *args)
+        self.update_keyspecs()
 
     def do_delsecpub(self, args):
         """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-and-public-key', *args)
+        self.update_keyspecs()
 
     def do_search(self, args):
         """Search for keys on the keyserver (Usage: search <keyspec>)"""
@@ -196,6 +211,7 @@ class GPGKeys(cmd.Cmd):
         """Fetch keys from the keyserver (Usage: recv <keyids>)"""
         args = split(args)
         self.gnupg('--recv-keys', *args)
+        self.update_keyspecs()
 
     def do_send(self, args):
         """Send keys to the keyserver (Usage: send <keyspec>)"""
@@ -220,7 +236,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg(*args)
 
     def do_fdump(self, args):
-        """Dump packet sequence stored in a file (Usage: fdump <filename>)"""
+        """Dump packet sequence stored in file (Usage: fdump <filename>)"""
         args = split(args)
         self.gnupg('--list-packets', *args)
 
@@ -241,6 +257,7 @@ class GPGKeys(cmd.Cmd):
                 self.system(*args)
         else:
             self.system(os.environ.get('SHELL'))
+        self.update_keyspecs()
 
     def parseline(self, line):
         # Makes . work as shell escape character
@@ -276,139 +293,193 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
-    def init_completer_delims(self):
-        # Removes '-' from completer delimiters so we
-        # can complete options.
-        #delims = readline.get_completer_delims()
-        #delims = list(delims)
-        #delims.remove('-')
-        #readline.set_completer_delims(''.join(delims))
-        readline.set_completer_delims('/ \t\n\'\"<>|&*?')
+    def init_completer(self):
+        self.gnureadline_default_delims = " \t\n\"\\'`@$><=;|&{("
+        completer.word_break_characters = " \t\n\"\\'`><=;|&{("
+        completer.quote_characters = '"\''
+        completer.filename_quote_characters = ' '
+        completer.special_prefixes = ''
 
     def completenames(self, text, *ignored):
         dotext = 'do_'+text
         return [x[3:] for x in self.get_names() if x.startswith(dotext)]
 
     def completeoptions(self, text, options):
-        if not text: return []
+        if not text: return [] # No "all matches" for options
         return [x for x in options if x.startswith(text)]
 
-    def completefiles(self, text, line, begidx, endidx):
-        if text or line[endidx-1] == os.sep:
-            name = split(line)[-1] # XXX
-            dir, name = os.path.split(name)
-            dir = dir or os.curdir
-        else:
-            dir, name = os.curdir, ''
-
+    def completefiles(self, text, *ignored):
+        completion.filename_completion_desired = True
+        completion.filename_quoting_desired = True
         new = []
-        dir, name = unescape(dir), unescape(name)
-
-        for x in os.listdir(dir):
-            if x.startswith(name):
-                path = os.path.join(dir, x)
-                if os.path.isdir(path):
-                    new.append(x+os.sep)
-                    if name or dir != os.curdir:
-                        new.extend([x+os.sep+y for y in os.listdir(path)])
-                else:
-                    new.append(x)
-
-        new = [escape(x) for x in new]
+        for i in range(100000):
+            f = completion.filename_completion_function(text, i)
+            if f is not None:
+                new.append(f)
+            else:
+                break
         return new
 
-    def seen(self, text, line, begidx):
+    def completekeys(self, text, keyids_only=False):
+        new = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
+        if len(new) == 1:
+            if keyids_only:
+                return [x[0] for x in self.keyspecs[new[0]]]
+            else:
+                return ['%s "%s"' % x for x in self.keyspecs[new[0]]]
+        return new
+
+    def update_keyspecs(self):
+        keyspecs = {}
+
+        def append(key, value):
+            if key in keyspecs:
+                keyspecs[key].append(value)
+            else:
+                keyspecs[key] = [value]
+
+        for keyid, userid in self.read_pubkeys():
+            keyid = keyid[8:]
+            info = keyid, userid
+            append('%s %s' % info, info)
+
+        self.keyspecs = keyspecs
+
+    def read_pubkeys(self):
+        process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        for line in stdout.rstrip().split('\n'):
+            if line[:3] == 'pub':
+                fields = line.split(':')
+                keyid = fields[4]
+                userid = fields[9]
+                yield (keyid, userid)
+
+    def follows(self, text, line, begidx):
         text = text + ' '
         textidx = line.find(text)
-        if 0 <= textidx and textidx+len(text) <= begidx:
-            return True
+        if 0 <= textidx:
+            end = textidx+len(text)
+            delta = text[end:begidx]
+            if not delta.strip():
+                return True
         return False
 
     def complete_genkey(self, text, *ignored):
-        options = GLOBAL + KEY
+        options = GLOBAL + KEY + EXPERT
         return self.completeoptions(text, options)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
-        if not text.startswith('-') and self.seen('--output', line, begidx):
-            return self.completefiles(text, line, begidx, endidx)
         options = GLOBAL + KEY + OUTPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        if self.follows('--output', line, begidx):
+            return self.completefiles(text)
+        else:
+            return self.completekeys(text)
 
-    def complete_import(self, text, line, begidx, endidx):
-        if not text.startswith('-'):
-            return self.completefiles(text, line, begidx, endidx)
+    def complete_import(self, text, *ignored):
         options = GLOBAL + INPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completefiles(text)
 
-    def complete_importsec(self, text, line, begidx, endidx):
-        if not text.startswith('-'):
-            return self.completefiles(text, line, begidx, endidx)
+    def complete_importsec(self, text, *ignored):
         options = GLOBAL + INPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completefiles(text)
 
     def complete_export(self, text, line, begidx, endidx):
-        if not text.startswith('-') and self.seen('--output', line, begidx):
-            return self.completefiles(text, line, begidx, endidx)
         options = GLOBAL + OUTPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        if self.follows('--output', line, begidx):
+            return self.completefiles(text)
+        else:
+            return self.completekeys(text)
 
     def complete_exportsec(self, text, line, begidx, endidx):
-        if not text.startswith('-') and self.seen('--output', line, begidx):
-            return self.completefiles(text, line, begidx, endidx)
         options = GLOBAL + OUTPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        if self.follows('--output', line, begidx):
+            return self.completefiles(text)
+        else:
+            return self.completekeys(text)
 
     def complete_list(self, text, *ignored):
         options = GLOBAL + LIST
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_ls(self, text, *ignored):
         return self.complete_list(text)
 
     def complete_listsec(self, text, *ignored):
         options = GLOBAL + LIST
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_lsec(self, text, *ignored):
         return self.complete_listsec(text)
 
     def complete_listsig(self, text, *ignored):
         options = GLOBAL + LIST
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_ll(self, text, *ignored):
         return self.complete_listsig(text)
 
     def complete_checksig(self, text, *ignored):
         options = GLOBAL + LIST + CHECK
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_edit(self, text, *ignored):
-        options = GLOBAL + KEY + SIGN
-        return self.completeoptions(text, options)
+        options = GLOBAL + KEY + SIGN + EXPERT
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_e(self, text, *ignored):
         return self.complete_edit(text)
 
     def complete_lsign(self, text, *ignored):
         options = GLOBAL + KEY + SIGN
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_sign(self, text, *ignored):
         options = GLOBAL + KEY + SIGN
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_del(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_delsec(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_delsecpub(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_search(self, text, *ignored):
         options = GLOBAL + SERVER
@@ -416,34 +487,44 @@ class GPGKeys(cmd.Cmd):
 
     def complete_recv(self, text, *ignored):
         options = GLOBAL + SERVER # + INPUT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text, keyids_only=True)
 
     def complete_send(self, text, *ignored):
         options = GLOBAL + SERVER
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_refresh(self, text, *ignored):
         options = GLOBAL + SERVER
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_dump(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
     def complete_dumpsec(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
-    def complete_fdump(self, text, line, begidx, endidx):
-        if not text.startswith('-'):
-            return self.completefiles(text, line, begidx, endidx)
+    def complete_fdump(self, text, *ignored):
         options = GLOBAL
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text)
 
-    def complete_shell(self, text, line, begidx, endidx):
-        if not text.startswith('-'):
-            return self.completefiles(text, line, begidx, endidx)
-        return []
+    def complete_shell(self, text, *ignored):
+        if text.startswith('-'):
+            return []
+        return self.completefiles(text)
 
     # History
 

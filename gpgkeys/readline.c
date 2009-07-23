@@ -314,7 +314,7 @@ set_completer_delims(PyObject *self, PyObject *args)
 {
 	char *break_chars;
 
-	if(!PyArg_ParseTuple(args, "s:set_completer_delims", &break_chars)) {
+	if (!PyArg_ParseTuple(args, "s:set_completer_delims", &break_chars)) {
 		return NULL;
 	}
 	free((void*)rl_completer_word_break_characters);
@@ -325,6 +325,9 @@ set_completer_delims(PyObject *self, PyObject *args)
 PyDoc_STRVAR(doc_set_completer_delims,
 "set_completer_delims(string) -> None\n\
 set the readline word delimiters for tab-completion");
+
+
+/* History */
 
 static PyObject *
 py_remove_history(PyObject *self, PyObject *args)
@@ -560,6 +563,343 @@ Change what's displayed on the screen to reflect the current\n\
 contents of the line buffer.");
 
 
+/* <readlinex> */
+#ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
+
+/* Get/set completion append character */
+
+static PyObject *
+get_completion_append_character(PyObject *self, PyObject *noarg)
+{
+	return PyString_FromFormat("%c", rl_completion_append_character);
+}
+
+PyDoc_STRVAR(doc_get_completion_append_character,
+"get_completion_append_character() -> string\n\
+Get the character appended after completion.");
+
+
+static PyObject *
+set_completion_append_character(PyObject *self, PyObject *args)
+{
+	char *value;
+
+	if (!PyArg_ParseTuple(args, "s:set_completion_append_character", &value)) {
+		return NULL;
+	}
+	rl_completion_append_character = (value && *value) ? *value : '\0';
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_completion_append_character,
+"set_completion_append_character(string) -> None\n\
+Set the character appended after the current completion. \
+May only be called from within custom completers.");
+
+
+static PyObject *
+set_completion_suppress_append(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_completion_suppress_append", &value)) {
+		return NULL;
+	}
+	rl_completion_suppress_append = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_completion_suppress_append,
+"set_completion_suppress_append(bool) -> None\n\
+Do not append the completion_append_character after the current completion. \
+May only be called from within custom completers.");
+
+
+/* Get/set completer quote characters */
+
+static PyObject *
+get_completer_quote_characters(PyObject *self, PyObject *noarg)
+{
+	if (!rl_completer_quote_characters)
+		return PyString_FromFormat("%c", '\0');
+
+	return PyString_FromString(rl_completer_quote_characters);
+}
+
+PyDoc_STRVAR(doc_get_completer_quote_characters,
+"get_completer_quote_characters() -> string\n\
+Get list of characters that may be used to quote a substring of the line.");
+
+
+static PyObject *
+set_completer_quote_characters(PyObject *self, PyObject *args)
+{
+	char *value;
+
+	if (!PyArg_ParseTuple(args, "s:set_completer_quote_characters", &value)) {
+		return NULL;
+	}
+	if (rl_completer_quote_characters)
+		free((void*)rl_completer_quote_characters);
+	rl_completer_quote_characters = strdup(value);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_completer_quote_characters,
+"set_completer_quote_characters(string) -> None\n\
+Set list of characters that may be used to quote a substring of the line.");
+
+
+/* Get/set filename quote characters */
+
+static PyObject *
+get_filename_quote_characters(PyObject *self, PyObject *noarg)
+{
+	if (!rl_filename_quote_characters)
+		return PyString_FromFormat("%c", '\0');
+
+	return PyString_FromString(rl_filename_quote_characters);
+}
+
+PyDoc_STRVAR(doc_get_filename_quote_characters,
+"get_filename_quote_characters() -> string\n\
+Get list of characters that cause a filename to be quoted by the completer.");
+
+
+static PyObject *
+set_filename_quote_characters(PyObject *self, PyObject *args)
+{
+	char *value;
+
+	if (!PyArg_ParseTuple(args, "s:set_filename_quote_characters", &value)) {
+		return NULL;
+	}
+	if (rl_filename_quote_characters)
+		free((void*)rl_filename_quote_characters);
+	rl_filename_quote_characters = strdup(value);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_filename_quote_characters,
+"set_filename_quote_characters(string) -> None\n\
+Set list of characters that cause a filename to be quoted by the completer.");
+
+
+/* Get completion quoting info */
+
+static PyObject *
+get_completion_found_quote(PyObject *self, PyObject *noarg)
+{
+	return PyInt_FromLong(rl_completion_found_quote);
+}
+
+PyDoc_STRVAR(doc_get_completion_found_quote,
+"get_completion_found_quote() -> bool\n\
+When Readline is completing quoted text, it sets this variable to a non-zero value \
+if the word being completed contains any quoting character.");
+
+
+static PyObject *
+get_completion_quote_character(PyObject *self, PyObject *noarg)
+{
+	return PyString_FromFormat("%c", rl_completion_quote_character);
+}
+
+PyDoc_STRVAR(doc_get_completion_quote_character,
+"get_completion_quote_character() -> string\n\
+When Readline is completing quoted text, it sets this variable to the quoting character found.");
+
+
+static PyObject *
+set_completion_suppress_quote(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_completion_suppress_quote", &value)) {
+		return NULL;
+	}
+	rl_completion_suppress_quote = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_completion_suppress_quote,
+"set_completion_suppress_quote(bool) -> None\n\
+Do not append a matching quote character when performing completion on a quoted string. \
+May only be called from within custom completers.");
+
+
+/* Filename completion and quoting flags */
+
+static PyObject *
+set_filename_completion_desired(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_filename_completion_desired", &value)) {
+		return NULL;
+	}
+	rl_filename_completion_desired = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_filename_completion_desired,
+"set_filename_completion_desired(bool) -> None\n\
+Non-zero means that the results of the matches are to be treated as filenames. \
+May only be called from within custom completers.");
+
+
+static PyObject *
+set_filename_quoting_desired(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_filename_quoting_desired", &value)) {
+		return NULL;
+	}
+	rl_filename_quoting_desired = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_filename_quoting_desired,
+"set_filename_quoting_desired(bool) -> None\n\
+Non-zero means that the results of the matches are to be quoted. \
+May only be called from within custom completers.");
+
+
+static PyObject *
+set_attempted_completion_over(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_attempted_completion_over", &value)) {
+		return NULL;
+	}
+	rl_attempted_completion_over = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_attempted_completion_over,
+"set_attempted_completion_over(bool) -> None\n\
+Do not perform the default filename completion, even if the current \
+completion returns no matches. \
+May only be called from within custom completers.");
+
+
+/* Stock completer functions */
+
+static PyObject *
+filename_completion_function(PyObject *self, PyObject *args)
+{
+        int state;
+	char *value;
+        char *completion;
+
+	if (!PyArg_ParseTuple(args, "si:filename_completion_function", &value, &state)) {
+		return NULL;
+	}
+	completion = rl_filename_completion_function(value, state);
+	if (completion)
+		return PyString_FromString(completion);
+        Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_filename_completion_function,
+"filename_completion_function(string, int) -> string\n\
+A generator function for filename completion in the general case.");
+
+
+static PyObject *
+username_completion_function(PyObject *self, PyObject *args)
+{
+        int state;
+	char *value;
+        char *completion;
+
+	if (!PyArg_ParseTuple(args, "si:username_completion_function", &value, &state)) {
+		return NULL;
+	}
+	completion = rl_username_completion_function(value, state);
+	if (completion)
+		return PyString_FromString(completion);
+        Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_username_completion_function,
+"username_completion_function(string, int) -> string\n\
+A generator function for username completion.");
+
+
+/* Prefixes */
+
+static PyObject *
+get_special_prefixes(PyObject *self, PyObject *noarg)
+{
+	if (!rl_special_prefixes)
+		return PyString_FromFormat("%c", '\0');
+
+	return PyString_FromString(rl_special_prefixes);
+}
+
+PyDoc_STRVAR(doc_get_special_prefixes,
+"get_special_prefixes() -> string\n\
+Get list of characters that are word break characters, but should be left in text \
+when it is passed to the completion function.");
+
+
+static PyObject *
+set_special_prefixes(PyObject *self, PyObject *args)
+{
+	char *value;
+
+	if (!PyArg_ParseTuple(args, "s:set_special_prefixes", &value)) {
+		return NULL;
+	}
+	if (rl_special_prefixes)
+		free((void*)rl_special_prefixes);
+	rl_special_prefixes = strdup(value);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_special_prefixes,
+"set_special_prefixes(string) -> None\n\
+Set list of characters that are word break characters, but should be left in text \
+when it is passed to the completion function.");
+
+
+/* Query items */
+
+static PyObject *
+get_completion_query_items(PyObject *self, PyObject *noarg)
+{
+	return PyInt_FromLong(rl_completion_query_items);
+}
+
+PyDoc_STRVAR(doc_get_completion_query_items,
+"get_completion_query_items() -> int\n\
+Up to this many items will be displayed in response to a possible-completions call.");
+
+
+static PyObject *
+set_completion_query_items(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_completion_query_items", &value)) {
+		return NULL;
+	}
+	rl_completion_query_items = value;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_completion_query_items,
+"set_completion_query_items(int) -> None\n\
+Up to this many items will be displayed in response to a possible-completions call.");
+
+
+#endif
+/* </readlinex> */
+
+
 /* Table of functions exported by the module */
 
 static struct PyMethodDef readline_methods[] =
@@ -606,6 +946,47 @@ static struct PyMethodDef readline_methods[] =
 #endif
 #ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
 	{"clear_history", py_clear_history, METH_NOARGS, doc_clear_history},
+
+        /* <readlinex> */
+	{"get_completion_append_character", get_completion_append_character,
+	 METH_NOARGS, doc_get_completion_append_character},
+	{"set_completion_append_character", set_completion_append_character,
+	 METH_VARARGS, doc_set_completion_append_character},
+	{"set_completion_suppress_append", set_completion_suppress_append,
+	 METH_VARARGS, doc_set_completion_suppress_append},
+	{"get_completer_quote_characters", get_completer_quote_characters,
+	 METH_NOARGS, doc_get_completer_quote_characters},
+	{"set_completer_quote_characters", set_completer_quote_characters,
+	 METH_VARARGS, doc_set_completer_quote_characters},
+	{"get_filename_quote_characters", get_filename_quote_characters,
+	 METH_NOARGS, doc_get_filename_quote_characters},
+	{"set_filename_quote_characters", set_filename_quote_characters,
+	 METH_VARARGS, doc_set_filename_quote_characters},
+	{"get_completion_found_quote", get_completion_found_quote,
+	 METH_NOARGS, doc_get_completion_found_quote},
+	{"get_completion_quote_character", get_completion_quote_character,
+	 METH_NOARGS, doc_get_completion_quote_character},
+	{"set_completion_suppress_quote", set_completion_suppress_quote,
+	 METH_VARARGS, doc_set_completion_suppress_quote},
+	{"set_filename_completion_desired", set_filename_completion_desired,
+	 METH_VARARGS, doc_set_filename_completion_desired},
+	{"set_filename_quoting_desired", set_filename_quoting_desired,
+	 METH_VARARGS, doc_set_filename_quoting_desired},
+	{"set_attempted_completion_over", set_attempted_completion_over,
+	 METH_VARARGS, doc_set_attempted_completion_over},
+	{"filename_completion_function", filename_completion_function,
+	 METH_VARARGS, doc_filename_completion_function},
+	{"username_completion_function", username_completion_function,
+	 METH_VARARGS, doc_username_completion_function},
+	{"get_special_prefixes", get_special_prefixes,
+	 METH_NOARGS, doc_get_special_prefixes},
+	{"set_special_prefixes", set_special_prefixes,
+	 METH_VARARGS, doc_set_special_prefixes},
+	{"get_completion_query_items", get_completion_query_items,
+	 METH_NOARGS, doc_get_completion_query_items},
+	{"set_completion_query_items", set_completion_query_items,
+	 METH_VARARGS, doc_get_completion_query_items},
+         /* </readlinex> */
 #endif
 	{0, 0}
 };
