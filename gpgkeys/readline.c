@@ -985,7 +985,7 @@ static struct PyMethodDef readline_methods[] =
 	{"get_completion_query_items", get_completion_query_items,
 	 METH_NOARGS, doc_get_completion_query_items},
 	{"set_completion_query_items", set_completion_query_items,
-	 METH_VARARGS, doc_get_completion_query_items},
+	 METH_VARARGS, doc_set_completion_query_items},
          /* </readlinex> */
 #endif
 	{0, 0}
