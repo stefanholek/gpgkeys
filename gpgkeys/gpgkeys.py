@@ -78,7 +78,6 @@ class GPGKeys(cmd.Cmd):
         os.umask(UMASK)
         self.init_history()
         self.init_completer()
-        self.update_keyspecs()
 
     def emptyline(self):
         pass
@@ -296,9 +295,14 @@ class GPGKeys(cmd.Cmd):
     def init_completer(self):
         self.gnureadline_default_delims = " \t\n\"\\'`@$><=;|&{("
         completer.word_break_characters = " \t\n\"\\'`><=;|&{("
-        completer.quote_characters = '"\''
-        completer.filename_quote_characters = ' \t\n"\''
         completer.special_prefixes = ''
+        completer.quote_characters = '"\''
+        completer.char_is_quoted_function = None
+        self.quoted_quote_characters = {'"': '\\"', "'": "'\\''"}
+        completer.filename_quote_characters = ' \t\n"\''
+        completer.filename_quoting_function = self.quote_filename
+        completer.filename_dequoting_function = self.dequote_filename
+        self.update_keyspecs()
 
     def completenames(self, text, *ignored):
         dotext = 'do_'+text
@@ -320,8 +324,31 @@ class GPGKeys(cmd.Cmd):
                 break
         return new
 
+    def quote_filename(self, text, match_type, quote_char):
+        if text:
+            quote_char = quote_char or '"'
+            quoted_quote_char = self.quoted_quote_characters[quote_char]
+            text = text.replace(quote_char, quoted_quote_char)
+            if match_type == completion.SINGLE_MATCH:
+                if not os.path.isdir(text):
+                    text = text + quote_char
+            text = quote_char + text
+        return text
+
+    def dequote_filename(self, text, quote_char):
+        if text:
+            quote_char = quote_char or '"'
+            quoted_quote_char = self.quoted_quote_characters[quote_char]
+            if text[0] == quote_char:
+                text = text[1:]
+            if text[-1] == quote_char:
+                text = text[:-1]
+            text = text.replace(quoted_quote_char, quote_char)
+        return text
+
     def completekeys(self, text, keyids_only=False):
-        new = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
+        key = text.upper()
+        new = [x for x in self.keyspecs.iterkeys() if x.startswith(key)]
         if len(new) == 1:
             if keyids_only:
                 return [x[0] for x in self.keyspecs[new[0]]]
@@ -342,7 +369,6 @@ class GPGKeys(cmd.Cmd):
             keyid = keyid[8:]
             info = keyid, userid
             append('%s %s' % info, info)
-
         self.keyspecs = keyspecs
 
     def read_pubkeys(self):

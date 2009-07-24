@@ -1,15 +1,11 @@
 import readline
 
+# For filename_quoting_function
+SINGLE_MATCH = 1
+MULT_MATCH = 2
+
 
 class Completer(object):
-
-    @apply
-    def completer():
-        def get(self):
-            return readline.get_completer()
-        def set(self, function):
-            readline.set_completer(function)
-        return property(get, set)
 
     @apply
     def word_break_characters():
@@ -17,6 +13,14 @@ class Completer(object):
             return readline.get_completer_delims()
         def set(self, string):
             readline.set_completer_delims(string)
+        return property(get, set)
+
+    @apply
+    def special_prefixes():
+        def get(self):
+            return readline.get_special_prefixes()
+        def set(self, string):
+            return readline.set_special_prefixes(string)
         return property(get, set)
 
     @apply
@@ -36,17 +40,52 @@ class Completer(object):
         return property(get, set)
 
     @apply
-    def special_prefixes():
+    def completer():
         def get(self):
-            return readline.get_special_prefixes()
-        def set(self, string):
-            return readline.set_special_prefixes(string)
+            return readline.get_completer()
+        def set(self, function):
+            readline.set_completer(function)
+        return property(get, set)
+
+    @apply
+    def display_matches_hook():
+        def get(self):
+            raise AttributeError('Write-only property: display_matches_hook')
+        def set(self, function):
+            readline.set_completion_display_matches_hook(function)
+        return property(get, set)
+
+    @apply
+    def char_is_quoted_function():
+        def get(self):
+            raise AttributeError('Write-only property: char_is_quoted_function')
+        def set(self, function):
+            readline.set_char_is_quoted_function(function)
+        return property(get, set)
+
+    @apply
+    def filename_quoting_function():
+        def get(self):
+            raise AttributeError('Write-only property: filename_quoting_function')
+        def set(self, function):
+            readline.set_filename_quoting_function(function)
+        return property(get, set)
+
+    @apply
+    def filename_dequoting_function():
+        def get(self):
+            raise AttributeError('Write-only property: filename_dequoting_function')
+        def set(self, function):
+            readline.set_filename_dequoting_function(function)
         return property(get, set)
 
 completer = Completer()
 
 
 class Completion(object):
+
+    SINGLE_MATCH = SINGLE_MATCH
+    MULT_MATCH = MULT_MATCH
 
     @property
     def type(self):
@@ -67,14 +106,6 @@ class Completion(object):
     @property
     def quote_character(self):
         return readline.get_completion_quote_character()
-
-    @apply
-    def display_matches_hook():
-        def get(self):
-            raise AttributeError('Write-only property: display_matches_hook')
-        def set(self, function):
-            readline.set_completion_display_matches_hook(function)
-        return property(get, set)
 
     @apply
     def query_items():
@@ -132,6 +163,7 @@ class Completion(object):
             readline.set_attempted_completion_over(value)
         return property(get, set)
 
+    # Stock completers
     def filename_completion_function(self, text, state):
         return readline.filename_completion_function(text, state)
 

@@ -785,6 +785,194 @@ completion returns no matches. \
 May only be called from within custom completers.");
 
 
+/* Filename quoting/dequoting */
+
+static PyObject *filename_quoting_function = NULL;
+
+static char *
+on_filename_quoting_function(const char *text, int match_type, const char *quote_pointer);
+
+static PyObject *
+set_filename_quoting_function(PyObject *self, PyObject *args)
+{
+	PyObject *result = set_hook("filename_quoting_function",
+			&filename_quoting_function, args);
+
+	rl_filename_quoting_function =
+		filename_quoting_function ?
+		(rl_quote_func_t *)on_filename_quoting_function : 0;
+
+	return result;
+}
+
+PyDoc_STRVAR(doc_set_filename_quoting_function,
+"set_filename_quoting_function([function]) -> None\n\
+Set or remove the filename quoting function.\n\
+The function is called as\n\
+  function(text, match_type, quote_char).");
+
+
+static char *
+on_filename_quoting_function(const char *text, int match_type, const char *quote_pointer)
+{
+	char *result = NULL;
+        char quote_char_string[2] = "\0\0";
+	PyObject *r;
+
+#ifdef WITH_THREAD
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
+	if (quote_pointer && *quote_pointer) {
+        	quote_char_string[0] = *quote_pointer;
+        }
+
+        r = PyObject_CallFunction(filename_quoting_function, "sis", text, match_type, quote_char_string);
+        if (r == NULL)
+                goto error;
+        if (r == Py_None) {
+                result = NULL;
+        }
+        else {
+                char *s = PyString_AsString(r);
+                if (s == NULL)
+                        goto error;
+                result = strdup(s);
+        }
+        Py_DECREF(r);
+        goto done;
+  error:
+        PyErr_Clear();
+        Py_XDECREF(r);
+  done:
+#ifdef WITH_THREAD
+	PyGILState_Release(gilstate);
+#endif
+	return result;
+}
+
+
+static PyObject *filename_dequoting_function = NULL;
+
+static char *
+on_filename_dequoting_function(const char *text, char quote_char);
+
+static PyObject *
+set_filename_dequoting_function(PyObject *self, PyObject *args)
+{
+	PyObject *result = set_hook("filename_dequoting_function",
+			&filename_dequoting_function, args);
+
+	rl_filename_dequoting_function =
+		filename_dequoting_function ?
+		(rl_dequote_func_t *)on_filename_dequoting_function : 0;
+
+	return result;
+}
+
+PyDoc_STRVAR(doc_set_filename_dequoting_function,
+"set_filename_dequoting_function([function]) -> None\n\
+Set or remove the filename dequoting function.\n\
+The function is called as\n\
+  function(text, quote_char).");
+
+
+static char *
+on_filename_dequoting_function(const char *text, char quote_char)
+{
+	char *result = NULL;
+        char quote_char_string[2] = "\0\0";
+	PyObject *r;
+
+#ifdef WITH_THREAD
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
+	if (quote_char) {
+        	quote_char_string[0] = quote_char;
+        }
+
+        r = PyObject_CallFunction(filename_dequoting_function, "ss", text, quote_char_string);
+        if (r == NULL)
+                goto error;
+        if (r == Py_None) {
+                result = NULL;
+        }
+        else {
+                char *s = PyString_AsString(r);
+                if (s == NULL)
+                        goto error;
+                result = strdup(s);
+        }
+        Py_DECREF(r);
+        goto done;
+  error:
+        PyErr_Clear();
+        Py_XDECREF(r);
+  done:
+#ifdef WITH_THREAD
+	PyGILState_Release(gilstate);
+#endif
+	return result;
+}
+
+
+static PyObject *char_is_quoted_function = NULL;
+
+int
+on_char_is_quoted_function(const char *text, int index);
+
+static PyObject *
+set_char_is_quoted_function(PyObject *self, PyObject *args)
+{
+	PyObject *result = set_hook("char_is_quoted_function",
+			&char_is_quoted_function, args);
+
+	rl_char_is_quoted_p =
+		char_is_quoted_function ?
+		(rl_linebuf_func_t *)on_char_is_quoted_function : 0;
+
+	return result;
+}
+
+PyDoc_STRVAR(doc_set_char_is_quoted_function,
+"set_char_is_quoted_function([function]) -> None\n\
+Set or remove the function that determines whether or not a specific character in the line buffer is quoted.\n\
+The function is called as\n\
+  function(text, index).");
+
+
+int
+on_char_is_quoted_function(const char *text, int index)
+{
+	int result = 0;
+	PyObject *r;
+
+#ifdef WITH_THREAD
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
+        r = PyObject_CallFunction(char_is_quoted_function, "si", text, index);
+        if (r == NULL)
+                goto error;
+        if (r == Py_None) {
+                result = 0;
+        }
+        else {
+		result = PyInt_AsLong(r);
+		if (result == -1 && PyErr_Occurred())
+			goto error;
+        }
+        Py_DECREF(r);
+        goto done;
+  error:
+        PyErr_Clear();
+        Py_XDECREF(r);
+  done:
+#ifdef WITH_THREAD
+	PyGILState_Release(gilstate);
+#endif
+	return result;
+}
+
+
 /* Stock completer functions */
 
 static PyObject *
@@ -986,6 +1174,13 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_completion_query_items},
 	{"set_completion_query_items", set_completion_query_items,
 	 METH_VARARGS, doc_set_completion_query_items},
+	{"set_filename_quoting_function", set_filename_quoting_function,
+	 METH_VARARGS, doc_set_filename_quoting_function},
+	{"set_filename_dequoting_function", set_filename_dequoting_function,
+	 METH_VARARGS, doc_set_filename_dequoting_function},
+	{"set_char_is_quoted_function", set_char_is_quoted_function,
+	 METH_VARARGS, doc_set_char_is_quoted_function},
+
          /* </readlinex> */
 #endif
 	{0, 0}

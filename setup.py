@@ -8,14 +8,18 @@ version = '1.0'
 include_dirs = []
 library_dirs = []
 
-# Support MacPorts
 if platform == 'darwin':
+    # MacPorts
     if exists('/opt/local/include'):
-        include_dirs = ['/opt/local/include']
-        library_dirs = ['/opt/local/lib']
+        include_dirs += ['/opt/local/include']
+        library_dirs += ['/opt/local/lib']
+    # Fink
+    if exists('/sw/local/include'):
+        include_dirs += ['/sw/local/include']
+        library_dirs += ['/sw/local/lib']
 
-readline = Extension('readline',
-    [join('gpgkeys', 'readline.c')],
+
+readline = Extension('readline', [join('gpgkeys', 'readline.c')],
     libraries=['readline', 'ncursesw'],
     include_dirs=include_dirs,
     library_dirs=library_dirs,
