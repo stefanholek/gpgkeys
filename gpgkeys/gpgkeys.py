@@ -297,7 +297,7 @@ class GPGKeys(cmd.Cmd):
         self.gnureadline_default_delims = " \t\n\"\\'`@$><=;|&{("
         completer.word_break_characters = " \t\n\"\\'`><=;|&{("
         completer.quote_characters = '"\''
-        completer.filename_quote_characters = ' '
+        completer.filename_quote_characters = ' \t\n"\''
         completer.special_prefixes = ''
 
     def completenames(self, text, *ignored):
@@ -519,7 +519,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text)
+        return self.completefiles(text)
 
     def complete_shell(self, text, *ignored):
         if text.startswith('-'):
