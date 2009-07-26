@@ -7,18 +7,17 @@
 # - filename completion should handle names with spaces
 # - implement command aliases
 
-import os, sys, cmd
+import os, sys
 import readline
 import atexit
 import subprocess
 
+from escape import split
+
 from completion import completer
 from completion import completion
-
-from escape import escape
-from escape import unescape
-from escape import split
-from escape import startidx
+from completion import cmd
+from completion import print_exc
 
 gnupg_exe = 'gpg'
 
@@ -55,6 +54,16 @@ class GPGKeys(cmd.Cmd):
         process.communicate()
         return process.returncode
 
+    def getpwd(self, *args):
+        dir = ' '.join(args)
+        process = subprocess.Popen('cd %s; pwd' % dir,
+            shell=True, stdout=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        if process.returncode == 0:
+            for line in stdout.rstrip().split('\n'):
+                return line
+        return ''
+
     def gnupg(self, *args):
         return self.system(gnupg_exe, *args)
 
@@ -67,7 +76,9 @@ class GPGKeys(cmd.Cmd):
 
     def chdir(self, *args):
         if args:
-            os.chdir(args[0])
+            dir = self.getpwd(args[0])
+            if dir:
+                os.chdir(dir)
         else:
             os.chdir(os.environ.get('HOME'))
 
@@ -148,7 +159,7 @@ class GPGKeys(cmd.Cmd):
         args = split(args)
         self.gnupg('--list-secret-keys', *args)
 
-    def do_lsec(self, args):
+    def do_le(self, args):
         return self.do_listsec(args)
 
     def do_listsig(self, args):
@@ -165,7 +176,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--check-sigs', *args)
 
     def do_edit(self, args):
-        """Enter the gpg key edit menu (Usage: edit <keyspec>)"""
+        """Enter the key edit menu (Usage: edit <keyspec>)"""
         args = split(args)
         self.gnupg('--edit-key', *args)
         self.update_keyspecs()
@@ -295,13 +306,11 @@ class GPGKeys(cmd.Cmd):
     def init_completer(self):
         self.gnureadline_default_delims = " \t\n\"\\'`@$><=;|&{("
         completer.word_break_characters = " \t\n\"\\'`><=;|&{("
-        completer.special_prefixes = ''
         completer.quote_characters = '"\''
-        completer.char_is_quoted_function = None
-        self.quoted_quote_characters = {'"': '\\"', "'": "'\\''"}
         completer.filename_quote_characters = ' \t\n"\''
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
+        self.quoted = {'"': '\\"', "'": "'\\''"}
         self.update_keyspecs()
 
     def completenames(self, text, *ignored):
@@ -315,20 +324,12 @@ class GPGKeys(cmd.Cmd):
     def completefiles(self, text, *ignored):
         completion.filename_completion_desired = True
         completion.filename_quoting_desired = True
-        new = []
-        for i in range(100000):
-            f = completion.filename_completion_function(text, i)
-            if f is not None:
-                new.append(f)
-            else:
-                break
-        return new
+        return completion.filename_completion(text)
 
     def quote_filename(self, text, match_type, quote_char):
         if text:
             quote_char = quote_char or '"'
-            quoted_quote_char = self.quoted_quote_characters[quote_char]
-            text = text.replace(quote_char, quoted_quote_char)
+            text = text.replace(quote_char, self.quoted[quote_char])
             if match_type == completion.SINGLE_MATCH:
                 if not os.path.isdir(text):
                     text = text + quote_char
@@ -338,12 +339,11 @@ class GPGKeys(cmd.Cmd):
     def dequote_filename(self, text, quote_char):
         if text:
             quote_char = quote_char or '"'
-            quoted_quote_char = self.quoted_quote_characters[quote_char]
+            text = text.replace(self.quoted[quote_char], quote_char)
             if text[0] == quote_char:
                 text = text[1:]
             if text[-1] == quote_char:
                 text = text[:-1]
-            text = text.replace(quoted_quote_char, quote_char)
         return text
 
     def completekeys(self, text, keyids_only=False):
@@ -369,6 +369,7 @@ class GPGKeys(cmd.Cmd):
             keyid = keyid[8:]
             info = keyid, userid
             append('%s %s' % info, info)
+
         self.keyspecs = keyspecs
 
     def read_pubkeys(self):
@@ -450,7 +451,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         return self.completekeys(text)
 
-    def complete_lsec(self, text, *ignored):
+    def complete_le(self, text, *ignored):
         return self.complete_listsec(text)
 
     def complete_listsig(self, text, *ignored):
@@ -472,7 +473,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN + EXPERT
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text)
+        return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_e(self, text, *ignored):
         return self.complete_edit(text)
@@ -481,13 +482,13 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text)
+        return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_sign(self, text, *ignored):
         options = GLOBAL + KEY + SIGN
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text)
+        return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_del(self, text, *ignored):
         options = GLOBAL
@@ -515,7 +516,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + SERVER # + INPUT
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_send(self, text, *ignored):
         options = GLOBAL + SERVER
@@ -566,11 +567,11 @@ class GPGKeys(cmd.Cmd):
 
     # Help
 
-    shortcuts = {'ls':   'list',
-                 'll':   'listsig',
-                 'lsec': 'listsec',
-                 'e':    'edit',
-                 'q':    'quit'}
+    shortcuts = {'ls': 'list',
+                 'll': 'listsig',
+                 'le': 'listsec',
+                 'e':  'edit',
+                 'q':  'quit'}
 
     def expandshortcut(self, arg):
         if self.shortcuts.has_key(arg):

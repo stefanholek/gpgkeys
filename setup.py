@@ -13,16 +13,14 @@ if platform == 'darwin':
     if exists('/opt/local/include'):
         include_dirs += ['/opt/local/include']
         library_dirs += ['/opt/local/lib']
-    # Fink
-    if exists('/sw/local/include'):
-        include_dirs += ['/sw/local/include']
-        library_dirs += ['/sw/local/lib']
 
 
-readline = Extension('readline', [join('gpgkeys', 'readline.c')],
-    libraries=['readline', 'ncursesw'],
-    include_dirs=include_dirs,
-    library_dirs=library_dirs,
+completion = \
+Extension(name='_readline',
+          sources=[join('gpgkeys', '_readline.c')],
+          libraries=['readline', 'ncursesw'],
+          include_dirs=include_dirs,
+          library_dirs=library_dirs,
 )
 
 
@@ -44,7 +42,7 @@ setup(name='gpgkeys',
       zip_safe=False,
       test_suite='gpgkeys.tests',
       ext_modules=[
-          readline,
+          completion,
       ],
       install_requires=[
           'setuptools',

@@ -16,5 +16,6 @@ class CompleterTests(unittest.TestCase):
         os.chdir(dirname(__file__))
 
     def test_simple(self):
-        print self.cmd.completefiles('test_esc', 'fdump test_esc', 6, 13)
+        self.assertEqual(self.cmd.completefiles('test_esc', 'fdump test_esc', 6, 13),
+                         ['test_escape.py', 'test_escape.pyc'])
 
