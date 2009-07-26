@@ -13,6 +13,10 @@ if platform == 'darwin':
     if exists('/opt/local/include'):
         include_dirs += ['/opt/local/include']
         library_dirs += ['/opt/local/lib']
+    # Fink
+    if exists('/sw/local/include'):
+        include_dirs += ['/sw/local/include']
+        library_dirs += ['/sw/local/lib']
 
 
 completion = \

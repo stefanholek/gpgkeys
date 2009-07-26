@@ -44,15 +44,18 @@ class GPGKeys(cmd.Cmd):
 
     def __init__(self, completekey='tab', stdin=None, stdout=None, verbose=False):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
-        self._verbose = verbose
+        self.verbose = verbose
 
     def system(self, *args):
         command = ' '.join(args)
-        if self._verbose:
+        if self.verbose:
             self.stdout.write('>>> %s\n' % command)
-        process = subprocess.Popen(command, shell=True)
-        process.communicate()
-        return process.returncode
+        try:
+            process = subprocess.Popen(command, shell=True)
+            process.communicate()
+            return process.returncode
+        except KeyboardInterrupt:
+            return 1
 
     def getpwd(self, *args):
         dir = ' '.join(args)
@@ -76,11 +79,20 @@ class GPGKeys(cmd.Cmd):
 
     def chdir(self, *args):
         if args:
-            dir = self.getpwd(args[0])
+            dir = self.getpwd(args[0]) # XXX Use dequote here
             if dir:
                 os.chdir(dir)
         else:
             os.chdir(os.environ.get('HOME'))
+
+    def __getattr__(self, name):
+        # Automatically expand unique command prefixes.
+        # Thanks to Thomas Lotze.
+        if name.startswith(('do_', 'complete_', 'help_')):
+            matches = set(x for x in self.get_names() if x.startswith(name))
+            if len(matches) == 1:
+                return getattr(self, matches.pop())
+        raise AttributeError(name)
 
     # Commands
 
@@ -159,7 +171,7 @@ class GPGKeys(cmd.Cmd):
         args = split(args)
         self.gnupg('--list-secret-keys', *args)
 
-    def do_le(self, args):
+    def do_lx(self, args):
         return self.do_listsec(args)
 
     def do_listsig(self, args):
@@ -313,18 +325,23 @@ class GPGKeys(cmd.Cmd):
         self.quoted = {'"': '\\"', "'": "'\\''"}
         self.update_keyspecs()
 
-    def completenames(self, text, *ignored):
-        dotext = 'do_'+text
-        return [x[3:] for x in self.get_names() if x.startswith(dotext)]
-
     def completeoptions(self, text, options):
-        if not text: return [] # No "all matches" for options
         return [x for x in options if x.startswith(text)]
 
     def completefiles(self, text, *ignored):
         completion.filename_completion_desired = True
         completion.filename_quoting_desired = True
         return completion.filename_completion(text)
+
+    def completekeys(self, text, keyids_only=False):
+        keyid = text.upper()
+        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
+        if len(matches) == 1:
+            if keyids_only:
+                return [x[0] for x in self.keyspecs[matches[0]]]
+            else:
+                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
+        return matches
 
     def quote_filename(self, text, match_type, quote_char):
         if text:
@@ -346,30 +363,17 @@ class GPGKeys(cmd.Cmd):
                 text = text[:-1]
         return text
 
-    def completekeys(self, text, keyids_only=False):
-        key = text.upper()
-        new = [x for x in self.keyspecs.iterkeys() if x.startswith(key)]
-        if len(new) == 1:
-            if keyids_only:
-                return [x[0] for x in self.keyspecs[new[0]]]
-            else:
-                return ['%s "%s"' % x for x in self.keyspecs[new[0]]]
-        return new
-
     def update_keyspecs(self):
         keyspecs = {}
-
         def append(key, value):
             if key in keyspecs:
                 keyspecs[key].append(value)
             else:
                 keyspecs[key] = [value]
-
         for keyid, userid in self.read_pubkeys():
             keyid = keyid[8:]
             info = keyid, userid
             append('%s %s' % info, info)
-
         self.keyspecs = keyspecs
 
     def read_pubkeys(self):
@@ -395,7 +399,9 @@ class GPGKeys(cmd.Cmd):
 
     def complete_genkey(self, text, *ignored):
         options = GLOBAL + KEY + EXPERT
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return []
 
     def complete_genrevoke(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + OUTPUT
@@ -451,7 +457,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         return self.completekeys(text)
 
-    def complete_le(self, text, *ignored):
+    def complete_lx(self, text, *ignored):
         return self.complete_listsec(text)
 
     def complete_listsig(self, text, *ignored):
@@ -510,7 +516,9 @@ class GPGKeys(cmd.Cmd):
 
     def complete_search(self, text, *ignored):
         options = GLOBAL + SERVER
-        return self.completeoptions(text, options)
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_recv(self, text, *ignored):
         options = GLOBAL + SERVER # + INPUT
@@ -553,23 +561,11 @@ class GPGKeys(cmd.Cmd):
             return []
         return self.completefiles(text)
 
-    # History
-
-    def init_history(self):
-        histfile = os.path.expanduser('~/.gpgkeys_history')
-        length = 300
-        try:
-            readline.read_history_file(histfile)
-        except IOError:
-            pass
-        readline.set_history_length(length)
-        atexit.register(readline.write_history_file, histfile)
-
     # Help
 
     shortcuts = {'ls': 'list',
                  'll': 'listsig',
-                 'le': 'listsec',
+                 'lx': 'listsec',
                  'e':  'edit',
                  'q':  'quit'}
 
@@ -619,6 +615,18 @@ class GPGKeys(cmd.Cmd):
         else:
             cmd.Cmd.do_help(self, '')
 
+    # History
+
+    def init_history(self):
+        histfile = os.path.expanduser('~/.gpgkeys_history')
+        length = 300
+        try:
+            readline.read_history_file(histfile)
+        except IOError:
+            pass
+        readline.set_history_length(length)
+        atexit.register(readline.write_history_file, histfile)
+
 
 def main(args=None):
     verbose = False
@@ -632,7 +640,11 @@ def main(args=None):
     if args:
         c.onecmd(' '.join(args))
     else:
-        c.cmdloop()
+        try:
+            c.cmdloop()
+        except KeyboardInterrupt:
+            print
+            return 1
     return 0
 
 
