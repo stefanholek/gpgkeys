@@ -315,35 +315,63 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
+    @print_exc
     def init_completer(self):
-        self.gnureadline_default_delims = " \t\n\"\\'`@$><=;|&{("
-        completer.word_break_characters = " \t\n\"\\'`><=;|&{("
+        completer.word_break_characters = " \t\n\"\\'`><=;|&"
         completer.quote_characters = '"\''
+        completer.char_is_quoted_function = self.char_is_quoted
+
         completer.filename_quote_characters = ' \t\n"\''
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
-        self.quoted = {'"': '\\"', "'": "'\\''"}
+
+        completer.word_break_hook = self.word_break_hook
+        completer.directory_completion_hook = self.directory_completion_hook
+
+        completer.tilde_expansion = False
+        completer.match_hidden_files = False
+        completer.query_items = 100
+
+        self.tilde_expansion = True
+        self.quoted = {'"': '\\"', "'": "'\\''", '\\': '\\\\'}
+
         self.update_keyspecs()
+
+    def log(self, format, *args):
+        f = open('gpgkeys.log', 'at')
+        try:
+            f.write(format % args)
+            f.write('\n')
+        finally:
+            f.close()
 
     def completeoptions(self, text, options):
         return [x for x in options if x.startswith(text)]
 
     def completefiles(self, text, *ignored):
-        completion.filename_completion_desired = True
-        completion.filename_quoting_desired = True
-        return completion.filename_completion(text)
+        if text.startswith('~') and os.sep not in text:
+            return completion.complete_username(text)
+        return completion.complete_filename(text)
 
-    def completekeys(self, text, keyids_only=False):
-        keyid = text.upper()
-        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
-        if len(matches) == 1:
-            if keyids_only:
-                return [x[0] for x in self.keyspecs[matches[0]]]
-            else:
-                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
-        return matches
+    def word_break_hook(self):
+        self.log('word_break_hook %r', completion.line_buffer)
+        return None
+
+    def directory_completion_hook(self, directory):
+        self.log('directory_completion_hook %r', directory)
+        return None
+
+    def char_is_quoted(self, text, index):
+        self.log('char_is_quoted %r %d', text, index)
+        if index > 0:
+            if text[index-1] == '\\':
+                return True
+        return False
 
     def quote_filename(self, text, match_type, quote_char):
+        self.log('quote_filename %r %d %r', text, match_type, quote_char)
+        if self.tilde_expansion:
+            text = completion.expand_tilde(text)
         if text:
             quote_char = quote_char or '"'
             text = text.replace(quote_char, self.quoted[quote_char])
@@ -354,6 +382,7 @@ class GPGKeys(cmd.Cmd):
         return text
 
     def dequote_filename(self, text, quote_char):
+        self.log('dequote_filename %r %r', text, quote_char)
         if text:
             quote_char = quote_char or '"'
             text = text.replace(self.quoted[quote_char], quote_char)
@@ -362,6 +391,16 @@ class GPGKeys(cmd.Cmd):
             if text[-1] == quote_char:
                 text = text[:-1]
         return text
+
+    def completekeys(self, text, keyids_only=False):
+        keyid = text.upper()
+        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
+        if len(matches) == 1:
+            if keyids_only:
+                return [x[0] for x in self.keyspecs[matches[0]]]
+            else:
+                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
+        return matches
 
     def update_keyspecs(self):
         keyspecs = {}

@@ -4,7 +4,7 @@ import _readline as readline
 import sys
 import cmd as _cmd
 
-_MAXCOMPLETIONS = 100000 # Just in case
+_MAXMATCHES = 100000 # Just in case
 
 
 def print_exc(func):
@@ -61,6 +61,22 @@ class Completer(object):
         return property(get, set)
 
     @apply
+    def tilde_expansion():
+        def get(self):
+            return readline.get_complete_with_tilde_expansion()
+        def set(self, value):
+            readline.set_complete_with_tilde_expansion(value)
+        return property(get, set)
+
+    @apply
+    def match_hidden_files():
+        def get(self):
+            return readline.get_match_hidden_files()
+        def set(self, value):
+            readline.set_match_hidden_files(value)
+        return property(get, set)
+
+    @apply
     def query_items():
         def get(self):
             return readline.get_completion_query_items()
@@ -95,10 +111,8 @@ class Completer(object):
     @apply
     def word_break_hook():
         def get(self):
-            return None # XXX
             return readline.get_completion_word_break_hook()
         def set(self, function):
-            raise NotImplementedError # XXX
             readline.set_completion_word_break_hook(function)
         return property(get, set)
 
@@ -113,10 +127,8 @@ class Completer(object):
     @apply
     def directory_completion_hook():
         def get(self):
-            return None # XXX
             return readline.get_directory_completion_hook()
         def set(self, function):
-            raise NotImplementedError # XXX
             readline.set_directory_completion_hook(function)
         return property(get, set)
 
@@ -144,16 +156,6 @@ class Completer(object):
             readline.set_filename_dequoting_function(function)
         return property(get, set)
 
-    @apply
-    def filename_filter_function(): # XXX: Candidate for removal
-        def get(self):
-            return None # XXX
-            return readline.get_ignore_some_completions_function()
-        def set(self, function):
-            raise NotImplementedError # XXX
-            readline.set_ignore_some_completions_function(function)
-        return property(get, set)
-
     # Configuration
 
     def read_init_file(self, filename):
@@ -171,6 +173,8 @@ word_break_characters:          %r
 special_prefixes:               %r
 quote_characters:               %r
 filename_quote_characters:      %r
+tilde_expansion:                   %s
+match_hidden_files:             %s
 query_items:                    %d
 completer:                      %r
 startup_hook:                   %r
@@ -181,12 +185,13 @@ directory_completion_hook:      %r
 char_is_quoted_function:        %r
 filename_quoting_function:      %r
 filename_dequoting_function:    %r
-filename_filter_function:       %r
 """ % (
 completer.word_break_characters,
 completer.special_prefixes,
 completer.quote_characters,
 completer.filename_quote_characters,
+completer.tilde_expansion,
+completer.match_hidden_files,
 completer.query_items,
 completer.completer,
 completer.startup_hook,
@@ -197,7 +202,6 @@ completer.directory_completion_hook,
 completer.char_is_quoted_function,
 completer.filename_quoting_function,
 completer.filename_dequoting_function,
-completer.filename_filter_function,
 ))
 
 completer = Completer()
@@ -323,36 +327,39 @@ class Completion(object):
     def insert_text(self, text):
         return readline.insert_text(text)
 
+    def rubout_text(self, numchars=1):
+        return readline.rubout_text(numchars)
+
     def redisplay(self):
         return readline.redisplay()
 
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
+
     # Stock completions
 
-    def filename_completion_function(self, text, state):
-        return readline.filename_completion_function(text, state)
-
-    def username_completion_function(self, text, state):
-        return readline.username_completion_function(text, state)
-
-    def filename_completion(self, text):
+    def complete_filename(self, text):
         new = []
-        for i in range(_MAXCOMPLETIONS):
-            f = self.filename_completion_function(text, i)
+        for i in range(_MAXMATCHES):
+            f = readline.filename_completion_function(text, i)
             if f is not None:
                 new.append(f)
             else:
                 break
         return new
 
-    def username_completion(self, text):
+    def complete_username(self, text):
         new = []
-        for i in range(_MAXCOMPLETIONS):
-            f = self.username_completion_function(text, i)
+        for i in range(_MAXMATCHES):
+            f = readline.username_completion_function(text, i)
             if f is not None:
                 new.append(f)
             else:
                 break
         return new
+
+    def expand_tilde(self, text):
+        return readline.tilde_expand(text)
 
     # Debugging
 

@@ -1242,6 +1242,26 @@ PyDoc_STRVAR(doc_username_completion_function,
 A generator function for username completion.");
 
 
+static PyObject *
+py_tilde_expand(PyObject *self, PyObject *args)
+{
+	char *value;
+        char *expanded;
+
+	if (!PyArg_ParseTuple(args, "s:tilde_expand", &value)) {
+		return NULL;
+	}
+	expanded = tilde_expand(value);
+	if (expanded)
+		return PyString_FromString(expanded);
+        Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_tilde_expand,
+"tilde_expand(string) -> string\n\
+Return a new string which is the result of tilde expanding string.");
+
+
 /* Special prefixes */
 
 static PyObject *
@@ -1255,7 +1275,7 @@ get_special_prefixes(PyObject *self, PyObject *noarg)
 
 PyDoc_STRVAR(doc_get_special_prefixes,
 "get_special_prefixes() -> string\n\
-Get list of characters that are word break characters, but should be left in text \
+List of characters that are word break characters, but should be left in text \
 when it is passed to the completion function.");
 
 
@@ -1275,7 +1295,7 @@ set_special_prefixes(PyObject *self, PyObject *args)
 
 PyDoc_STRVAR(doc_set_special_prefixes,
 "set_special_prefixes(string) -> None\n\
-Set list of characters that are word break characters, but should be left in text \
+List of characters that are word break characters, but should be left in text \
 when it is passed to the completion function.");
 
 
@@ -1322,7 +1342,7 @@ PyDoc_STRVAR(doc_get_completion_invoking_key,
 The final character in the key sequence that invoked the completion function.");
 
 
-/* Missing API */
+/* Missing APIs */
 
 static PyObject *
 get_completion_display_matches_hook(PyObject *self, PyObject *noargs)
@@ -1367,6 +1387,265 @@ get_pre_input_hook(PyObject *self, PyObject *noargs)
 PyDoc_STRVAR(doc_get_pre_input_hook,
 "get_pre_input_hook() -> function\n\
 Get the current pre_input_hook function.");
+
+
+/* Word-break hook */
+
+static PyObject *completion_word_break_hook = NULL;
+
+char *
+on_completion_word_break_hook(void);
+
+static PyObject *
+set_completion_word_break_hook(PyObject *self, PyObject *args)
+{
+	PyObject *result = set_hook("completion_word_break_hook",
+			&completion_word_break_hook, args);
+
+	rl_completion_word_break_hook =
+		completion_word_break_hook ?
+		(rl_cpvfunc_t *)on_completion_word_break_hook : 0;
+
+	return result;
+}
+
+PyDoc_STRVAR(doc_set_completion_word_break_hook,
+"set_completion_word_break_hook([function]) -> None\n\
+A function to call when readline is deciding where to separate words for word completion.\n\
+The function is called as\n\
+  function().");
+
+
+static PyObject *
+get_completion_word_break_hook(PyObject *self, PyObject *noargs)
+{
+	if (completion_word_break_hook == NULL) {
+		Py_RETURN_NONE;
+	}
+	Py_INCREF(completion_word_break_hook);
+	return completion_word_break_hook;
+}
+
+PyDoc_STRVAR(doc_get_completion_word_break_hook,
+"get_completion_word_break_hook() -> function\n\
+A function to call when readline is deciding where to separate words for word completion.");
+
+
+char *
+on_completion_word_break_hook(void)
+{
+	char *result = NULL;
+	PyObject *r;
+
+#ifdef WITH_THREAD
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
+        r = PyObject_CallFunction(completion_word_break_hook, NULL);
+        if (r == NULL)
+                goto error;
+        if (r == Py_None) {
+                result = NULL;
+        }
+        else {
+                char *s = PyString_AsString(r);
+                if (s == NULL)
+                        goto error;
+                result = strdup(s);
+        }
+        Py_DECREF(r);
+        goto done;
+  error:
+        PyErr_Clear();
+        Py_XDECREF(r);
+  done:
+#ifdef WITH_THREAD
+	PyGILState_Release(gilstate);
+#endif
+	return result;
+}
+
+
+/* Directory completion hook */
+
+static PyObject *directory_completion_hook = NULL;
+
+int
+on_directory_completion_hook(char **directory);
+
+static PyObject *
+set_directory_completion_hook(PyObject *self, PyObject *args)
+{
+	PyObject *result = set_hook("directory_completion_hook",
+			&directory_completion_hook, args);
+
+	rl_directory_completion_hook =
+		directory_completion_hook ?
+		(rl_icppfunc_t *)on_directory_completion_hook : 0;
+
+	return result;
+}
+
+PyDoc_STRVAR(doc_set_directory_completion_hook,
+"set_directory_completion_hook([function]) -> None\n\
+This function is allowed to modify the directory portion of filenames readline completes.\n\
+The function is called as\n\
+  function(string).");
+
+
+static PyObject *
+get_directory_completion_hook(PyObject *self, PyObject *noargs)
+{
+	if (directory_completion_hook == NULL) {
+		Py_RETURN_NONE;
+	}
+	Py_INCREF(directory_completion_hook);
+	return directory_completion_hook;
+}
+
+PyDoc_STRVAR(doc_get_directory_completion_hook,
+"get_directory_completion_hook() -> function\n\
+This function is allowed to modify the directory portion of filenames readline completes.");
+
+
+int
+on_directory_completion_hook(char **directory)
+{
+	int result = 0;
+	PyObject *r;
+
+#ifdef WITH_THREAD
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
+        r = PyObject_CallFunction(directory_completion_hook, "s", *directory);
+        if (r == NULL)
+                goto error;
+        if (r == Py_None) {
+                result = 0;
+        }
+        else {
+                char *s = PyString_AsString(r);
+                if (s == NULL)
+                        goto error;
+                free(*directory);
+                *directory = strdup(s);
+                result = 1;
+        }
+        Py_DECREF(r);
+        goto done;
+  error:
+        PyErr_Clear();
+        Py_XDECREF(r);
+  done:
+#ifdef WITH_THREAD
+	PyGILState_Release(gilstate);
+#endif
+	return result;
+}
+
+
+/* Text removal */
+
+static PyObject *
+rubout_text(PyObject *self, PyObject *args)
+{
+	int n = 0, d = 0;
+	if (!PyArg_ParseTuple(args, "i:rubout_text", &n))
+		return NULL;
+        if (n < 0)
+            n = 0;
+        if (n > rl_point)
+            n = rl_point;
+	d = rl_delete_text(rl_point-n, rl_point);
+        rl_point = rl_point - d;
+	return PyInt_FromLong(d);
+}
+
+PyDoc_STRVAR(doc_rubout_text,
+"rubout_text(numchars) -> int\n\
+Delete characters before the current cursor position.");
+
+
+static PyObject *
+stuff_char(PyObject *self, PyObject *args)
+{
+	char *value;
+        int r = 0;
+
+	if (!PyArg_ParseTuple(args, "s:stuff_char", &value)) {
+	        return NULL;
+	}
+	if (value && *value)
+                r = rl_stuff_char(*value);
+	return PyBool_FromLong(r);
+}
+
+PyDoc_STRVAR(doc_stuff_char,
+"stuff_char(string) -> bool\n\
+Insert a character into readline's input stream.");
+
+
+/* Tilde expansion */
+
+extern int rl_complete_with_tilde_expansion;
+
+static PyObject *
+get_complete_with_tilde_expansion(PyObject *self, PyObject *noarg)
+{
+	return PyBool_FromLong(rl_complete_with_tilde_expansion);
+}
+
+PyDoc_STRVAR(doc_get_complete_with_tilde_expansion,
+"get_complete_with_tilde_expansion() -> bool\n\
+If True, readline completion functions perform tilde expansion.");
+
+
+static PyObject *
+set_complete_with_tilde_expansion(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_complete_with_tilde_expansion", &value)) {
+		return NULL;
+	}
+	rl_complete_with_tilde_expansion = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_complete_with_tilde_expansion,
+"set_complete_with_tilde_expansion(bool) -> None\n\
+If True, readline completion functions perform tilde expansion.");
+
+
+/* Hidden files */
+
+extern int _rl_match_hidden_files;
+
+static PyObject *
+get_match_hidden_files(PyObject *self, PyObject *noarg)
+{
+	return PyBool_FromLong(_rl_match_hidden_files);
+}
+
+PyDoc_STRVAR(doc_get_match_hidden_files,
+"get_match_hidden_files() -> bool\n\
+If True, include hidden files when computing the list of matches.");
+
+
+static PyObject *
+set_match_hidden_files(PyObject *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i:set_match_hidden_files", &value)) {
+		return NULL;
+	}
+	_rl_match_hidden_files = value ? 1 : 0;
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_match_hidden_files,
+"set_match_hidden_files(bool) -> None\n\
+If True, include hidden files when computing the list of matches.");
 
 
 /* </_readline.c> */
@@ -1507,6 +1786,25 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_inhibit_completion},
 	{"set_inhibit_completion", set_inhibit_completion,
 	 METH_VARARGS, doc_set_inhibit_completion},
+	{"get_completion_word_break_hook", get_completion_word_break_hook,
+	 METH_NOARGS, doc_get_completion_word_break_hook},
+	{"set_completion_word_break_hook", set_completion_word_break_hook,
+	 METH_VARARGS, doc_set_completion_word_break_hook},
+	{"get_directory_completion_hook", get_directory_completion_hook,
+	 METH_NOARGS, doc_get_directory_completion_hook},
+	{"set_directory_completion_hook", set_directory_completion_hook,
+	 METH_VARARGS, doc_set_directory_completion_hook},
+	{"rubout_text", rubout_text, METH_VARARGS, doc_rubout_text},
+	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
+	{"get_complete_with_tilde_expansion", get_complete_with_tilde_expansion,
+	 METH_NOARGS, doc_get_complete_with_tilde_expansion},
+	{"set_complete_with_tilde_expansion", set_complete_with_tilde_expansion,
+	 METH_VARARGS, doc_set_complete_with_tilde_expansion},
+	{"get_match_hidden_files", get_match_hidden_files,
+	 METH_NOARGS, doc_get_match_hidden_files},
+	{"set_match_hidden_files", set_match_hidden_files,
+	 METH_VARARGS, doc_set_match_hidden_files},
+	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
          /* </_readline.c> */
 
 	{0, 0}
