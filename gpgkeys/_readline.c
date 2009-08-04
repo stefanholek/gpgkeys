@@ -970,7 +970,7 @@ May only be called from within custom completers.");
 static PyObject *filename_quoting_function = NULL;
 
 static char *
-on_filename_quoting_function(const char *text, int match_type, const char *quote_pointer);
+on_filename_quoting_function(const char *text, int match_type, char *quote_pointer);
 
 static PyObject *
 set_filename_quoting_function(PyObject *self, PyObject *args)
@@ -980,7 +980,7 @@ set_filename_quoting_function(PyObject *self, PyObject *args)
 
 	rl_filename_quoting_function =
 		filename_quoting_function ?
-		(rl_quote_func_t *)on_filename_quoting_function : 0;
+		(rl_quote_func_t *)on_filename_quoting_function : NULL;
 
 	return result;
 }
@@ -1008,7 +1008,9 @@ Get the current filename quoting function.");
 
 
 static char *
-on_filename_quoting_function(const char *text, int match_type, const char *quote_pointer)
+on_filename_quoting_function(const char *text, int match_type, char *quote_pointer)
+/* This function must always return newly allocated memory,
+   which means at least a copy of 'text', and never NULL. */
 {
 	char *result = NULL;
         char quote_char_string[2] = "\0\0";
@@ -1022,15 +1024,19 @@ on_filename_quoting_function(const char *text, int match_type, const char *quote
         }
 
         r = PyObject_CallFunction(filename_quoting_function, "sis", text, match_type, quote_char_string);
-        if (r == NULL)
+        if (r == NULL) {
+                result = strdup(text);
                 goto error;
+        }
         if (r == Py_None) {
-                result = NULL;
+                result = strdup(text);
         }
         else {
                 char *s = PyString_AsString(r);
-                if (s == NULL)
+                if (s == NULL) {
+                        result = strdup(text);
                         goto error;
+                }
                 result = strdup(s);
         }
         Py_DECREF(r);
@@ -1059,7 +1065,7 @@ set_filename_dequoting_function(PyObject *self, PyObject *args)
 
 	rl_filename_dequoting_function =
 		filename_dequoting_function ?
-		(rl_dequote_func_t *)on_filename_dequoting_function : 0;
+		(rl_dequote_func_t *)on_filename_dequoting_function : NULL;
 
 	return result;
 }
@@ -1088,6 +1094,8 @@ Get the current filename dequoting function.");
 
 static char *
 on_filename_dequoting_function(const char *text, char quote_char)
+/* This function must always return newly allocated memory,
+   which means at least a copy of 'text', and never NULL. */
 {
 	char *result = NULL;
         char quote_char_string[2] = "\0\0";
@@ -1101,15 +1109,19 @@ on_filename_dequoting_function(const char *text, char quote_char)
         }
 
         r = PyObject_CallFunction(filename_dequoting_function, "ss", text, quote_char_string);
-        if (r == NULL)
+        if (r == NULL) {
+                result = strdup(text);
                 goto error;
+        }
         if (r == Py_None) {
-                result = NULL;
+                result = strdup(text);
         }
         else {
                 char *s = PyString_AsString(r);
-                if (s == NULL)
+                if (s == NULL) {
+                        result = strdup(text);
                         goto error;
+                }
                 result = strdup(s);
         }
         Py_DECREF(r);
@@ -1138,7 +1150,7 @@ set_char_is_quoted_function(PyObject *self, PyObject *args)
 
 	rl_char_is_quoted_p =
 		char_is_quoted_function ?
-		(rl_linebuf_func_t *)on_char_is_quoted_function : 0;
+		(rl_linebuf_func_t *)on_char_is_quoted_function : NULL;
 
 	return result;
 }
@@ -1389,6 +1401,39 @@ PyDoc_STRVAR(doc_get_pre_input_hook,
 Get the current pre_input_hook function.");
 
 
+static PyObject *
+get_rl_point(PyObject *self, PyObject *noarg)
+{
+       return PyInt_FromLong(rl_point);
+}
+
+PyDoc_STRVAR(doc_get_rl_point,
+"get_rl_point() -> int\n\
+Return the point.");
+
+
+static PyObject *
+get_rl_mark(PyObject *self, PyObject *noarg)
+{
+       return PyInt_FromLong(rl_mark);
+}
+
+PyDoc_STRVAR(doc_get_rl_mark,
+"get_rl_mark() -> int\n\
+Return the mark.");
+
+
+static PyObject *
+get_rl_end(PyObject *self, PyObject *noarg)
+{
+       return PyInt_FromLong(rl_end);
+}
+
+PyDoc_STRVAR(doc_get_rl_end,
+"get_rl_end() -> int\n\
+Return the end.");
+
+
 /* Word-break hook */
 
 static PyObject *completion_word_break_hook = NULL;
@@ -1404,7 +1449,7 @@ set_completion_word_break_hook(PyObject *self, PyObject *args)
 
 	rl_completion_word_break_hook =
 		completion_word_break_hook ?
-		(rl_cpvfunc_t *)on_completion_word_break_hook : 0;
+		(rl_cpvfunc_t *)on_completion_word_break_hook : NULL;
 
 	return result;
 }
@@ -1480,7 +1525,7 @@ set_directory_completion_hook(PyObject *self, PyObject *args)
 
 	rl_directory_completion_hook =
 		directory_completion_hook ?
-		(rl_icppfunc_t *)on_directory_completion_hook : 0;
+		(rl_icppfunc_t *)on_directory_completion_hook : NULL;
 
 	return result;
 }
@@ -1551,18 +1596,22 @@ rubout_text(PyObject *self, PyObject *args)
 	int n = 0, d = 0;
 	if (!PyArg_ParseTuple(args, "i:rubout_text", &n))
 		return NULL;
+
         if (n < 0)
-            n = 0;
-        if (n > rl_point)
-            n = rl_point;
-	d = rl_delete_text(rl_point-n, rl_point);
-        rl_point = rl_point - d;
+                n = 0;
+        if (n > rl_end)
+                n = rl_end;
+
+        d = rl_delete_text(rl_end-n, rl_end);
+        if (rl_point > rl_end)
+                rl_point = rl_end;
+
 	return PyInt_FromLong(d);
 }
 
 PyDoc_STRVAR(doc_rubout_text,
 "rubout_text(numchars) -> int\n\
-Delete characters before the current cursor position.");
+Delete characters from the end of the line buffer.");
 
 
 static PyObject *
@@ -1805,7 +1854,10 @@ static struct PyMethodDef readline_methods[] =
 	{"set_match_hidden_files", set_match_hidden_files,
 	 METH_VARARGS, doc_set_match_hidden_files},
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
-         /* </_readline.c> */
+        {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
+        {"get_rl_mark", get_rl_mark, METH_NOARGS, doc_get_rl_mark},
+        {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
+        /* </_readline.c> */
 
 	{0, 0}
 };
