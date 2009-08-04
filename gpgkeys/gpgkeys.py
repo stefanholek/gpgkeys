@@ -70,46 +70,14 @@ class GPGKeys(cmd.Cmd):
 
     def chdir(self, *args):
         if args:
-            dir = self.dequotefile(args[0])
+            dir = self.dequotefile(args[0]) # XXX Use unescape here
             if dir:
                 os.chdir(dir)
         else:
-            os.chdir(os.path.expanduser('~/'))
-
-    def splitpipe(self, *args):
-        # Splits args tuple at first '|' or '>' or '>>'
-        pipe = ()
-        for i in range(len(args)):
-            a = args[i]
-            if a and (a[0] == '|' or a[0] == '>'):
-                pipe = args[i:]
-                args = args[:i]
-                break
-        return args, pipe
-
-    def parseline(self, line):
-        # Makes '.' work as shell escape character
-        # Makes '#' work as comment character
-        line = line.strip()
-        if not line:
-            return None, None, line
-        elif line[0] == '?':
-            line = 'help ' + line[1:]
-        elif line[0] == '!' or line[0] == '.':    # allow '.'
-            if hasattr(self, 'do_shell'):
-                line = 'shell ' + line[1:]
-            else:
-                return None, None, line
-        elif line[0] == '#':        # allow comments
-            line = ''
-        i, n = 0, len(line)
-        while i < n and line[i] in self.identchars:
-            i = i+1
-        cmd, arg = line[:i], line[i:].strip()
-        return cmd, arg, line
+            os.chdir(os.environ.get('HOME'))
 
     def __getattr__(self, name):
-        # Automatically expands unique command prefixes
+        # Automatically expand unique command prefixes
         # Thanks to Thomas Lotze
         if name.startswith(('do_', 'complete_', 'help_')):
             matches = set(x for x in self.get_names() if x.startswith(name))
@@ -123,6 +91,38 @@ class GPGKeys(cmd.Cmd):
         cmd.Cmd.preloop(self)
         self.init_completer()
         self.init_history()
+
+    def parseline(self, line):
+        # Makes '.' work as shell escape character
+        # Makes '#' work as comment character
+        line = line.strip()
+        if not line:
+            return None, None, line
+        elif line[0] == '?':
+            line = 'help ' + line[1:]
+        elif line[0] == '!' or line[0] == '.': # Allow '.'
+            if hasattr(self, 'do_shell'):
+                line = 'shell ' + line[1:]
+            else:
+                return None, None, line
+        elif line[0] == '#': # Allow comments
+            line = ''
+        i, n = 0, len(line)
+        while i < n and line[i] in self.identchars:
+            i = i+1
+        cmd, arg = line[:i], line[i:].strip()
+        return cmd, arg, line
+
+    def splitpipe(self, *args):
+        # Splits args tuple at first '|' or '>' or '>>'
+        pipe = ()
+        for i in range(len(args)):
+            a = args[i]
+            if a and (a[0] == '|' or a[0] == '>'):
+                pipe = args[i:]
+                args = args[:i]
+                break
+        return args, pipe
 
     def emptyline(self):
         pass
@@ -268,6 +268,11 @@ class GPGKeys(cmd.Cmd):
         args = split(args)
         self.gnupg('--refresh-keys', *args)
 
+    def do_fetch(self, args):
+        """Fetch keys from a URL (Usage: fetch <url>)"""
+        args = split(args)
+        self.gnupg('--fetch-keys', *args)
+
     def do_dump(self, args):
         """Dump packet sequence of a public key (Usage: dump <keyspec>)"""
         args, pipe = self.splitpipe(*split(args))
@@ -303,6 +308,10 @@ class GPGKeys(cmd.Cmd):
         else:
             self.system(os.environ.get('SHELL'))
         self.updatekeys()
+
+    def do_version(self, args):
+        """Show the GnuPG version (Usage: version)"""
+        self.gnupg('--version')
 
     # Completions
 
@@ -452,7 +461,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys(text, keyids_only=True) # XXX
 
     def complete_recv(self, text, *ignored):
-        options = GLOBAL + SERVER # + INPUT
+        options = GLOBAL + SERVER + INPUT
         if text.startswith('-'):
             return self.completeoptions(text, options)
         return self.completekeys(text, keyids_only=True) # XXX
@@ -468,6 +477,12 @@ class GPGKeys(cmd.Cmd):
         if text.startswith('-'):
             return self.completeoptions(text, options)
         return self.completekeys(text)
+
+    def complete_fetch(self, text, *ignored):
+        options = GLOBAL + INPUT
+        if text.startswith('-'):
+            return self.completeoptions(text, options)
+        return []
 
     def complete_dump(self, text, *ignored):
         options = GLOBAL
