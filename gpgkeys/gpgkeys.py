@@ -12,12 +12,12 @@ import readline
 import atexit
 import subprocess
 
+from datetime import datetime
 from escape import split
 
-from completion import completer
-from completion import completion
 from completion import cmd
-from completion import print_exc
+from completion import FileCompletion
+
 
 gnupg_exe = 'gpg'
 
@@ -45,6 +45,7 @@ class GPGKeys(cmd.Cmd):
     def __init__(self, completekey='tab', stdin=None, stdout=None, verbose=False):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         self.verbose = verbose
+        os.umask(UMASK)
 
     def system(self, *args):
         command = ' '.join(args)
@@ -56,16 +57,6 @@ class GPGKeys(cmd.Cmd):
             return process.returncode
         except KeyboardInterrupt:
             return 1
-
-    def getpwd(self, *args):
-        dir = ' '.join(args)
-        process = subprocess.Popen('cd %s; pwd' % dir,
-            shell=True, stdout=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        if process.returncode == 0:
-            for line in stdout.rstrip().split('\n'):
-                return line
-        return ''
 
     def gnupg(self, *args):
         return self.system(gnupg_exe, *args)
@@ -79,15 +70,47 @@ class GPGKeys(cmd.Cmd):
 
     def chdir(self, *args):
         if args:
-            dir = self.getpwd(args[0]) # XXX Use dequote here
+            dir = self.dequotefile(args[0])
             if dir:
                 os.chdir(dir)
         else:
-            os.chdir(os.environ.get('HOME'))
+            os.chdir(os.path.expanduser('~/'))
+
+    def splitpipe(self, *args):
+        # Splits args tuple at first '|' or '>' or '>>'
+        pipe = ()
+        for i in range(len(args)):
+            a = args[i]
+            if a and (a[0] == '|' or a[0] == '>'):
+                pipe = args[i:]
+                args = args[:i]
+                break
+        return args, pipe
+
+    def parseline(self, line):
+        # Makes '.' work as shell escape character
+        # Makes '#' work as comment character
+        line = line.strip()
+        if not line:
+            return None, None, line
+        elif line[0] == '?':
+            line = 'help ' + line[1:]
+        elif line[0] == '!' or line[0] == '.':    # allow '.'
+            if hasattr(self, 'do_shell'):
+                line = 'shell ' + line[1:]
+            else:
+                return None, None, line
+        elif line[0] == '#':        # allow comments
+            line = ''
+        i, n = 0, len(line)
+        while i < n and line[i] in self.identchars:
+            i = i+1
+        cmd, arg = line[:i], line[i:].strip()
+        return cmd, arg, line
 
     def __getattr__(self, name):
-        # Automatically expand unique command prefixes.
-        # Thanks to Thomas Lotze.
+        # Automatically expands unique command prefixes
+        # Thanks to Thomas Lotze
         if name.startswith(('do_', 'complete_', 'help_')):
             matches = set(x for x in self.get_names() if x.startswith(name))
             if len(matches) == 1:
@@ -98,14 +121,14 @@ class GPGKeys(cmd.Cmd):
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        os.umask(UMASK)
-        self.init_history()
         self.init_completer()
+        self.init_history()
 
     def emptyline(self):
         pass
 
     def default(self, args):
+        # Pass on to GnuPG as is
         args = split(args)
         self.gnupg(*args)
 
@@ -116,7 +139,7 @@ class GPGKeys(cmd.Cmd):
 
     def do_quit(self, args):
         """End the session (Usage: quit)"""
-        return True # Break the loop
+        return True # Break the cmd loop
 
     def do_q(self, args):
         return self.do_quit(args)
@@ -129,7 +152,7 @@ class GPGKeys(cmd.Cmd):
         """Generate a new key pair (Usage: genkey)"""
         args = split(args)
         self.gnupg('--gen-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
@@ -140,13 +163,13 @@ class GPGKeys(cmd.Cmd):
         """Import public keys from a file (Usage: import <filename>)"""
         args = split(args)
         self.gnupg('--import', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_importsec(self, args):
         """Import secret and public keys from a file (Usage: importsec <filename>)"""
         args = split(args)
         self.gnupg('--import --allow-secret-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_export(self, args):
         """Export public keys to stdout or to a file (Usage: export <keyspec>)"""
@@ -191,7 +214,7 @@ class GPGKeys(cmd.Cmd):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
         args = split(args)
         self.gnupg('--edit-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_e(self, args):
         return self.do_edit(args)
@@ -210,19 +233,19 @@ class GPGKeys(cmd.Cmd):
         """Delete a public key (Usage: del <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_delsec(self, args):
         """Delete a secret key (Usage: delsec <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_delsecpub(self, args):
         """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-and-public-key', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_search(self, args):
         """Search for keys on the keyserver (Usage: search <keyspec>)"""
@@ -233,7 +256,7 @@ class GPGKeys(cmd.Cmd):
         """Fetch keys from the keyserver (Usage: recv <keyids>)"""
         args = split(args)
         self.gnupg('--recv-keys', *args)
-        self.update_keyspecs()
+        self.updatekeys()
 
     def do_send(self, args):
         """Send keys to the keyserver (Usage: send <keyspec>)"""
@@ -279,152 +302,21 @@ class GPGKeys(cmd.Cmd):
                 self.system(*args)
         else:
             self.system(os.environ.get('SHELL'))
-        self.update_keyspecs()
-
-    def parseline(self, line):
-        # Makes . work as shell escape character
-        # Makes # work for comments
-        line = line.strip()
-        if not line:
-            return None, None, line
-        elif line[0] == '?':
-            line = 'help ' + line[1:]
-        elif line[0] == '!' or line[0] == '.':    # allow '.'
-            if hasattr(self, 'do_shell'):
-                line = 'shell ' + line[1:]
-            else:
-                return None, None, line
-        elif line[0] == '#':        # allow comments
-            line = ''
-        i, n = 0, len(line)
-        while i < n and line[i] in self.identchars:
-            i = i+1
-        cmd, arg = line[:i], line[i:].strip()
-        return cmd, arg, line
-
-    def splitpipe(self, *args):
-        # Splits args tuple at first '|' or '>' or '>>'
-        pipe = ()
-        for i in range(len(args)):
-            a = args[i]
-            if a and (a[0] == '|' or a[0] == '>'):
-                pipe = args[i:]
-                args = args[:i]
-                break
-        return args, pipe
+        self.updatekeys()
 
     # Completions
 
-    @print_exc
     def init_completer(self):
-        completer.word_break_characters = " \t\n\"\\'`><=;|&"
-        completer.quote_characters = '"\''
-        completer.char_is_quoted_function = self.char_is_quoted
+        self.file_completion = FileCompletion()
+        self.completefiles = self.file_completion.complete
+        self.dequotefile = self.file_completion.dequote_filename
 
-        completer.filename_quote_characters = ' \t\n"\''
-        completer.filename_quoting_function = self.quote_filename
-        completer.filename_dequoting_function = self.dequote_filename
-
-        completer.word_break_hook = self.word_break_hook
-        completer.directory_completion_hook = self.directory_completion_hook
-
-        completer.tilde_expansion = False
-        completer.match_hidden_files = False
-        completer.query_items = 100
-
-        self.tilde_expansion = True
-        self.quoted = {'"': '\\"', "'": "'\\''", '\\': '\\\\'}
-
-        self.update_keyspecs()
-
-    def log(self, format, *args):
-        f = open('gpgkeys.log', 'at')
-        try:
-            f.write(format % args)
-            f.write('\n')
-        finally:
-            f.close()
+        self.key_completion = KeyCompletion()
+        self.completekeys = self.key_completion.complete
+        self.updatekeys = self.key_completion.update_keys
 
     def completeoptions(self, text, options):
         return [x for x in options if x.startswith(text)]
-
-    def completefiles(self, text, *ignored):
-        if text.startswith('~') and os.sep not in text:
-            return completion.complete_username(text)
-        return completion.complete_filename(text)
-
-    def word_break_hook(self):
-        self.log('word_break_hook %r', completion.line_buffer)
-        return None
-
-    def directory_completion_hook(self, directory):
-        self.log('directory_completion_hook %r', directory)
-        return None
-
-    def char_is_quoted(self, text, index):
-        self.log('char_is_quoted %r %d', text, index)
-        if index > 0:
-            if text[index-1] == '\\':
-                return True
-        return False
-
-    def quote_filename(self, text, match_type, quote_char):
-        self.log('quote_filename %r %d %r', text, match_type, quote_char)
-        if self.tilde_expansion:
-            text = completion.expand_tilde(text)
-        if text:
-            quote_char = quote_char or '"'
-            text = text.replace(quote_char, self.quoted[quote_char])
-            if match_type == completion.SINGLE_MATCH:
-                if not os.path.isdir(text):
-                    text = text + quote_char
-            text = quote_char + text
-        return text
-
-    def dequote_filename(self, text, quote_char):
-        self.log('dequote_filename %r %r', text, quote_char)
-        if text:
-            quote_char = quote_char or '"'
-            text = text.replace(self.quoted[quote_char], quote_char)
-            if text[0] == quote_char:
-                text = text[1:]
-            if text[-1] == quote_char:
-                text = text[:-1]
-        return text
-
-    def completekeys(self, text, keyids_only=False):
-        keyid = text.upper()
-        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
-        if len(matches) == 1:
-            if keyids_only:
-                return [x[0] for x in self.keyspecs[matches[0]]]
-            else:
-                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
-        return matches
-
-    def update_keyspecs(self):
-        keyspecs = {}
-        def append(key, value):
-            if key in keyspecs:
-                keyspecs[key].append(value)
-            else:
-                keyspecs[key] = [value]
-        for keyid, userid in self.read_pubkeys():
-            keyid = keyid[8:]
-            info = keyid, userid
-            append('%s %s' % info, info)
-        self.keyspecs = keyspecs
-
-    def read_pubkeys(self):
-        process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        for line in stdout.rstrip().split('\n'):
-            if line[:3] == 'pub':
-                fields = line.split(':')
-                keyid = fields[4]
-                userid = fields[9]
-                yield (keyid, userid)
 
     def follows(self, text, line, begidx):
         text = text + ' '
@@ -665,6 +557,48 @@ class GPGKeys(cmd.Cmd):
             pass
         readline.set_history_length(length)
         atexit.register(readline.write_history_file, histfile)
+
+
+class KeyCompletion(object):
+    """Perform key id completion
+    """
+
+    def __init__(self):
+        self.update_keys()
+
+    def complete(self, text, keyids_only=False):
+        keyid = text.upper()
+        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
+        if len(matches) == 1:
+            if keyids_only:
+                return [x[0] for x in self.keyspecs[matches[0]]]
+            else:
+                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
+        return matches
+
+    def update_keys(self):
+        keyspecs = {}
+        def append(key, value):
+            if key in keyspecs:
+                keyspecs[key].append(value)
+            else:
+                keyspecs[key] = [value]
+        for keyid, userid in self.read_pubkeys():
+            keyid = keyid[8:]
+            info = keyid, userid
+            append('%s %s' % info, info)
+        self.keyspecs = keyspecs
+
+    def read_pubkeys(self):
+        process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        for line in stdout.rstrip().split('\n'):
+            if line[:3] == 'pub':
+                fields = line.split(':')
+                keyid = fields[4]
+                userid = fields[9]
+                yield (keyid, userid)
 
 
 def main(args=None):

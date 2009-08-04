@@ -1,8 +1,12 @@
 import readline # [sic]
 import _readline as readline
 
+import os
 import sys
 import cmd as _cmd
+
+from datetime import datetime
+from pprint import pprint
 
 _MAXMATCHES = 100000 # Just in case
 
@@ -27,6 +31,10 @@ def print_exc(func):
 
 class Completer(object):
     """Interface to the readline completer."""
+
+    # For filename_quoting_function
+    SINGLE_MATCH = 1
+    MULT_MATCH = 2
 
     @apply
     def word_break_characters():
@@ -173,7 +181,7 @@ word_break_characters:          %r
 special_prefixes:               %r
 quote_characters:               %r
 filename_quote_characters:      %r
-tilde_expansion:                   %s
+tilde_expansion:                %s
 match_hidden_files:             %s
 query_items:                    %d
 completer:                      %r
@@ -209,10 +217,6 @@ completer = Completer()
 
 class Completion(object):
     """Interface to the active readline completion."""
-
-    # For filename_quoting_function
-    SINGLE_MATCH = 1
-    MULT_MATCH = 2
 
     @property
     def line_buffer(self):
@@ -363,6 +367,18 @@ class Completion(object):
 
     # Debugging
 
+    @property
+    def rl_point(self):
+        return readline.get_rl_point()
+
+    @property
+    def rl_mark(self):
+        return readline.get_rl_mark()
+
+    @property
+    def rl_end(self):
+        return readline.get_rl_end()
+
     @print_exc
     def dump_vars(self):
         sys.stdout.write("""
@@ -421,35 +437,6 @@ class cmd:
         in order to inherit Cmd's methods and encapsulate action methods.
         """
 
-        def complete(self, text, state):
-            """Return the next possible completion for 'text'.
-
-            If a command has not been entered, then complete against command list.
-            Otherwise try to call complete_<command> to get list of completions.
-            """
-            if state == 0:
-                origline = completion.line_buffer
-                line = origline.lstrip()
-                stripped = len(origline) - len(line)
-                begidx = completion.begidx - stripped
-                endidx = completion.endidx - stripped
-                if begidx>0:
-                    cmd, args, foo = self.parseline(line)
-                    if cmd == '':
-                        compfunc = self.completedefault
-                    else:
-                        try:
-                            compfunc = getattr(self, 'complete_' + cmd)
-                        except AttributeError:
-                            compfunc = self.completedefault
-                else:
-                    compfunc = self.completenames
-                self.completion_matches = compfunc(text, line, begidx, endidx)
-            try:
-                return self.completion_matches[state]
-            except IndexError:
-                return None
-
         def cmdloop(self, intro=None):
             """Repeatedly issue a prompt, accept input, parse an initial prefix
             off the received input, and dispatch to action methods, passing them
@@ -490,4 +477,151 @@ class cmd:
             finally:
                 if self.use_rawinput and self.completekey:
                     completer.completer = self.old_completer
+
+        def complete(self, text, state):
+            """Return the next possible completion for 'text'.
+
+            If a command has not been entered, then complete against command list.
+            Otherwise try to call complete_<command> to get list of completions.
+            """
+            if state == 0:
+                origline = completion.line_buffer
+                line = origline.lstrip()
+                stripped = len(origline) - len(line)
+                begidx = completion.begidx - stripped
+                endidx = completion.endidx - stripped
+                if begidx>0:
+                    cmd, args, foo = self.parseline(line)
+                    if cmd == '':
+                        compfunc = self.completedefault
+                    else:
+                        try:
+                            compfunc = getattr(self, 'complete_' + cmd)
+                        except AttributeError:
+                            compfunc = self.completedefault
+                else:
+                    compfunc = self.completenames
+                self.completion_matches = compfunc(text, line, begidx, endidx)
+            try:
+                return self.completion_matches[state]
+            except IndexError:
+                return None
+
+
+class FileCompletion(object):
+    """Perform filename completion
+
+    Augments readline's default filename quoting by taking
+    care of backslash-quoted characters.
+    """
+
+    @print_exc
+    def __init__(self):
+        completer.quote_characters = '"\''
+        completer.word_break_characters = ' \t\n"\'`><=;|&\\'
+        completer.char_is_quoted_function = self.char_is_quoted
+        completer.filename_quote_characters = ' \t\n"\'`'
+        completer.filename_dequoting_function = self.dequote_filename
+        completer.filename_quoting_function = self.quote_filename
+        completer.match_hidden_files = False
+
+        self.quoted = {'"': '\\"', "'": "'\\''"}
+        for c in completer.word_break_characters:
+            self.quoted.setdefault(c, '\\'+c)
+
+        self.tilde_expansion = True
+
+        self.do_log = True
+        self.log('-----', nodate=True)
+
+    @print_exc
+    def complete(self, text, *ignored):
+        self.log('completefiles\t\t%r', text)
+        if text.startswith('~') and os.sep not in text:
+            matches = completion.complete_username(text)
+        else:
+            matches = completion.complete_filename(text)
+        self.log('completefiles\t\t%r', matches)
+        return matches
+
+    @print_exc
+    def char_is_quoted(self, text, index):
+        self.log('char_is_quoted\t\t%r %d', text, index)
+        if index > 0:
+            if text[index-1] == '\\':
+                self.log('char_is_quoted\t\tTrue')
+                return True
+            # If we have a backslash-quoted character, we must tell
+            # readline not to word-break at the backslash.
+            if (text[index] == '\\' and
+                index+1 < len(text) and
+                text[index+1] in completer.word_break_characters):
+                self.log('char_is_quoted\t\tTrue2')
+                return True
+        self.log('char_is_quoted\t\tFalse')
+        return False
+
+    @print_exc
+    def dequote_filename(self, text, quote_char=''):
+        self.log('dequote_filename\t%r %r', text, quote_char)
+        if len(text) > 1:
+            qc = quote_char or '"'
+            # Remove leading and trailing quote characters.
+            if text[-1] == qc and text[-2] != '\\':
+                text = text[:-1]
+            if text[0] == qc:
+                text = text[1:]
+            if len(text) > 1:
+                # Dequote all backslash-quoted characters.
+                for c in completer.word_break_characters:
+                    text = text.replace(self.quoted[c], c)
+        self.log('dequote_filename\t%r', text)
+        return text
+
+    @print_exc
+    def quote_filename(self, text, match_type, quote_char=''):
+        self.log('quote_filename\t\t%r %d %r', text, match_type, quote_char)
+        if self.tilde_expansion and '~' in text:
+            text = completion.expand_tilde(text)
+        if text:
+            qc = quote_char or '"'
+            text = text.replace(qc, self.quoted[qc])
+            # Don't quote strings if all characters are already
+            # backslash-quoted.
+            check = text
+            for c in completer.word_break_characters:
+                check = check.replace(self.quoted[c], '')
+            if check:
+                for c in completer.word_break_characters:
+                    if c in check:
+                        break
+                else:
+                    if not quote_char:
+                        check = ''
+            if check:
+                # Add leading and trailing quote characters.
+                if match_type == completer.SINGLE_MATCH:
+                    if not os.path.isdir(text):
+                        text = text + qc
+                text = qc + text
+        self.log('quote_filename\t\t%r', text)
+        return text
+
+    @print_exc
+    def log(self, format, *args, **kw):
+        if not self.do_log:
+            return
+
+        now = datetime.now().isoformat()[:19]
+        now = '%s %s\t' % (now[:10], now[11:])
+
+        f = open('/Users/stefan/PGP2004/gpgkeys.log', 'at')
+        try:
+            if not kw.get('nodate', False):
+                f.write(now)
+            f.write(format % args)
+            f.write('\n')
+        finally:
+            f.flush()
+            f.close()
 
