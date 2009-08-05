@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 def startidx(s, idx=-1):
@@ -15,8 +16,10 @@ def startidx(s, idx=-1):
     return 0
 
 
-def get_quote_char(s):
-    lx = len(s)-1
+def get_quote_char(s, lx=None):
+    if lx is None:
+        lx = sys.maxint
+    lx = min(len(s)-1, lx)
 
     dq = s.find('"')
     while dq > 0 and s[dq-1] == '\\' and dq < lx:

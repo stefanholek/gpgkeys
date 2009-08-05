@@ -5,6 +5,7 @@ import os
 import sys
 import cmd as _cmd
 
+from escape import get_quote_char
 from datetime import datetime
 from pprint import pprint
 
@@ -558,6 +559,13 @@ class FileCompletion(object):
                 text[index+1] in completer.word_break_characters):
                 self.log('char_is_quoted\t\tTrue2')
                 return True
+            # If we have an unquoted quote character, we must check
+            # whether it is quoted by the other quote character.
+            if text[index] in completer.quote_characters:
+                c = get_quote_char(text, index)
+                if c in completer.quote_characters and c != text[index]:
+                    self.log('char_is_quoted\t\tTrue3')
+                    return True
         self.log('char_is_quoted\t\tFalse')
         return False
 
@@ -586,17 +594,17 @@ class FileCompletion(object):
         if text:
             qc = quote_char or '"'
             text = text.replace(qc, self.quoted[qc])
-            # Don't quote strings where all characters are already
-            # backslash-quoted.
             check = text
-            for c in completer.word_break_characters:
-                check = check.replace(self.quoted[c], '')
-            if check:
+            if not quote_char:
+                # Don't quote strings if all characters are already
+                # backslash-quoted.
                 for c in completer.word_break_characters:
-                    if c in check:
-                        break
-                else:
-                    if not quote_char:
+                    check = check.replace(self.quoted[c], '')
+                if check:
+                    for c in completer.word_break_characters:
+                        if c in check:
+                            break
+                    else:
                         check = ''
             if check:
                 # Add leading and trailing quote characters.
