@@ -11,6 +11,7 @@ class CompleterTests(unittest.TestCase):
 
     def setUp(self):
         self.cmd = GPGKeys()
+        self.cmd.preloop()
         #self.cmd.init_completer_delims()
         #readline.set_completer(self.cmd.complete)
         os.chdir(dirname(__file__))

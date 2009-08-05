@@ -511,7 +511,7 @@ class cmd:
 class FileCompletion(object):
     """Perform filename completion
 
-    Augments readline's default filename quoting by taking
+    Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
     """
 
@@ -586,7 +586,7 @@ class FileCompletion(object):
         if text:
             qc = quote_char or '"'
             text = text.replace(qc, self.quoted[qc])
-            # Don't quote strings if all characters are already
+            # Don't quote strings where all characters are already
             # backslash-quoted.
             check = text
             for c in completer.word_break_characters:
