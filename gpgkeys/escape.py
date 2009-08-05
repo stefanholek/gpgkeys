@@ -33,10 +33,14 @@ def get_quote_char(s):
     return '\\'
 
 
-def escape(s):
-    if '\\ ' in s:
-        return s
-    return s.replace(' ', '\\ ')
+def escape(args):
+    if args:
+        if '\\ ' in args or '\\"' in args or "'\\''" in args:
+            return args
+        args = args.replace(' ', '\\ ')
+        args = args.replace('"', '\\"')
+        args = args.replace("'", "'\\''")
+    return args
 
 
 def unescape(args):
