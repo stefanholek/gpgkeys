@@ -19,7 +19,7 @@ if platform == 'darwin':
         library_dirs += ['/sw/local/lib']
 
 
-completion = \
+_readline = \
 Extension(name='_readline',
           sources=[join('gpgkeys', '_readline.c')],
           libraries=['readline', 'ncursesw'],
@@ -46,7 +46,7 @@ setup(name='gpgkeys',
       zip_safe=False,
       test_suite='gpgkeys.tests',
       ext_modules=[
-          completion,
+          _readline,
       ],
       install_requires=[
           'setuptools',
