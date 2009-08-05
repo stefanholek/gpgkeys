@@ -17,7 +17,7 @@ from escape import unescape
 
 from completion import cmd
 from completion import FileCompletion
-
+from completion import print_exc
 
 gnupg_exe = 'gpg'
 
@@ -47,6 +47,9 @@ class GPGKeys(cmd.Cmd):
         self.verbose = verbose
         os.umask(UMASK)
 
+    def gnupg(self, *args):
+        return self.system(gnupg_exe, *args)
+
     def system(self, *args):
         command = ' '.join(args)
         if self.verbose:
@@ -58,25 +61,33 @@ class GPGKeys(cmd.Cmd):
         except KeyboardInterrupt:
             return 1
 
-    def gnupg(self, *args):
-        return self.system(gnupg_exe, *args)
-
     def umask(self, *args):
         if args:
-            mask = int(args[0], 8)
+            try:
+                mask = int(args[0], 8)
+            except ValueError, e:
+                self.stdout.write('%s\n' % (e,))
+                return
             if mask < 512:
                 os.umask(mask)
-        self.system('umask', *args)
+        try:
+            self.system('umask', *args)
+        except OSError, e:
+            self.stdout.write('%s\n' % (e,))
 
     def chdir(self, *args):
         if args:
-            os.chdir(unescape(args[0]))
+            dir = args[0]
         else:
-            os.chdir(os.environ.get('HOME'))
+            dir = os.environ.get('HOME')
+        try:
+            os.chdir(unescape(dir))
+        except OSError, e:
+            self.stdout.write('%s\n' % (e,))
 
     def parseline(self, line):
-        # Makes '.' work as shell escape character
-        # Makes '#' work as comment character
+        # Make '.' work as shell escape character
+        # Make '#' work as comment character
         line = line.strip()
         if not line:
             return None, None, line
@@ -96,7 +107,7 @@ class GPGKeys(cmd.Cmd):
         return cmd, arg, line
 
     def splitpipe(self, *args):
-        # Splits args tuple at first '|' or '>' or '>>'
+        # Split args tuple at first '|' or '>' or '>>'
         pipe = ()
         for i in range(len(args)):
             a = args[i]
@@ -150,7 +161,6 @@ class GPGKeys(cmd.Cmd):
         """Generate a new key pair (Usage: genkey)"""
         args = split(args)
         self.gnupg('--gen-key', *args)
-        self.updatekeys()
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
@@ -161,13 +171,11 @@ class GPGKeys(cmd.Cmd):
         """Import public keys from a file (Usage: import <filename>)"""
         args = split(args)
         self.gnupg('--import', *args)
-        self.updatekeys()
 
     def do_importsec(self, args):
         """Import secret and public keys from a file (Usage: importsec <filename>)"""
         args = split(args)
         self.gnupg('--import --allow-secret-key', *args)
-        self.updatekeys()
 
     def do_export(self, args):
         """Export public keys to stdout or to a file (Usage: export <keyspec>)"""
@@ -212,7 +220,6 @@ class GPGKeys(cmd.Cmd):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
         args = split(args)
         self.gnupg('--edit-key', *args)
-        self.updatekeys()
 
     def do_e(self, args):
         return self.do_edit(args)
@@ -231,19 +238,16 @@ class GPGKeys(cmd.Cmd):
         """Delete a public key (Usage: del <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-key', *args)
-        self.updatekeys()
 
     def do_delsec(self, args):
         """Delete a secret key (Usage: delsec <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-key', *args)
-        self.updatekeys()
 
     def do_delsecpub(self, args):
         """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
         args = split(args)
         self.gnupg('--delete-secret-and-public-key', *args)
-        self.updatekeys()
 
     def do_search(self, args):
         """Search for keys on the keyserver (Usage: search <keyspec>)"""
@@ -254,7 +258,6 @@ class GPGKeys(cmd.Cmd):
         """Fetch keys from the keyserver (Usage: recv <keyids>)"""
         args = split(args)
         self.gnupg('--recv-keys', *args)
-        self.updatekeys()
 
     def do_send(self, args):
         """Send keys to the keyserver (Usage: send <keyspec>)"""
@@ -305,7 +308,6 @@ class GPGKeys(cmd.Cmd):
                 self.system(*args)
         else:
             self.system(os.environ.get('SHELL'))
-        self.updatekeys()
 
     def do_version(self, args):
         """Show the GnuPG version (Usage: version)"""
@@ -319,7 +321,6 @@ class GPGKeys(cmd.Cmd):
 
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
-        self.updatekeys = self.key_completion.update_keys
 
     def completeoptions(self, text, options):
         return [x for x in options if x.startswith(text)]
@@ -534,8 +535,6 @@ class GPGKeys(cmd.Cmd):
                         usage = doc[lparen+1:rparen]
                         doc = doc[:lparen-1]
 
-                        #self.stdout.write("\n")
-                        #self.stdout.write("%s\n" % doc)
                         self.stdout.write("%s\n" % usage)
 
                         opts = []
@@ -573,12 +572,21 @@ class GPGKeys(cmd.Cmd):
 
 class KeyCompletion(object):
     """Perform key id completion
+
+    Watches the keyrings for changes and automatically refreshes
+    its completion cache.
     """
 
     def __init__(self):
+        self.pubring = os.path.expanduser('~/.gnupg/pubring.gpg')
+        self.secring = os.path.expanduser('~/.gnupg/secring.gpg')
+        self.mtimes = (0, 0)
+        self.keyspecs = {}
+
+    @print_exc
+    def complete(self, text, keyids_only=False):
         self.update_keys()
 
-    def complete(self, text, keyids_only=False):
         keyid = text.upper()
         matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
         if len(matches) == 1:
@@ -588,18 +596,21 @@ class KeyCompletion(object):
                 return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
         return matches
 
+    @print_exc
     def update_keys(self):
-        keyspecs = {}
+        mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
+        if self.mtimes != mtimes:
+            keyspecs = {}
+            def append(key, value):
+                keyspecs.setdefault(key, [])
+                keyspecs[key].append(value)
 
-        def append(key, value):
-            keyspecs.setdefault(key, [])
-            keyspecs[key].append(value)
-
-        for keyid, userid in self.read_pubkeys():
-            keyid = keyid[8:]
-            info = keyid, userid
-            append('%s %s' % info, info)
-        self.keyspecs = keyspecs
+            for keyid, userid in self.read_pubkeys():
+                keyid = keyid[8:]
+                info = (keyid, userid)
+                append('%s %s' % info, info)
+            self.mtimes = mtimes
+            self.keyspecs = keyspecs
 
     def read_pubkeys(self):
         process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
