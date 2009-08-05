@@ -1401,6 +1401,8 @@ PyDoc_STRVAR(doc_get_pre_input_hook,
 Get the current pre_input_hook function.");
 
 
+/* Debugging info */
+
 static PyObject *
 get_rl_point(PyObject *self, PyObject *noarg)
 {
@@ -1605,6 +1607,8 @@ rubout_text(PyObject *self, PyObject *args)
         d = rl_delete_text(rl_end-n, rl_end);
         if (rl_point > rl_end)
                 rl_point = rl_end;
+        if (rl_mark > rl_end)
+                rl_mark = rl_end;
 
 	return PyInt_FromLong(d);
 }
