@@ -12,8 +12,8 @@ import readline
 import atexit
 import subprocess
 
-from datetime import datetime
 from escape import split
+from escape import unescape
 
 from completion import cmd
 from completion import FileCompletion
@@ -70,27 +70,9 @@ class GPGKeys(cmd.Cmd):
 
     def chdir(self, *args):
         if args:
-            dir = self.dequotefile(args[0]) # XXX Use unescape here
-            if dir:
-                os.chdir(dir)
+            os.chdir(unescape(args[0]))
         else:
             os.chdir(os.environ.get('HOME'))
-
-    def __getattr__(self, name):
-        # Automatically expand unique command prefixes
-        # Thanks to Thomas Lotze
-        if name.startswith(('do_', 'complete_', 'help_')):
-            matches = set(x for x in self.get_names() if x.startswith(name))
-            if len(matches) == 1:
-                return getattr(self, matches.pop())
-        raise AttributeError(name)
-
-    # Commands
-
-    def preloop(self):
-        cmd.Cmd.preloop(self)
-        self.init_completer()
-        self.init_history()
 
     def parseline(self, line):
         # Makes '.' work as shell escape character
@@ -123,6 +105,22 @@ class GPGKeys(cmd.Cmd):
                 args = args[:i]
                 break
         return args, pipe
+
+    def __getattr__(self, name):
+        # Automatically expand unique command prefixes
+        # Thanks to Thomas Lotze
+        if name.startswith(('do_', 'complete_', 'help_')):
+            matches = set(x for x in self.get_names() if x.startswith(name))
+            if len(matches) == 1:
+                return getattr(self, matches.pop())
+        raise AttributeError(name)
+
+    # Commands
+
+    def preloop(self):
+        cmd.Cmd.preloop(self)
+        self.init_completer()
+        self.init_history()
 
     def emptyline(self):
         pass
@@ -318,7 +316,6 @@ class GPGKeys(cmd.Cmd):
     def init_completer(self):
         self.file_completion = FileCompletion()
         self.completefiles = self.file_completion.complete
-        self.dequotefile = self.file_completion.dequote_filename
 
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
@@ -565,7 +562,7 @@ class GPGKeys(cmd.Cmd):
 
     def init_history(self):
         histfile = os.path.expanduser('~/.gpgkeys_history')
-        length = 300
+        length = 100
         try:
             readline.read_history_file(histfile)
         except IOError:
@@ -593,11 +590,11 @@ class KeyCompletion(object):
 
     def update_keys(self):
         keyspecs = {}
+
         def append(key, value):
-            if key in keyspecs:
-                keyspecs[key].append(value)
-            else:
-                keyspecs[key] = [value]
+            keyspecs.setdefault(key, [])
+            keyspecs[key].append(value)
+
         for keyid, userid in self.read_pubkeys():
             keyid = keyid[8:]
             info = keyid, userid

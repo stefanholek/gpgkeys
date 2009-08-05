@@ -562,7 +562,7 @@ class FileCompletion(object):
         return False
 
     @print_exc
-    def dequote_filename(self, text, quote_char=''):
+    def dequote_filename(self, text, quote_char):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
             qc = quote_char or '"'
@@ -579,7 +579,7 @@ class FileCompletion(object):
         return text
 
     @print_exc
-    def quote_filename(self, text, match_type, quote_char=''):
+    def quote_filename(self, text, match_type, quote_char):
         self.log('quote_filename\t\t%r %d %r', text, match_type, quote_char)
         if self.tilde_expansion and '~' in text:
             text = completion.expand_tilde(text)

@@ -15,14 +15,12 @@ def split(args):
     lx = len(args)-1
 
     dq = args.find('"')
-    if dq > 0:
-        while args[dq-1] == '\\' and dq < lx:
-            dq = args.find('"', dq+1)
+    while dq > 0 and args[dq-1] == '\\' and dq < lx:
+        dq = args.find('"', dq+1)
 
     sq = args.find("'")
-    if sq > 0:
-        while args[sq-1] == '\\' and sq < lx:
-            sq = args.find("'", sq+1)
+    while sq > 0 and args[sq-1] == '\\' and sq < lx:
+        sq = args.find("'", sq+1)
 
     if dq >= 0 and (sq < 0 or sq > dq):
         return q_split(args, '"')
