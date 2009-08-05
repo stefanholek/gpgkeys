@@ -565,13 +565,13 @@ class FileCompletion(object):
     def dequote_filename(self, text, quote_char):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
-            qc = quote_char or '"'
+            #qc = quote_char or '"'
             # Remove leading and trailing quote characters.
-            if text[-1] == qc and text[-2] != '\\':
-                text = text[:-1]
-            if text[0] == qc:
-                text = text[1:]
-            if len(text) > 1:
+            #if text[-1] == qc and text[-2] != '\\':
+            #    text = text[:-1]
+            #if text[0] == qc:
+            #    text = text[1:]
+            #if len(text) > 1:
                 # Dequote all backslash-quoted characters.
                 for c in completer.word_break_characters:
                     text = text.replace(self.quoted[c], c)
