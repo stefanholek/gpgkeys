@@ -13,6 +13,7 @@ import atexit
 import subprocess
 
 from escape import split
+from escape import escape
 from escape import unescape
 
 from completion import cmd
@@ -47,9 +48,6 @@ class GPGKeys(cmd.Cmd):
         self.verbose = verbose
         os.umask(UMASK)
 
-    def gnupg(self, *args):
-        return self.system(gnupg_exe, *args)
-
     def system(self, *args):
         command = ' '.join(args)
         if self.verbose:
@@ -61,7 +59,26 @@ class GPGKeys(cmd.Cmd):
         except KeyboardInterrupt:
             return 1
 
-    def umask(self, *args):
+    def gnupg(self, *args):
+        return self.system(gnupg_exe, *args)
+
+    def shell_ls(self, *args):
+        self.system('ls -F', *[escape(unescape(x)) for x in args])
+
+    def shell_ll(self, *args):
+        self.system('ls -lF', *[escape(unescape(x)) for x in args])
+
+    def shell_chdir(self, *args):
+        if args:
+            dir = args[0]
+        else:
+            dir = os.environ.get('HOME')
+        try:
+            os.chdir(unescape(dir))
+        except OSError, e:
+            self.stdout.write('%s\n' % (e,))
+
+    def shell_umask(self, *args):
         if args:
             try:
                 mask = int(args[0], 8)
@@ -75,15 +92,8 @@ class GPGKeys(cmd.Cmd):
         except OSError, e:
             self.stdout.write('%s\n' % (e,))
 
-    def chdir(self, *args):
-        if args:
-            dir = args[0]
-        else:
-            dir = os.environ.get('HOME')
-        try:
-            os.chdir(unescape(dir))
-        except OSError, e:
-            self.stdout.write('%s\n' % (e,))
+    def shell_default(self, *args):
+        self.system(args[0], *[escape(unescape(x)) for x in args[1:]])
 
     def parseline(self, line):
         # Make '.' work as shell escape character
@@ -106,17 +116,6 @@ class GPGKeys(cmd.Cmd):
         cmd, arg = line[:i], line[i:].strip()
         return cmd, arg, line
 
-    def splitpipe(self, *args):
-        # Split args tuple at first '|' or '>' or '>>'
-        pipe = ()
-        for i in range(len(args)):
-            a = args[i]
-            if a and (a[0] == '|' or a[0] == '>'):
-                pipe = args[i:]
-                args = args[:i]
-                break
-        return args, pipe
-
     def __getattr__(self, name):
         # Automatically expand unique command prefixes
         # Thanks to Thomas Lotze
@@ -137,7 +136,7 @@ class GPGKeys(cmd.Cmd):
         pass
 
     def default(self, args):
-        # Pass on to GnuPG as is
+        # Pass to GnuPG as is
         args = split(args)
         self.gnupg(*args)
 
@@ -276,13 +275,13 @@ class GPGKeys(cmd.Cmd):
 
     def do_dump(self, args):
         """Dump packet sequence of a public key (Usage: dump <keyspec>)"""
-        args, pipe = self.splitpipe(*split(args))
+        args, pipe = splitpipe(*split(args))
         args = ('--export',) + args + ('|', gnupg_exe, '--list-packets') + pipe
         self.gnupg(*args)
 
     def do_dumpsec(self, args):
         """Dump packet sequence of a secret key (Usage: dumpsec <keyspec>)"""
-        args, pipe = self.splitpipe(*split(args))
+        args, pipe = splitpipe(*split(args))
         args = ('--export-secret-keys',) + args + ('|', gnupg_exe, '--list-packets') + pipe
         self.gnupg(*args)
 
@@ -297,15 +296,15 @@ class GPGKeys(cmd.Cmd):
         if args:
             cmd = args[0]
             if cmd == 'ls':
-                self.system('ls -F', *args[1:])
+                self.shell_ls(*args[1:])
             elif cmd == 'll':
-                self.system('ls -lF', *args[1:])
-            elif cmd == 'cd':
-                self.chdir(*args[1:])
+                self.shell_ll(*args[1:])
+            elif cmd == 'cd' or cmd == 'chdir':
+                self.shell_chdir(*args[1:])
             elif cmd == 'umask':
-                self.umask(*args[1:])
+                self.shell_umask(*args[1:])
             else:
-                self.system(*args)
+                self.shell_default(*args)
         else:
             self.system(os.environ.get('SHELL'))
 
@@ -471,7 +470,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys(text)
 
     def complete_refresh(self, text, *ignored):
-        options = GLOBAL + SERVER
+        options = GLOBAL + SERVER + INPUT
         if text.startswith('-'):
             return self.completeoptions(text, options)
         return self.completekeys(text)
@@ -501,8 +500,9 @@ class GPGKeys(cmd.Cmd):
         return self.completefiles(text)
 
     def complete_shell(self, text, *ignored):
+        options = GLOBAL
         if text.startswith('-'):
-            return []
+            return self.completeoptions(text, options)
         return self.completefiles(text)
 
     # Help
@@ -568,6 +568,19 @@ class GPGKeys(cmd.Cmd):
             pass
         readline.set_history_length(length)
         atexit.register(readline.write_history_file, histfile)
+
+
+def splitpipe(*args):
+    """Split args tuple at first '|' or '>' or '>>'.
+    """
+    pipe = ()
+    for i in range(len(args)):
+        a = args[i]
+        if a and (a[0] == '|' or a[0] == '>'):
+            pipe = args[i:]
+            args = args[:i]
+            break
+    return args, pipe
 
 
 class KeyCompletion(object):
