@@ -24,10 +24,14 @@ def get_quote_char(s, lx=None):
     dq = s.find('"')
     while dq > 0 and s[dq-1] == '\\' and dq < lx:
         dq = s.find('"', dq+1)
+    if dq >= lx:
+        dq = -1
 
     sq = s.find("'")
     while sq > 0 and s[sq-1] == '\\' and sq < lx:
         sq = s.find("'", sq+1)
+    if sq >= lx:
+        sq = -1
 
     if dq >= 0 and (sq < 0 or sq > dq):
         return '"'

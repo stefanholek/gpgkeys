@@ -548,23 +548,36 @@ class FileCompletion(object):
     @print_exc
     def char_is_quoted(self, text, index):
         self.log('char_is_quoted\t\t%r %d', text, index)
-        if index > 0:
-            if text[index-1] == '\\':
-                self.log('char_is_quoted\t\tTrue')
+        # If a character is preceeded by a backslash, we consider
+        # it quoted ... lameness.
+        if (index > 0 and
+            text[index-1] == '\\' and
+            text[index] in completer.word_break_characters):
+            self.log('char_is_quoted\t\tTrue')
+            return True
+        # If we have a backslash-quoted character, we must tell
+        # readline not to word-break at the backslash.
+        if (text[index] == '\\' and
+            index+1 < len(text) and
+            text[index+1] in completer.word_break_characters):
+            self.log('char_is_quoted\t\tTrue2')
+            return True
+        # If we have an unquoted quote character, we must check
+        # whether it is quoted by the other quote character.
+        if (index > 0 and
+            text[index] in completer.quote_characters):
+            c = get_quote_char(text, index)
+            if c in completer.quote_characters and c != text[index]:
+                self.log('char_is_quoted\t\tTrue3')
                 return True
-            # If we have a backslash-quoted character, we must tell
-            # readline not to word-break at the backslash.
-            if (text[index] == '\\' and
-                index+1 < len(text) and
-                text[index+1] in completer.word_break_characters):
-                self.log('char_is_quoted\t\tTrue2')
-                return True
-            # If we have an unquoted quote character, we must check
-            # whether it is quoted by the other quote character.
-            if text[index] in completer.quote_characters:
+        else:
+            # If we still have an unquoted character, check if there is
+            # an opening quote character somewhere.
+            if (index > 0 and
+                text[index] in completer.word_break_characters):
                 c = get_quote_char(text, index)
-                if c in completer.quote_characters and c != text[index]:
-                    self.log('char_is_quoted\t\tTrue3')
+                if c in completer.quote_characters:
+                    self.log('char_is_quoted\t\tTrue4')
                     return True
         self.log('char_is_quoted\t\tFalse')
         return False
