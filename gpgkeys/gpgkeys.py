@@ -12,12 +12,16 @@ import readline
 import atexit
 import subprocess
 
-from escape import split
+from datetime import datetime
+
 from escape import escape
 from escape import unescape
+from escape import split
+from escape import get_quote_char
 
+from completion import completer
+from completion import completion
 from completion import cmd
-from completion import FileCompletion
 from completion import print_exc
 
 gnupg_exe = 'gpg'
@@ -318,6 +322,9 @@ class GPGKeys(cmd.Cmd):
         self.file_completion = FileCompletion()
         self.completefiles = self.file_completion.complete
 
+        self.system_completion = SystemCompletion()
+        self.completesys = self.system_completion.complete
+
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
 
@@ -333,6 +340,10 @@ class GPGKeys(cmd.Cmd):
             if not delta.strip():
                 return True
         return False
+
+    def iscommand(self, line, begidx):
+        delta = line[0:begidx].strip()
+        return delta in ('!', '.', 'shell')
 
     def complete_genkey(self, text, *ignored):
         options = GLOBAL + KEY + EXPERT
@@ -499,10 +510,13 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         return self.completefiles(text)
 
-    def complete_shell(self, text, *ignored):
+    @print_exc
+    def complete_shell(self, text, line, begidx, endidx):
         options = GLOBAL
         if text.startswith('-'):
             return self.completeoptions(text, options)
+        if self.iscommand(line, begidx):
+            return self.completesys(text)
         return self.completefiles(text)
 
     # Help
@@ -581,6 +595,187 @@ def splitpipe(*args):
             args = args[:i]
             break
     return args, pipe
+
+
+class Logging(object):
+
+    def __init__(self, do_log=True):
+        self.do_log = do_log
+        self.log('-----', nodate=True)
+
+    @print_exc
+    def log(self, format, *args, **kw):
+        if not self.do_log:
+            return
+
+        now = datetime.now().isoformat()[:19]
+        now = '%s %s\t' % (now[:10], now[11:])
+
+        f = open('/Users/stefan/PGP2004/gpgkeys.log', 'at')
+        try:
+            if not kw.get('nodate', False):
+                f.write(now)
+            f.write(format % args)
+            f.write('\n')
+        finally:
+            f.flush()
+            f.close()
+
+
+class FileCompletion(Logging):
+    """Perform filename completion
+
+    Extends readline's default filename quoting by taking
+    care of backslash-quoted characters.
+    """
+
+    @print_exc
+    def __init__(self):
+        Logging.__init__(self)
+        completer.quote_characters = '"\''
+        completer.word_break_characters = ' \t\n"\'`><=;|&\\'
+        completer.char_is_quoted_function = self.char_is_quoted
+        completer.filename_quote_characters = ' \t\n"\'`'
+        completer.filename_dequoting_function = self.dequote_filename
+        completer.filename_quoting_function = self.quote_filename
+        completer.match_hidden_files = False
+
+        self.quoted = {'"': '\\"', "'": "'\\''"}
+        for c in completer.word_break_characters:
+            self.quoted.setdefault(c, '\\'+c)
+
+        self.tilde_expansion = True
+
+    @print_exc
+    def complete(self, text, *ignored):
+        self.log('completefiles\t\t%r', text)
+        if text.startswith('~') and os.sep not in text:
+            matches = completion.complete_username(text)
+        else:
+            matches = completion.complete_filename(text)
+        self.log('completefiles\t\t%r', matches)
+        return matches
+
+    @print_exc
+    def char_is_quoted(self, text, index):
+        self.log('char_is_quoted\t\t%r %d', text, index)
+        # If SystemCompletion has installed its word_break_hook,
+        # we must tell readline not to word-break at later dots.
+        if (index > 0 and
+            completer.word_break_hook is not None and
+            text[index] in ('!', '.') and
+            text[0:index].strip()):
+            self.log('char_is_quoted\t\tTrue0')
+            return True
+        # If a character is preceeded by a backslash, we consider
+        # it quoted ... lameness.
+        if (index > 0 and
+            text[index-1] == '\\' and
+            text[index] in completer.word_break_characters):
+            self.log('char_is_quoted\t\tTrue1')
+            return True
+        # If we have a backslash-quoted character, we must tell
+        # readline not to word-break at the backslash.
+        if (text[index] == '\\' and
+            index+1 < len(text) and
+            text[index+1] in completer.word_break_characters):
+            self.log('char_is_quoted\t\tTrue2')
+            return True
+        # If we have an unquoted quote character, we must check
+        # whether it is quoted by the other quote character.
+        if (index > 0 and
+            text[index] in completer.quote_characters):
+            c = get_quote_char(text, index)
+            if c in completer.quote_characters and c != text[index]:
+                self.log('char_is_quoted\t\tTrue3')
+                return True
+        else:
+            # If we still have an unquoted character, check if there is
+            # an opening quote character somewhere.
+            if (index > 0 and
+                text[index] in completer.word_break_characters):
+                c = get_quote_char(text, index)
+                if c in completer.quote_characters:
+                    self.log('char_is_quoted\t\tTrue4')
+                    return True
+        self.log('char_is_quoted\t\tFalse')
+        return False
+
+    @print_exc
+    def dequote_filename(self, text, quote_char):
+        self.log('dequote_filename\t%r %r', text, quote_char)
+        if len(text) > 1:
+            #qc = quote_char or '"'
+            # Remove leading and trailing quote characters.
+            #if text[-1] == qc and text[-2] != '\\':
+            #    text = text[:-1]
+            #if text[0] == qc:
+            #    text = text[1:]
+            #if len(text) > 1:
+                # Dequote all backslash-quoted characters.
+                for c in completer.word_break_characters:
+                    text = text.replace(self.quoted[c], c)
+        self.log('dequote_filename\t%r', text)
+        return text
+
+    @print_exc
+    def quote_filename(self, text, match_type, quote_char):
+        self.log('quote_filename\t\t%r %d %r', text, match_type, quote_char)
+        if self.tilde_expansion and '~' in text:
+            text = completion.expand_tilde(text)
+        if text:
+            qc = quote_char or '"'
+            text = text.replace(qc, self.quoted[qc])
+            check = text
+            if not quote_char:
+                # Don't quote strings if all characters are already
+                # backslash-quoted.
+                for c in completer.word_break_characters:
+                    check = check.replace(self.quoted[c], '')
+                if check:
+                    for c in completer.word_break_characters:
+                        if c in check:
+                            break
+                    else:
+                        check = ''
+            if check:
+                # Add leading and trailing quote characters.
+                if match_type == completer.SINGLE_MATCH:
+                    if not os.path.isdir(text):
+                        text = text + qc
+                text = qc + text
+        self.log('quote_filename\t\t%r', text)
+        return text
+
+
+class SystemCompletion(Logging):
+    """Perform system command completion
+    """
+
+    def __init__(self):
+        Logging.__init__(self)
+        completer.word_break_hook = self.word_break_hook
+
+    @print_exc
+    def complete(self, text):
+        return [x for x in self.read_path() if x.startswith(text)]
+
+    @print_exc
+    def word_break_hook(self):
+        self.log('word_break_hook\t\t%r %d' % (completion.line_buffer, completion.rl_point))
+        line = completion.line_buffer.lstrip()
+        if line.startswith(('!', '.')):
+            self.log('word_break_hook\t\t%r' % (line[0]+completer.word_break_characters,))
+            return line[0] + completer.word_break_characters
+        self.log('word_break_hook\t\tNone')
+
+    def read_path(self):
+        path = os.environ.get('PATH')
+        dirs = path.split(':')
+        for dir in dirs:
+            for file in os.listdir(dir):
+                if os.access(os.path.join(dir, file), os.R_OK|os.X_OK):
+                    yield file
 
 
 class KeyCompletion(object):
