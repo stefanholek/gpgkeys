@@ -329,7 +329,7 @@ class GPGKeys(cmd.Cmd):
         self.completekeys = self.key_completion.complete
 
     def completeoptions(self, text, options):
-        return [x for x in options if x.startswith(text)]
+        return [x for x in sorted(options) if x.startswith(text)]
 
     def follows(self, text, line, begidx):
         text = text + ' '
@@ -510,14 +510,20 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         return self.completefiles(text)
 
-    @print_exc
     def complete_shell(self, text, line, begidx, endidx):
+        # If the user type '. foo' we end up here
         options = GLOBAL
         if text.startswith('-'):
             return self.completeoptions(text, options)
         if self.iscommand(line, begidx):
             return self.completesys(text)
         return self.completefiles(text)
+
+    def completenames(self, text, *ignored):
+        # XXX If the user types '.foo' we end up here and not in complete_shell
+        if self.iscommand(text, 1):
+            return self.completesys(text)
+        return cmd.Cmd.completenames(self, text, *ignored)
 
     # Help
 
@@ -627,6 +633,8 @@ class FileCompletion(Logging):
 
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
+
+    XXX Does not handle backslash-quoted backslashes well.
     """
 
     @print_exc
@@ -647,7 +655,7 @@ class FileCompletion(Logging):
         self.tilde_expansion = True
 
     @print_exc
-    def complete(self, text, *ignored):
+    def complete(self, text):
         self.log('completefiles\t\t%r', text)
         if text.startswith('~') and os.sep not in text:
             matches = completion.complete_username(text)
@@ -659,14 +667,6 @@ class FileCompletion(Logging):
     @print_exc
     def char_is_quoted(self, text, index):
         self.log('char_is_quoted\t\t%r %d', text, index)
-        # If SystemCompletion has installed its word_break_hook,
-        # we must tell readline not to word-break at later dots.
-        if (index > 0 and
-            completer.word_break_hook is not None and
-            text[index] in ('!', '.') and
-            text[0:index].strip()):
-            self.log('char_is_quoted\t\tTrue0')
-            return True
         # If a character is preceeded by a backslash, we consider
         # it quoted ... lameness.
         if (index > 0 and
@@ -754,21 +754,16 @@ class SystemCompletion(Logging):
 
     def __init__(self):
         Logging.__init__(self)
-        completer.word_break_hook = self.word_break_hook
 
     @print_exc
     def complete(self, text):
-        return [x for x in self.read_path() if x.startswith(text)]
+        pre = ''
+        if text.startswith(('!', '.')):
+            pre = text[0]
+            text = text[1:]
+        return [pre+x for x in self.read_path() if x.startswith(text)]
 
     @print_exc
-    def word_break_hook(self):
-        self.log('word_break_hook\t\t%r %d' % (completion.line_buffer, completion.rl_point))
-        line = completion.line_buffer.lstrip()
-        if line.startswith(('!', '.')):
-            self.log('word_break_hook\t\t%r' % (line[0]+completer.word_break_characters,))
-            return line[0] + completer.word_break_characters
-        self.log('word_break_hook\t\tNone')
-
     def read_path(self):
         path = os.environ.get('PATH')
         dirs = path.split(':')
@@ -778,7 +773,7 @@ class SystemCompletion(Logging):
                     yield file
 
 
-class KeyCompletion(object):
+class KeyCompletion(Logging):
     """Perform key id completion
 
     Watches the keyrings for changes and automatically refreshes
@@ -786,6 +781,7 @@ class KeyCompletion(object):
     """
 
     def __init__(self):
+        Logging.__init__(self)
         self.pubring = os.path.expanduser('~/.gnupg/pubring.gpg')
         self.secring = os.path.expanduser('~/.gnupg/secring.gpg')
         self.mtimes = (0, 0)
@@ -820,6 +816,7 @@ class KeyCompletion(object):
             self.mtimes = mtimes
             self.keyspecs = keyspecs
 
+    @print_exc
     def read_pubkeys(self):
         process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
