@@ -41,19 +41,19 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 11), True)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 12), True)
 
-    def BORKEN_test_backslash_quoted_double_quote_preceeded_by_1_backslash(self):
-        self.assertEqual(self.is_quoted('\\\\"', 2), False)
+    def test_backslash_quoted_double_quote_preceeded_by_1_backslash(self):
+        self.assertEqual(self.is_quoted('\\\\"', 2), True)
         self.assertEqual(self.is_quoted('\\\\"', 1), True)
         self.assertEqual(self.is_quoted('\\\\"', 0), True)
 
-    def BORKEN_test_backslash_quoted_double_quote_preceeded_by_2_backslashes(self):
+    def test_backslash_quoted_double_quote_preceeded_by_2_backslashes(self):
         self.assertEqual(self.is_quoted('\\\\\\"', 3), True)
         self.assertEqual(self.is_quoted('\\\\\\"', 2), True)
-        self.assertEqual(self.is_quoted('\\\\\\"', 1), False)
+        self.assertEqual(self.is_quoted('\\\\\\"', 1), True)
         self.assertEqual(self.is_quoted('\\\\\\"', 0), True)
 
-    def BORKEN_test_backslash_quoted_double_quote_preceeded_by_3_backslashes(self):
-        self.assertEqual(self.is_quoted('\\\\\\\\"', 4), False)
+    def test_backslash_quoted_double_quote_preceeded_by_3_backslashes(self):
+        self.assertEqual(self.is_quoted('\\\\\\\\"', 4), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 3), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 2), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 1), True)
@@ -85,6 +85,6 @@ class CompleterTests(unittest.TestCase):
         os.chdir(dirname(__file__))
 
     def test_simple(self):
-        self.assertEqual(self.cmd.completefiles('test_esc', 'fdump test_esc', 6, 13),
+        self.assertEqual(self.cmd.completefiles('test_esc'),
                          ['test_escape.py', 'test_escape.pyc'])
 

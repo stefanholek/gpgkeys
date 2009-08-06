@@ -76,7 +76,7 @@ class GPGKeys(cmd.Cmd):
         if args:
             dir = args[0]
         else:
-            dir = os.environ.get('HOME')
+            dir = os.path.expanduser('~')
         try:
             os.chdir(unescape(dir))
         except OSError, e:
@@ -331,6 +331,10 @@ class GPGKeys(cmd.Cmd):
     def completeoptions(self, text, options):
         return [x for x in sorted(options) if x.startswith(text)]
 
+    def iscommand(self, line, begidx):
+        delta = line[0:begidx].strip()
+        return delta in ('!', '.', 'shell')
+
     def follows(self, text, line, begidx):
         text = text + ' '
         textidx = line.find(text)
@@ -340,10 +344,6 @@ class GPGKeys(cmd.Cmd):
             if not delta.strip():
                 return True
         return False
-
-    def iscommand(self, line, begidx):
-        delta = line[0:begidx].strip()
-        return delta in ('!', '.', 'shell')
 
     def complete_genkey(self, text, *ignored):
         options = GLOBAL + KEY + EXPERT
@@ -511,7 +511,7 @@ class GPGKeys(cmd.Cmd):
         return self.completefiles(text)
 
     def complete_shell(self, text, line, begidx, endidx):
-        # If the user type '. foo' we end up here
+        # If the user types '. foo' we end up here
         options = GLOBAL
         if text.startswith('-'):
             return self.completeoptions(text, options)
@@ -633,17 +633,15 @@ class FileCompletion(Logging):
 
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
-
-    XXX Does not handle all cases of backslash-quoted backslashes.
     """
 
     @print_exc
     def __init__(self):
         Logging.__init__(self)
         completer.quote_characters = '"\''
-        completer.word_break_characters = ' \t\n"\'`><=;|&\\'
+        completer.word_break_characters = ' \t\n"\'`><=;|&\\' # Note: backslash comes last
         completer.char_is_quoted_function = self.char_is_quoted
-        completer.filename_quote_characters = ' \t\n"\'`'
+        completer.filename_quote_characters = ' \t\n"\''
         completer.filename_dequoting_function = self.dequote_filename
         completer.filename_quoting_function = self.quote_filename
         completer.match_hidden_files = False
@@ -705,7 +703,7 @@ class FileCompletion(Logging):
     def dequote_filename(self, text, quote_char):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
-            #qc = quote_char or '"'
+            #qc = quote_char or completer.quote_characters[0]
             # Remove leading and trailing quote characters.
             #if text[-1] == qc and text[-2] != '\\':
             #    text = text[:-1]
@@ -724,7 +722,8 @@ class FileCompletion(Logging):
         if self.tilde_expansion and '~' in text:
             text = completion.expand_tilde(text)
         if text:
-            qc = quote_char or '"'
+            qc = quote_char or completer.quote_characters[0]
+            text = text.replace('\\', self.quoted['\\'])
             text = text.replace(qc, self.quoted[qc])
             check = text
             if not quote_char:
@@ -748,20 +747,17 @@ class FileCompletion(Logging):
         return text
 
 
-class SystemCompletion(Logging):
+class SystemCompletion(object):
     """Perform system command completion
     """
 
-    def __init__(self):
-        Logging.__init__(self)
-
     @print_exc
     def complete(self, text):
-        pre = ''
-        if text.startswith(('!', '.')):
-            pre = text[0]
+        prefix = ''
+        if text.startswith(('!', '.')): # XXX
+            prefix = text[0]
             text = text[1:]
-        return [pre+x for x in self.read_path() if x.startswith(text)]
+        return [prefix+x for x in self.read_path() if x.startswith(text)]
 
     @print_exc
     def read_path(self):
@@ -773,16 +769,17 @@ class SystemCompletion(Logging):
                     yield file
 
 
-class KeyCompletion(Logging):
+class KeyCompletion(object):
     """Perform key id completion
 
     Watches the keyrings for changes and automatically refreshes
     its completion cache.
     """
 
+    @print_exc
     def __init__(self):
-        Logging.__init__(self)
-        home = os.path.expanduser(os.environ.get('GNUPGHOME', '~/.gnupg'))
+        home = os.environ.get('GNUPGHOME', '~/.gnupg')
+        home = os.path.expanduser(home)
         self.pubring = os.path.join(home, 'pubring.gpg')
         self.secring = os.path.join(home, 'secring.gpg')
         self.mtimes = (0, 0)
