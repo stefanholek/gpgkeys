@@ -634,7 +634,7 @@ class FileCompletion(Logging):
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
 
-    XXX Does not handle backslash-quoted backslashes well.
+    XXX Does not handle all cases of backslash-quoted backslashes.
     """
 
     @print_exc
@@ -782,8 +782,9 @@ class KeyCompletion(Logging):
 
     def __init__(self):
         Logging.__init__(self)
-        self.pubring = os.path.expanduser('~/.gnupg/pubring.gpg')
-        self.secring = os.path.expanduser('~/.gnupg/secring.gpg')
+        home = os.path.expanduser(os.environ.get('GNUPGHOME', '~/.gnupg'))
+        self.pubring = os.path.join(home, 'pubring.gpg')
+        self.secring = os.path.join(home, 'secring.gpg')
         self.mtimes = (0, 0)
         self.keyspecs = {}
 
