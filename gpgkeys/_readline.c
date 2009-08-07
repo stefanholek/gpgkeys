@@ -700,7 +700,7 @@ PyDoc_STRVAR(doc_set_filename_quote_characters,
 Set list of characters that cause a filename to be quoted by the completer.");
 
 
-/* Get completion quoting info */
+/* Completion quoting info */
 
 static PyObject *
 get_completion_found_quote(PyObject *self, PyObject *noarg)
@@ -758,7 +758,7 @@ Do not append a matching quote character when performing completion on a quoted 
 May only be called from within custom completers.");
 
 
-/* Filename completion and quoting flags */
+/* Filename completion flags */
 
 static PyObject *
 get_filename_completion_desired(PyObject *self, PyObject *noarg)
@@ -1601,22 +1601,25 @@ rubout_text(PyObject *self, PyObject *args)
 
         if (n < 0)
                 n = 0;
-        if (n > rl_end)
-                n = rl_end;
+        if (n > rl_point)
+                n = rl_point;
 
-        d = rl_delete_text(rl_end-n, rl_end);
+        d = rl_delete_text(rl_point-n, rl_point);
+        rl_point -= d;
         if (rl_point > rl_end)
                 rl_point = rl_end;
-        if (rl_mark > rl_end)
-                rl_mark = rl_end;
+        if (rl_point < 0)
+                rl_point = 0;
 
 	return PyInt_FromLong(d);
 }
 
 PyDoc_STRVAR(doc_rubout_text,
 "rubout_text(numchars) -> int\n\
-Delete characters from the end of the line buffer.");
+Delete characters from the current cursor position.");
 
+
+/* Input stream stuffing */
 
 static PyObject *
 stuff_char(PyObject *self, PyObject *args)
