@@ -160,6 +160,14 @@ class Completer(object):
             readline.set_filename_dequoting_function(function)
         return property(get, set)
 
+    # Extra API
+
+    @property
+    def preferred_quote_character(self):
+        if self.quote_characters:
+            return self.quote_characters[0]
+        return ''
+
     # Configuration
 
     def read_init_file(self, filename):
@@ -180,6 +188,7 @@ filename_quote_characters:      %r
 tilde_expansion:                %s
 match_hidden_files:             %s
 query_items:                    %d
+preferred_quote_character:      %r
 completer:                      %r
 startup_hook:                   %r
 pre_input_hook:                 %r
@@ -197,6 +206,7 @@ completer.filename_quote_characters,
 completer.tilde_expansion,
 completer.match_hidden_files,
 completer.query_items,
+completer.preferred_quote_character,
 completer.completer,
 completer.startup_hook,
 completer.pre_input_hook,
