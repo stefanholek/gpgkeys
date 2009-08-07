@@ -212,7 +212,7 @@ completer = Completer()
 
 
 class Completion(object):
-    """Interface to the active readline completion."""
+    """Interface to the current readline completion."""
 
     @property
     def line_buffer(self):
