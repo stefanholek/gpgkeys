@@ -1011,6 +1011,7 @@ static char *
 on_filename_quoting_function(const char *text, int match_type, char *quote_pointer)
 {
 	char *result = (char*)text;
+        char *s = NULL;
         char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
@@ -1028,7 +1029,7 @@ on_filename_quoting_function(const char *text, int match_type, char *quote_point
                 result = (char*)text;
         }
         else {
-                char *s = PyString_AsString(r);
+                s = PyString_AsString(r);
                 if (s == NULL)
                         goto error;
 
@@ -1093,6 +1094,7 @@ static char *
 on_filename_dequoting_function(const char *text, char quote_char)
 {
 	char *result = (char*)text;
+        char *s = NULL;
         char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
@@ -1110,7 +1112,7 @@ on_filename_dequoting_function(const char *text, char quote_char)
                 result = (char*)text;
         }
         else {
-                char *s = PyString_AsString(r);
+                s = PyString_AsString(r);
                 if (s == NULL)
                         goto error;
 
@@ -1175,6 +1177,7 @@ int
 on_char_is_quoted_function(const char *text, int index)
 {
 	int result = 0;
+        int i = 0;
 	PyObject *r;
 
 #ifdef WITH_THREAD
@@ -1187,7 +1190,7 @@ on_char_is_quoted_function(const char *text, int index)
                 result = 0;
         }
         else {
-		int i = PyInt_AsLong(r);
+		i = PyInt_AsLong(r);
 		if (i == -1 && PyErr_Occurred())
 			goto error;
                 result = i;
@@ -1219,6 +1222,7 @@ filename_completion_function(PyObject *self, PyObject *args)
 	}
 	completion = rl_filename_completion_function(value, state);
 	if (completion)
+                /* We don't own the string so no freeing required */
 		return PyString_FromString(completion);
         Py_RETURN_NONE;
 }
@@ -1240,6 +1244,7 @@ username_completion_function(PyObject *self, PyObject *args)
 	}
 	completion = rl_username_completion_function(value, state);
 	if (completion)
+                /* We don't own the string so no freeing required */
 		return PyString_FromString(completion);
         Py_RETURN_NONE;
 }
@@ -1254,13 +1259,17 @@ py_tilde_expand(PyObject *self, PyObject *args)
 {
 	char *value;
         char *expanded;
+        PyObject *r;
 
 	if (!PyArg_ParseTuple(args, "s:tilde_expand", &value)) {
 		return NULL;
 	}
 	expanded = tilde_expand(value);
-	if (expanded)
-		return PyString_FromString(expanded);
+	if (expanded) {
+		r = PyString_FromString(expanded);
+                free(expanded);
+                return r;
+        }
         Py_RETURN_NONE;
 }
 
@@ -1477,6 +1486,7 @@ char *
 on_completion_word_break_hook(void)
 {
 	char *result = NULL;
+        char *s = NULL;
 	PyObject *r;
 
 #ifdef WITH_THREAD
@@ -1489,7 +1499,7 @@ on_completion_word_break_hook(void)
                 result = NULL;
         }
         else {
-                char *s = PyString_AsString(r);
+                s = PyString_AsString(r);
                 if (s == NULL)
                         goto error;
                 result = strdup(s);
@@ -1553,6 +1563,7 @@ int
 on_directory_completion_hook(char **directory)
 {
 	int result = 0;
+        char *s = NULL;
 	PyObject *r;
 
 #ifdef WITH_THREAD
@@ -1565,7 +1576,7 @@ on_directory_completion_hook(char **directory)
                 result = 0;
         }
         else {
-                char *s = PyString_AsString(r);
+                s = PyString_AsString(r);
                 if (s == NULL)
                         goto error;
 
