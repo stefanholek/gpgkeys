@@ -717,7 +717,7 @@ class FileCompletion(Logging):
             if qc != "'":
                 text = text.replace(self.quoted['\\'], '\\')
                 for c in completer.word_break_characters:
-                    if c not in completer.quote_characters:
+                    if c not in completer.quote_characters[:-1]:
                         text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
