@@ -373,18 +373,6 @@ class Completion(object):
 
     # Debugging
 
-    @property
-    def rl_point(self):
-        return readline.get_rl_point()
-
-    @property
-    def rl_mark(self):
-        return readline.get_rl_mark()
-
-    @property
-    def rl_end(self):
-        return readline.get_rl_end()
-
     @print_exc
     def dump_vars(self):
         sys.stdout.write("""
