@@ -1092,8 +1092,10 @@ Get the current filename dequoting function.");
 
 static char *
 on_filename_dequoting_function(const char *text, char quote_char)
+/* This function must always return newly allocated memory,
+   which means at least a copy of 'text', and never NULL. */
 {
-	char *result = (char*)text;
+	char *result = NULL;
         char *s = NULL;
         char quote_char_string[2] = "\0\0";
 	PyObject *r;
@@ -1106,19 +1108,20 @@ on_filename_dequoting_function(const char *text, char quote_char)
         }
 
         r = PyObject_CallFunction(filename_dequoting_function, "ss", text, quote_char_string);
-        if (r == NULL)
+        if (r == NULL) {
+                result = strdup(text);
                 goto error;
+        }
         if (r == Py_None) {
-                result = (char*)text;
+                result = strdup(text);
         }
         else {
                 s = PyString_AsString(r);
-                if (s == NULL)
+                if (s == NULL) {
+                        result = strdup(text);
                         goto error;
-
-                s = strdup(s);
-                if (s != NULL)
-                	result = s;
+                }
+                result = strdup(s);
         }
         Py_DECREF(r);
         goto done;
@@ -1129,6 +1132,12 @@ on_filename_dequoting_function(const char *text, char quote_char)
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
 #endif
+        /* We really can't return NULL here, so we bail a la
+           readline's xmalloc. */
+        if (result == NULL) {
+		fprintf(stderr, "_readline: out of virtual memory\n");
+                exit(2);
+        }
 	return result;
 }
 
@@ -1270,7 +1279,9 @@ py_tilde_expand(PyObject *self, PyObject *args)
                 free(expanded);
                 return r;
         }
-        Py_RETURN_NONE;
+        /* We never get here since tilde_expand aborts on
+           out-of-memory condition. */
+        return PyErr_NoMemory();
 }
 
 PyDoc_STRVAR(doc_tilde_expand,
@@ -1614,22 +1625,23 @@ rubout_text(PyObject *self, PyObject *args)
         if (n > rl_point)
                 n = rl_point;
 
-        d = rl_delete_text(rl_point-n, rl_point);
-        rl_point -= d;
-        if (rl_point > rl_end)
-                rl_point = rl_end;
-        if (rl_point < 0)
-                rl_point = 0;
-
+        if (n > 0) {
+                d = rl_delete_text(rl_point-n, rl_point);
+                rl_point -= d;
+                if (rl_point > rl_end)
+                        rl_point = rl_end;
+                if (rl_point < 0)
+                        rl_point = 0;
+        }
 	return PyInt_FromLong(d);
 }
 
 PyDoc_STRVAR(doc_rubout_text,
 "rubout_text(numchars) -> int\n\
-Delete characters from the current cursor position.");
+Delete characters at the current cursor position.");
 
 
-/* Adding to input stream */
+/* Input stuffing */
 
 static PyObject *
 stuff_char(PyObject *self, PyObject *args)
