@@ -635,6 +635,11 @@ class FileCompletion(Logging):
 
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
+
+    Quote characters are double quote and single quote.
+    Prefers double-quote quoting over backslash quoting a la bash.
+    Word break characters are quoted with backslashes when needed.
+    Backslash quoting is disabled between single quotes.
     """
 
     @print_exc
@@ -665,36 +670,36 @@ class FileCompletion(Logging):
         return matches
 
     @print_exc
-    def char_is_quoted(self, text, index):
-        self.log('char_is_quoted\t\t%r %d', text, index)
-        # If a character is preceeded by a backslash, we consider
-        # it quoted.
-        if (index > 0 and
-            text[index-1] == '\\' and
-            text[index] in completer.word_break_characters):
-            self.log('char_is_quoted\t\tTrue1')
-            return True
-        # If we have a backslash-quoted character, we must tell
-        # readline not to word-break at the backslash.
-        if (text[index] == '\\' and
-            index+1 < len(text) and
-            text[index+1] in completer.word_break_characters):
-            self.log('char_is_quoted\t\tTrue2')
-            return True
+    def char_is_quoted(self, line, index):
+        self.log('char_is_quoted\t\t%r %d', line, index)
+        qc = get_quote_char(line, index)
+        if qc != "'":
+            # If a character is preceeded by a backslash, we consider
+            # it quoted.
+            if (index > 0 and
+                line[index-1] == '\\' and
+                line[index] in completer.word_break_characters):
+                self.log('char_is_quoted\t\tTrue1')
+                return True
+            # If we have a backslash-quoted character, we must tell
+            # readline not to word-break at the backslash.
+            if (line[index] == '\\' and
+                index+1 < len(line) and
+                line[index+1] in completer.word_break_characters):
+                self.log('char_is_quoted\t\tTrue2')
+                return True
         # If we have an unquoted quote character, we must check
         # whether it is quoted by the other quote character.
         if (index > 0 and
-            text[index] in completer.quote_characters):
-            qc = get_quote_char(text, index)
-            if qc in completer.quote_characters and qc != text[index]:
+            line[index] in completer.quote_characters):
+            if qc in completer.quote_characters and qc != line[index]:
                 self.log('char_is_quoted\t\tTrue3')
                 return True
         else:
-            # If we still have an unquoted character, check if there is
-            # an opening quote character somewhere.
+            # If we still have an unquoted character, check if we have
+            # an opening quote character.
             if (index > 0 and
-                text[index] in completer.word_break_characters):
-                qc = get_quote_char(text, index)
+                line[index] in completer.word_break_characters):
                 if qc in completer.quote_characters:
                     self.log('char_is_quoted\t\tTrue4')
                     return True
@@ -706,12 +711,13 @@ class FileCompletion(Logging):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
             qc = quote_char or completer.preferred_quote_character
-            # Don't backslash-dequote backslashes between single quotes
-            word_break_characters = completer.word_break_characters
-            if qc == "'":
-                word_break_characters = word_break_characters[:-1]
-            for c in word_break_characters:
-                text = text.replace(self.quoted[c], c)
+            text = text.replace(self.quoted[qc], qc)
+            # Don't backslash-dequote characters between single quotes
+            if qc != "'":
+                text = text.replace(self.quoted['\\'], '\\')
+                for c in completer.word_break_characters:
+                    if c not in completer.quote_characters:
+                        text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
 
