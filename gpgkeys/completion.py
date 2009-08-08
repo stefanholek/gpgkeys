@@ -351,9 +351,9 @@ class Completion(object):
     def complete_filename(self, text):
         new = []
         for i in range(_MAXMATCHES):
-            f = readline.filename_completion_function(text, i)
-            if f is not None:
-                new.append(f)
+            n = readline.filename_completion_function(text, i)
+            if n is not None:
+                new.append(n)
             else:
                 break
         return new
@@ -361,9 +361,9 @@ class Completion(object):
     def complete_username(self, text):
         new = []
         for i in range(_MAXMATCHES):
-            f = readline.username_completion_function(text, i)
-            if f is not None:
-                new.append(f)
+            n = readline.username_completion_function(text, i)
+            if n is not None:
+                new.append(n)
             else:
                 break
         return new
