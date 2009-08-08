@@ -710,7 +710,7 @@ get_completion_found_quote(PyObject *self, PyObject *noarg)
 
 PyDoc_STRVAR(doc_get_completion_found_quote,
 "get_completion_found_quote() -> bool\n\
-When Readline is completing quoted text, it sets this variable to a non-zero value \
+When readline is completing quoted text, it sets this variable to True \
 if the word being completed contains any quoting character.");
 
 
@@ -725,7 +725,7 @@ get_completion_quote_character(PyObject *self, PyObject *noarg)
 
 PyDoc_STRVAR(doc_get_completion_quote_character,
 "get_completion_quote_character() -> string\n\
-When Readline is completing quoted text, it sets this variable to the quoting character found.");
+When readline is completing quoted text, it sets this variable to the quoting character found.");
 
 
 static PyObject *
@@ -1009,10 +1009,8 @@ Get the current filename quoting function.");
 
 static char *
 on_filename_quoting_function(const char *text, int match_type, char *quote_pointer)
-/* This function must always return newly allocated memory,
-   which means at least a copy of 'text', and never NULL. */
 {
-	char *result = NULL;
+	char *result = (char*)text;
         char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
@@ -1024,20 +1022,19 @@ on_filename_quoting_function(const char *text, int match_type, char *quote_point
         }
 
         r = PyObject_CallFunction(filename_quoting_function, "sis", text, match_type, quote_char_string);
-        if (r == NULL) {
-                result = strdup(text);
+        if (r == NULL)
                 goto error;
-        }
         if (r == Py_None) {
-                result = strdup(text);
+                result = (char*)text;
         }
         else {
                 char *s = PyString_AsString(r);
-                if (s == NULL) {
-                        result = strdup(text);
+                if (s == NULL)
                         goto error;
-                }
-                result = strdup(s);
+
+                s = strdup(s);
+                if (s != NULL)
+                	result = s;
         }
         Py_DECREF(r);
         goto done;
@@ -1094,10 +1091,8 @@ Get the current filename dequoting function.");
 
 static char *
 on_filename_dequoting_function(const char *text, char quote_char)
-/* This function must always return newly allocated memory,
-   which means at least a copy of 'text', and never NULL. */
 {
-	char *result = NULL;
+	char *result = (char*)text;
         char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
@@ -1109,20 +1104,19 @@ on_filename_dequoting_function(const char *text, char quote_char)
         }
 
         r = PyObject_CallFunction(filename_dequoting_function, "ss", text, quote_char_string);
-        if (r == NULL) {
-                result = strdup(text);
+        if (r == NULL)
                 goto error;
-        }
         if (r == Py_None) {
-                result = strdup(text);
+                result = (char*)text;
         }
         else {
                 char *s = PyString_AsString(r);
-                if (s == NULL) {
-                        result = strdup(text);
+                if (s == NULL)
                         goto error;
-                }
-                result = strdup(s);
+
+                s = strdup(s);
+                if (s != NULL)
+                	result = s;
         }
         Py_DECREF(r);
         goto done;
@@ -1193,9 +1187,10 @@ on_char_is_quoted_function(const char *text, int index)
                 result = 0;
         }
         else {
-		result = PyInt_AsLong(r);
-		if (result == -1 && PyErr_Occurred())
+		int i = PyInt_AsLong(r);
+		if (i == -1 && PyErr_Occurred())
 			goto error;
+                result = i;
         }
         Py_DECREF(r);
         goto done;
@@ -1573,9 +1568,13 @@ on_directory_completion_hook(char **directory)
                 char *s = PyString_AsString(r);
                 if (s == NULL)
                         goto error;
-                free(*directory);
-                *directory = strdup(s);
-                result = 1;
+
+                s = strdup(s);
+                if (s != NULL) {
+                        free(*directory);
+                        *directory = s;
+                        result = 1;
+                }
         }
         Py_DECREF(r);
         goto done;
@@ -1619,7 +1618,7 @@ PyDoc_STRVAR(doc_rubout_text,
 Delete characters from the current cursor position.");
 
 
-/* Input stream stuffing */
+/* Adding to input stream */
 
 static PyObject *
 stuff_char(PyObject *self, PyObject *args)
