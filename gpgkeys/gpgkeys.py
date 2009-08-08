@@ -336,6 +336,7 @@ class GPGKeys(cmd.Cmd):
         return delta in ('!', '.', 'shell')
 
     def follows(self, text, line, begidx):
+        # XXX Must do better
         text = text + ' '
         textidx = line.find(text)
         if 0 <= textidx:
