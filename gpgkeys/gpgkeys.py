@@ -196,7 +196,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--list-keys', *args)
 
     def do_ls(self, args):
-        return self.do_list(args)
+        self.do_list(args)
 
     def do_listsec(self, args):
         """List secret keys (Usage: listsec <keyspec>)"""
@@ -204,7 +204,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--list-secret-keys', *args)
 
     def do_lx(self, args):
-        return self.do_listsec(args)
+        self.do_listsec(args)
 
     def do_listsig(self, args):
         """List public keys including signatures (Usage: listsig <keyspec>)"""
@@ -212,7 +212,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--list-sigs', *args)
 
     def do_ll(self, args):
-        return self.do_listsig(args)
+        self.do_listsig(args)
 
     def do_checksig(self, args):
         """Like listsig, but also verify the signatures (Usage: checksig <keyspec>)"""
@@ -225,7 +225,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--edit-key', *args)
 
     def do_e(self, args):
-        return self.do_edit(args)
+        self.do_edit(args)
 
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
