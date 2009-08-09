@@ -337,14 +337,11 @@ class Completion(object):
     def insert_text(self, text):
         return readline.insert_text(text)
 
-    def rubout_text(self, numchars=1):
-        return readline.rubout_text(numchars)
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
 
     def redisplay(self):
         return readline.redisplay()
-
-    def stuff_char(self, char):
-        return readline.stuff_char(char)
 
     # Stock completions
 

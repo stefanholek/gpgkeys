@@ -1009,6 +1009,8 @@ Get the current filename quoting function.");
 
 static char *
 on_filename_quoting_function(const char *text, int match_type, char *quote_pointer)
+/* This function must return new memory on success and 'text'
+   to indicate no change. */
 {
 	char *result = (char*)text;
         char *s = NULL;
@@ -1022,7 +1024,8 @@ on_filename_quoting_function(const char *text, int match_type, char *quote_point
         	quote_char_string[0] = *quote_pointer;
         }
 
-        r = PyObject_CallFunction(filename_quoting_function, "sis", text, match_type, quote_char_string);
+        r = PyObject_CallFunction(filename_quoting_function, "sis",
+                                  text, match_type, quote_char_string);
         if (r == NULL)
                 goto error;
         if (r == Py_None) {
@@ -1092,8 +1095,8 @@ Get the current filename dequoting function.");
 
 static char *
 on_filename_dequoting_function(const char *text, char quote_char)
-/* This function must always return newly allocated memory,
-   which means at least a copy of 'text', and never NULL. */
+/* This function must always return new memory, which means
+   at least a copy of 'text', and never NULL. */
 {
 	char *result = NULL;
         char *s = NULL;
@@ -1107,7 +1110,8 @@ on_filename_dequoting_function(const char *text, char quote_char)
         	quote_char_string[0] = quote_char;
         }
 
-        r = PyObject_CallFunction(filename_dequoting_function, "ss", text, quote_char_string);
+        r = PyObject_CallFunction(filename_dequoting_function, "ss",
+                                  text, quote_char_string);
         if (r == NULL) {
                 result = strdup(text);
                 goto error;
@@ -1132,7 +1136,7 @@ on_filename_dequoting_function(const char *text, char quote_char)
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
 #endif
-        /* We really can't return NULL here, so we bail a la
+        /* We really can't return NULL here, so we abort like
            readline's xmalloc. */
         if (result == NULL) {
 		fprintf(stderr, "_readline: out of virtual memory\n");
@@ -1426,18 +1430,7 @@ get_rl_point(PyObject *self, PyObject *noarg)
 
 PyDoc_STRVAR(doc_get_rl_point,
 "get_rl_point() -> int\n\
-Return the point.");
-
-
-static PyObject *
-get_rl_mark(PyObject *self, PyObject *noarg)
-{
-       return PyInt_FromLong(rl_mark);
-}
-
-PyDoc_STRVAR(doc_get_rl_mark,
-"get_rl_mark() -> int\n\
-Return the mark.");
+Return the rl_point.");
 
 
 static PyObject *
@@ -1448,7 +1441,7 @@ get_rl_end(PyObject *self, PyObject *noarg)
 
 PyDoc_STRVAR(doc_get_rl_end,
 "get_rl_end() -> int\n\
-Return the end.");
+Return the rl_end.");
 
 
 /* Word-break hook */
@@ -1609,36 +1602,6 @@ on_directory_completion_hook(char **directory)
 #endif
 	return result;
 }
-
-
-/* Text removal */
-
-static PyObject *
-rubout_text(PyObject *self, PyObject *args)
-{
-	int n = 0, d = 0;
-	if (!PyArg_ParseTuple(args, "i:rubout_text", &n))
-		return NULL;
-
-        if (n < 0)
-                n = 0;
-        if (n > rl_point)
-                n = rl_point;
-
-        if (n > 0) {
-                d = rl_delete_text(rl_point-n, rl_point);
-                rl_point -= d;
-                if (rl_point > rl_end)
-                        rl_point = rl_end;
-                if (rl_point < 0)
-                        rl_point = 0;
-        }
-	return PyInt_FromLong(d);
-}
-
-PyDoc_STRVAR(doc_rubout_text,
-"rubout_text(numchars) -> int\n\
-Delete characters at the current cursor position.");
 
 
 /* Input stuffing */
@@ -1872,7 +1835,6 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_directory_completion_hook},
 	{"set_directory_completion_hook", set_directory_completion_hook,
 	 METH_VARARGS, doc_set_directory_completion_hook},
-	{"rubout_text", rubout_text, METH_VARARGS, doc_rubout_text},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"get_complete_with_tilde_expansion", get_complete_with_tilde_expansion,
 	 METH_NOARGS, doc_get_complete_with_tilde_expansion},
@@ -1884,7 +1846,6 @@ static struct PyMethodDef readline_methods[] =
 	 METH_VARARGS, doc_set_match_hidden_files},
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
         {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
-        {"get_rl_mark", get_rl_mark, METH_NOARGS, doc_get_rl_mark},
         {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
         /* </_readline.c> */
 
