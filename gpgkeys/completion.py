@@ -164,9 +164,7 @@ class Completer(object):
 
     @property
     def preferred_quote_character(self):
-        if self.quote_characters:
-            return self.quote_characters[0]
-        return ''
+        return self.quote_characters[0:1]
 
     # Configuration
 
