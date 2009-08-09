@@ -2,28 +2,45 @@ import os
 import sys
 
 
-def get_quote_char(s, lx=None):
-    if lx is None:
+def scan_unquoted(s, c, x, lx):
+    q = s.find(c, x)
+    while q > 0 and s[q-1] == '\\' and q < lx:
+        q = s.find(c, q+1)
+    if q >= lx:
+        q = -1
+    return q
+
+
+def scan_open(s, c, x, lx):
+    q = scan_unquoted(s, c, x, lx)
+    if q >= 0:
+        qq = scan_unquoted(s, c, q+1, lx)
+        if qq > q:
+            # This quote is closed, continue
+            return scan_open(s, c, qq+1, lx)
+    return q
+
+
+def get_quote_char(s, lx=-1, any=False):
+    if lx < 0:
         lx = sys.maxint
-    lx = min(len(s)-1, lx)
+    lx = min(len(s), lx)
 
-    dq = s.find('"')
-    while dq > 0 and s[dq-1] == '\\' and dq < lx:
-        dq = s.find('"', dq+1)
-    if dq >= lx:
-        dq = -1
-
-    sq = s.find("'")
-    while sq > 0 and s[sq-1] == '\\' and sq < lx:
-        sq = s.find("'", sq+1)
-    if sq >= lx:
-        sq = -1
+    if any:
+        dq = scan_unquoted(s, '"', 0, lx)
+        sq = scan_unquoted(s, "'", 0, lx)
+    else:
+        dq = scan_open(s, '"', 0, lx)
+        sq = scan_open(s, "'", 0, lx)
 
     if dq >= 0 and (sq < 0 or sq > dq):
-        return '"'
-    if sq >= 0 and (dq < 0 or dq > sq):
-        return "'"
-    return '\\'
+        qc = '"'
+    elif sq >= 0 and (dq < 0 or dq > sq):
+        qc = "'"
+    else:
+        qc = '\\'
+
+    return qc
 
 
 def escape(args):
@@ -31,13 +48,13 @@ def escape(args):
         qc = get_quote_char(args)
         if '\\ ' in args or '\\"' in args or "'\\''" in args:
             return args
-        if qc != "'" and '\\\\' in args:
-            return args
+        if qc != "'":
+            if '\\\\' in args:
+                return args
+            args = args.replace('\\', '\\\\')
         args = args.replace(' ', '\\ ')
         args = args.replace('"', '\\"')
         args = args.replace("'", "'\\''")
-        if qc != "'":
-            args = args.replace('\\', '\\\\')
     return args
 
 
@@ -68,7 +85,7 @@ def bs_unescape(args, qc):
 
 
 def split(args):
-    qc = get_quote_char(args)
+    qc = get_quote_char(args, any=True)
     if qc in ('"', "'"):
         return qc_split(args, qc)
     return bs_split(args, qc)
