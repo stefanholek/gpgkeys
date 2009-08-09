@@ -121,19 +121,19 @@ class Completer(object):
         return property(get, set)
 
     @apply
-    def display_matches_hook():
-        def get(self):
-            return readline.get_completion_display_matches_hook()
-        def set(self, function):
-            readline.set_completion_display_matches_hook(function)
-        return property(get, set)
-
-    @apply
     def directory_completion_hook():
         def get(self):
             return readline.get_directory_completion_hook()
         def set(self, function):
             readline.set_directory_completion_hook(function)
+        return property(get, set)
+
+    @apply
+    def display_matches_hook():
+        def get(self):
+            return readline.get_completion_display_matches_hook()
+        def set(self, function):
+            readline.set_completion_display_matches_hook(function)
         return property(get, set)
 
     @apply
