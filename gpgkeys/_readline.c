@@ -601,6 +601,8 @@ May only be called from within custom completers.");
 #endif
 
 
+/* Get/set completion suppress append flag */
+
 static PyObject *
 get_completion_suppress_append(PyObject *self, PyObject *noarg)
 {
@@ -700,7 +702,7 @@ PyDoc_STRVAR(doc_set_filename_quote_characters,
 Set list of characters that cause a filename to be quoted by the completer.");
 
 
-/* Completion quoting info */
+/* Completion quoting */
 
 static PyObject *
 get_completion_found_quote(PyObject *self, PyObject *noarg)
@@ -829,6 +831,8 @@ PyDoc_STRVAR(doc_get_attempted_completion_over,
 If True, do not perform the default filename completion, even if the current \
 completion returns no matches.");
 
+
+/* Misc flags */
 
 static PyObject *
 set_attempted_completion_over(PyObject *self, PyObject *args)
@@ -1420,7 +1424,7 @@ PyDoc_STRVAR(doc_get_pre_input_hook,
 Get the current pre_input_hook function.");
 
 
-/* Debugging info */
+/* Debugging and testing */
 
 static PyObject *
 get_rl_point(PyObject *self, PyObject *noarg)
@@ -1442,6 +1446,26 @@ get_rl_end(PyObject *self, PyObject *noarg)
 PyDoc_STRVAR(doc_get_rl_end,
 "get_rl_end() -> int\n\
 Return the rl_end.");
+
+
+static PyObject *
+py_rl_complete_internal(PyObject *self, PyObject *args)
+{
+	char *what_to_do = NULL;
+        int result = 1;
+
+	if (!PyArg_ParseTuple(args, "s:rl_complete_internal", &what_to_do)) {
+		return NULL;
+	}
+        if (what_to_do) {
+                result = rl_complete_internal(*what_to_do);
+        }
+        return PyInt_FromLong(result);
+}
+
+PyDoc_STRVAR(doc_rl_complete_internal,
+"rl_complete_internal(string) -> int\n\
+Complete the word at or before the cursor position.");
 
 
 /* Word-break hook */
@@ -1609,14 +1633,15 @@ on_directory_completion_hook(char **directory)
 static PyObject *
 stuff_char(PyObject *self, PyObject *args)
 {
-	char *value;
+	char *value = NULL;
         int r = 0;
 
 	if (!PyArg_ParseTuple(args, "s:stuff_char", &value)) {
 	        return NULL;
 	}
-	if (value && *value)
+	if (value && *value) {
                 r = rl_stuff_char(*value);
+        }
 	return PyBool_FromLong(r);
 }
 
@@ -1625,7 +1650,30 @@ PyDoc_STRVAR(doc_stuff_char,
 Insert a character into readline's input stream.");
 
 
-/* Tilde expansion */
+/* Replace line buffer contents */
+
+static PyObject *
+replace_line(PyObject *self, PyObject *args)
+{
+	char *value = NULL;
+
+	if (!PyArg_ParseTuple(args, "s:replace_line", &value)) {
+	        return NULL;
+	}
+	if (value) {
+                rl_replace_line(value, 0);
+                /* Move rl_point to end of line */
+                rl_point = rl_end;
+        }
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_replace_line,
+"replace_line(string) -> None\n\
+Replace the line buffer contents with string.");
+
+
+/* Tilde expansion flag */
 
 extern int rl_complete_with_tilde_expansion;
 
@@ -1657,7 +1705,7 @@ PyDoc_STRVAR(doc_set_complete_with_tilde_expansion,
 If True, readline completion functions perform tilde expansion.");
 
 
-/* Hidden files */
+/* Match hidden files flag */
 
 extern int _rl_match_hidden_files;
 
@@ -1836,6 +1884,7 @@ static struct PyMethodDef readline_methods[] =
 	{"set_directory_completion_hook", set_directory_completion_hook,
 	 METH_VARARGS, doc_set_directory_completion_hook},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
+	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
 	{"get_complete_with_tilde_expansion", get_complete_with_tilde_expansion,
 	 METH_NOARGS, doc_get_complete_with_tilde_expansion},
 	{"set_complete_with_tilde_expansion", set_complete_with_tilde_expansion,
@@ -1847,6 +1896,8 @@ static struct PyMethodDef readline_methods[] =
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
         {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
         {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
+	{"rl_complete_internal", py_rl_complete_internal,
+         METH_VARARGS, doc_rl_complete_internal},
         /* </_readline.c> */
 
 	{0, 0}
