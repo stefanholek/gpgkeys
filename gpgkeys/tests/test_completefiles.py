@@ -4,14 +4,60 @@ import unittest
 from os.path import dirname
 
 from gpgkeys.gpgkeys import GPGKeys
+from gpgkeys.testing import TreeSetup
+
+from gpgkeys.completion import completer
+from gpgkeys.completion import completion
+
+
+class CompleterTests(TreeSetup):
+
+    def setUp(self):
+        TreeSetup.setUp(self)
+        self.cmd = GPGKeys()
+        self.cmd.init_completer(do_log=False)
+        completer.completer = self.cmd.complete
+        os.chdir('normaldir')
+
+    def complete(self, text):
+        completion.replace_line(text)
+        completion.rl_complete_internal('\t')
+        return completion.line_buffer
+
+    def test_simple(self):
+        self.assertEqual(self.complete('fdump Simple'),
+                         'fdump Simple.txt ')
+
+    def test_hello(self):
+        self.assertEqual(self.complete('fdump Hell'),
+                         'fdump "Hello World.txt" ')
+
+    def test_hello_quote(self):
+        self.assertEqual(self.complete('fdump "Hello '),
+                         'fdump "Hello World.txt" ')
+
+    def test_hello_single_quote(self):
+        self.assertEqual(self.complete("fdump 'Hello "),
+                         "fdump 'Hello World.txt' ")
+
+    def test_lee(self):
+        self.assertEqual(self.complete('''fdump Lee'''),
+                         '''fdump "Lee \\"Scratch\\" Perry.txt" ''')
+
+    def test_lee_quote(self):
+        self.assertEqual(self.complete('''fdump "Lee \\"'''),
+                         '''fdump "Lee \\"Scratch\\" Perry.txt" ''')
+
+    def test_lee_single_quote(self):
+        self.assertEqual(self.complete('''fdump 'Lee "'''),
+                         '''fdump 'Lee "Scratch" Perry.txt' ''')
 
 
 class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
         self.cmd = GPGKeys()
-        self.cmd.preloop()
-        self.cmd.file_completion.do_log = False
+        self.cmd.init_completer(do_log=False)
         self.is_quoted = self.cmd.file_completion.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):
@@ -65,7 +111,6 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted('normaldir/\\"', 9), False)
 
     def test_normaldir_hello(self):
-        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 18), True)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 17), False)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 11), True)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 10), True)
@@ -75,16 +120,9 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted('"normaldir/\\"Hello ', 12), True)
         self.assertEqual(self.is_quoted('"normaldir/\\"Hello ', 11), True)
 
-
-class CompleterTests(unittest.TestCase):
-
-    def setUp(self):
-        self.cmd = GPGKeys()
-        self.cmd.preloop()
-        self.cmd.file_completion.do_log = False
-        os.chdir(dirname(__file__))
-
-    def test_simple(self):
-        self.assertEqual(self.cmd.completefiles('test_esc'),
-                         ['test_escape.py', 'test_escape.pyc'])
+    def test_normaldir_hello_quoted_space(self):
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 18), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 17), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 11), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 10), True)
 
