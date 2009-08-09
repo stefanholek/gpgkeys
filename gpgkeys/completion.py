@@ -184,11 +184,11 @@ class Completer(object):
 word_break_characters:          %r
 special_prefixes:               %r
 quote_characters:               %r
+preferred_quote_character:      %r
 filename_quote_characters:      %r
 tilde_expansion:                %s
 match_hidden_files:             %s
 query_items:                    %d
-preferred_quote_character:      %r
 completer:                      %r
 startup_hook:                   %r
 pre_input_hook:                 %r
@@ -202,11 +202,11 @@ filename_dequoting_function:    %r
 completer.word_break_characters,
 completer.special_prefixes,
 completer.quote_characters,
+completer.preferred_quote_character,
 completer.filename_quote_characters,
 completer.tilde_expansion,
 completer.match_hidden_files,
 completer.query_items,
-completer.preferred_quote_character,
 completer.completer,
 completer.startup_hook,
 completer.pre_input_hook,
@@ -337,11 +337,14 @@ class Completion(object):
     def insert_text(self, text):
         return readline.insert_text(text)
 
-    def stuff_char(self, char):
-        return readline.stuff_char(char)
+    def replace_line(self, text):
+        return readline.replace_line(text)
 
     def redisplay(self):
         return readline.redisplay()
+
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
 
     # Stock completions
 
@@ -368,7 +371,18 @@ class Completion(object):
     def expand_tilde(self, text):
         return readline.tilde_expand(text)
 
-    # Debugging
+    # Debugging and testing
+
+    @property
+    def rl_point(self):
+        return readline.get_rl_point()
+
+    @property
+    def rl_end(self):
+        return readline.get_rl_end()
+
+    def rl_complete_internal(self, what_to_do):
+        return readline.rl_complete_internal(what_to_do)
 
     @print_exc
     def dump_vars(self):
