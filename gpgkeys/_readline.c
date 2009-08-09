@@ -601,7 +601,7 @@ May only be called from within custom completers.");
 #endif
 
 
-/* Get/set completion suppress append flag */
+/* Get/set completion suppress append */
 
 static PyObject *
 get_completion_suppress_append(PyObject *self, PyObject *noarg)
@@ -832,8 +832,6 @@ If True, do not perform the default filename completion, even if the current \
 completion returns no matches.");
 
 
-/* Misc flags */
-
 static PyObject *
 set_attempted_completion_over(PyObject *self, PyObject *args)
 {
@@ -852,6 +850,8 @@ If True, do not perform the default filename completion, even if the current \
 completion returns no matches. \
 May only be called from within custom completers.");
 
+
+/* Misc flags */
 
 static PyObject *
 get_sort_completion_matches(PyObject *self, PyObject *noarg)
@@ -1013,8 +1013,8 @@ Get the current filename quoting function.");
 
 static char *
 on_filename_quoting_function(const char *text, int match_type, char *quote_pointer)
-/* This function must return new memory on success and 'text'
-   to indicate no change. */
+/* This function must return new memory on success and the
+   passed-in 'text' pointer to indicate no change. */
 {
 	char *result = (char*)text;
         char *s = NULL;
@@ -1650,7 +1650,7 @@ PyDoc_STRVAR(doc_stuff_char,
 Insert a character into readline's input stream.");
 
 
-/* Replace line buffer contents */
+/* Replacing line buffer contents */
 
 static PyObject *
 replace_line(PyObject *self, PyObject *args)
