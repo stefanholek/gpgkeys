@@ -1,5 +1,3 @@
-#!/usr/bin/env /usr/local/python2.6/bin/python
-
 # gpgkeys 1.0
 #
 
