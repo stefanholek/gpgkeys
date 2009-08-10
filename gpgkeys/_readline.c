@@ -1737,6 +1737,32 @@ PyDoc_STRVAR(doc_set_match_hidden_files,
 If True, include hidden files when computing the list of matches.");
 
 
+/* Get basic word break characters */
+
+static PyObject *
+get_basic_word_break_characters(PyObject *self, PyObject *noarg)
+{
+	return PyString_FromString(rl_basic_word_break_characters);
+}
+
+PyDoc_STRVAR(doc_get_basic_word_break_characters,
+"get_basic_word_break_characters() -> string\n\
+Get readline's default set of word break characters.");
+
+
+/* Get basic quote characters */
+
+static PyObject *
+get_basic_quote_characters(PyObject *self, PyObject *noarg)
+{
+	return PyString_FromString(rl_basic_quote_characters);
+}
+
+PyDoc_STRVAR(doc_get_basic_quote_characters,
+"get_basic_quote_characters() -> string\n\
+Get readline's default set of quote characters.");
+
+
 /* </_readline.c> */
 
 
@@ -1898,6 +1924,10 @@ static struct PyMethodDef readline_methods[] =
         {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
 	{"rl_complete_internal", py_rl_complete_internal,
          METH_VARARGS, doc_rl_complete_internal},
+        {"get_basic_word_break_characters", get_basic_word_break_characters,
+         METH_NOARGS, doc_get_basic_word_break_characters},
+        {"get_basic_quote_characters", get_basic_quote_characters,
+         METH_NOARGS, doc_get_basic_quote_characters},
         /* </_readline.c> */
 
 	{0, 0}

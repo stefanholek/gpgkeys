@@ -33,6 +33,14 @@ class Completer(object):
     MULT_MATCH = 2
 
     @apply
+    def quote_characters():
+        def get(self):
+            return readline.get_completer_quote_characters()
+        def set(self, string):
+            readline.set_completer_quote_characters(string)
+        return property(get, set)
+
+    @apply
     def word_break_characters():
         def get(self):
             return readline.get_completer_delims()
@@ -49,14 +57,6 @@ class Completer(object):
         return property(get, set)
 
     @apply
-    def quote_characters():
-        def get(self):
-            return readline.get_completer_quote_characters()
-        def set(self, string):
-            readline.set_completer_quote_characters(string)
-        return property(get, set)
-
-    @apply
     def filename_quote_characters():
         def get(self):
             return readline.get_filename_quote_characters()
@@ -65,19 +65,19 @@ class Completer(object):
         return property(get, set)
 
     @apply
-    def tilde_expansion():
-        def get(self):
-            return readline.get_complete_with_tilde_expansion()
-        def set(self, value):
-            readline.set_complete_with_tilde_expansion(value)
-        return property(get, set)
-
-    @apply
     def match_hidden_files():
         def get(self):
             return readline.get_match_hidden_files()
         def set(self, value):
             readline.set_match_hidden_files(value)
+        return property(get, set)
+
+    @apply
+    def tilde_expansion():
+        def get(self):
+            return readline.get_complete_with_tilde_expansion()
+        def set(self, value):
+            readline.set_complete_with_tilde_expansion(value)
         return property(get, set)
 
     @apply
@@ -160,6 +160,14 @@ class Completer(object):
             readline.set_filename_dequoting_function(function)
         return property(get, set)
 
+    @property
+    def basic_word_break_characters(self):
+        return readline.get_basic_word_break_characters()
+
+    @property
+    def basic_quote_characters(self):
+        return readline.get_basic_quote_characters()
+
     # Configuration
 
     def read_init_file(self, filename):
@@ -173,36 +181,36 @@ class Completer(object):
     @print_exc
     def dump_vars(self):
         sys.stdout.write("""
+quote_characters:               %r
 word_break_characters:          %r
 special_prefixes:               %r
-quote_characters:               %r
 filename_quote_characters:      %r
-tilde_expansion:                %s
 match_hidden_files:             %s
+tilde_expansion:                %s
 query_items:                    %d
 completer:                      %r
 startup_hook:                   %r
 pre_input_hook:                 %r
 word_break_hook:                %r
-display_matches_hook:           %r
 directory_completion_hook:      %r
+display_matches_hook:           %r
 char_is_quoted_function:        %r
 filename_quoting_function:      %r
 filename_dequoting_function:    %r
 """ % (
+completer.quote_characters,
 completer.word_break_characters,
 completer.special_prefixes,
-completer.quote_characters,
 completer.filename_quote_characters,
-completer.tilde_expansion,
 completer.match_hidden_files,
+completer.tilde_expansion,
 completer.query_items,
 completer.completer,
 completer.startup_hook,
 completer.pre_input_hook,
 completer.word_break_hook,
-completer.display_matches_hook,
 completer.directory_completion_hook,
+completer.display_matches_hook,
 completer.char_is_quoted_function,
 completer.filename_quoting_function,
 completer.filename_dequoting_function,
@@ -231,16 +239,16 @@ class Completion(object):
         return readline.get_completion_type()
 
     @property
-    def invoking_key(self):
-        return readline.get_completion_invoking_key()
-
-    @property
     def found_quote(self):
         return readline.get_completion_found_quote()
 
     @property
     def quote_character(self):
         return readline.get_completion_quote_character()
+
+    @property
+    def invoking_key(self):
+        return readline.get_completion_invoking_key()
 
     @apply
     def append_character():
@@ -322,20 +330,6 @@ class Completion(object):
             readline.set_inhibit_completion(value)
         return property(get, set)
 
-    # Line buffer manipulation
-
-    def insert_text(self, text):
-        return readline.insert_text(text)
-
-    def replace_line(self, text):
-        return readline.replace_line(text)
-
-    def redisplay(self):
-        return readline.redisplay()
-
-    def stuff_char(self, char):
-        return readline.stuff_char(char)
-
     # Stock completions
 
     def complete_filename(self, text):
@@ -360,6 +354,21 @@ class Completion(object):
 
     def expand_tilde(self, text):
         return readline.tilde_expand(text)
+
+    # Line buffer manipulation
+    # XXX Do these belong here?
+
+    def insert_text(self, text):
+        return readline.insert_text(text)
+
+    def redisplay(self):
+        return readline.redisplay()
+
+    def replace_line(self, text):
+        return readline.replace_line(text)
+
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
 
     # Debugging and testing
 
