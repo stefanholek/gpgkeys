@@ -716,7 +716,7 @@ class FileCompletion(Logging):
     def dequote_filename(self, text, quote_char):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
-            qc = quote_char or completer.preferred_quote_character
+            qc = quote_char or completer.quote_characters[0]
             text = text.replace(self.quoted[qc], qc)
             # Don't backslash-dequote characters between single quotes
             if qc != "'" and len(text) > 1:
@@ -732,7 +732,7 @@ class FileCompletion(Logging):
         if self.tilde_expansion and '~' in text:
             text = completion.expand_tilde(text)
         if text:
-            qc = quote_char or completer.preferred_quote_character
+            qc = quote_char or completer.quote_characters[0]
             # Don't backslash-quote backslashes between single quotes
             if qc != "'":
                 text = text.replace('\\', self.quoted['\\'])
