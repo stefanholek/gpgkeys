@@ -41,12 +41,12 @@ class CompleterTests(TreeSetup):
                          "fdump 'Hello World.txt' ")
 
     def test_lee(self):
-        self.assertEqual(self.complete('''fdump Lee'''),
-                         '''fdump "Lee \\"Scratch\\" Perry.txt" ''')
+        self.assertEqual(self.complete('fdump Lee'),
+                         'fdump "Lee \\"Scratch\\" Perry.txt" ')
 
     def test_lee_quote(self):
         self.assertEqual(self.complete('''fdump "Lee \\"'''),
-                         '''fdump "Lee \\"Scratch\\" Perry.txt" ''')
+                         'fdump "Lee \\"Scratch\\" Perry.txt" ')
 
     def test_lee_single_quote(self):
         self.assertEqual(self.complete('''fdump 'Lee "'''),
