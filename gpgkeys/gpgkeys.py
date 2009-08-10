@@ -429,7 +429,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN + EXPERT
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text)
 
     def complete_e(self, text, *ignored):
         return self.complete_edit(text)
@@ -438,13 +438,13 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text)
 
     def complete_sign(self, text, *ignored):
         options = GLOBAL + KEY + SIGN
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text)
 
     def complete_del(self, text, *ignored):
         options = GLOBAL
@@ -468,13 +468,13 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + SERVER
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text)
 
     def complete_recv(self, text, *ignored):
         options = GLOBAL + SERVER + INPUT
         if text.startswith('-'):
             return self.completeoptions(text, options)
-        return self.completekeys(text, keyids_only=True)
+        return self.completekeys(text)
 
     def complete_send(self, text, *ignored):
         options = GLOBAL + SERVER
@@ -798,7 +798,7 @@ class KeyCompletion(object):
         self.keyspecs = {}
 
     @print_exc
-    def complete(self, text, keyids_only=False):
+    def complete(self, text, keyids_only=True):
         self.update_keys()
 
         keyid = text.upper()
