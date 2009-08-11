@@ -355,33 +355,7 @@ class Completion(object):
     def expand_tilde(self, text):
         return readline.tilde_expand(text)
 
-    # Line buffer manipulation
-    # XXX Do these belong here?
-
-    def insert_text(self, text):
-        return readline.insert_text(text)
-
-    def redisplay(self):
-        return readline.redisplay()
-
-    def replace_line(self, text):
-        return readline.replace_line(text)
-
-    def stuff_char(self, char):
-        return readline.stuff_char(char)
-
-    # Debugging and testing
-
-    @property
-    def rl_point(self):
-        return readline.get_rl_point()
-
-    @property
-    def rl_end(self):
-        return readline.get_rl_end()
-
-    def rl_complete_internal(self, what_to_do):
-        return readline.rl_complete_internal(what_to_do)
+    # Debugging
 
     @print_exc
     def dump_vars(self):
@@ -424,6 +398,32 @@ completion.inhibit_completion,
 ))
 
 completion = Completion()
+
+
+class Testing(object):
+    """Additional attributes and methods useful for testing and debugging."""
+
+    @property
+    def rl_point(self):
+        return readline.get_rl_point()
+
+    @property
+    def rl_end(self):
+        return readline.get_rl_end()
+
+    def replace_line(self, text):
+        return readline.replace_line(text)
+
+    def insert_text(self, text):
+        return readline.insert_text(text)
+
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
+
+    def rl_complete_internal(self, what_to_do):
+        return readline.rl_complete_internal(what_to_do)
+
+testing = Testing()
 
 
 class cmd:

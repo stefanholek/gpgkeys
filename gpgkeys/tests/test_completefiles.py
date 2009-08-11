@@ -8,6 +8,7 @@ from gpgkeys.testing import TreeSetup
 
 from gpgkeys.completion import completer
 from gpgkeys.completion import completion
+from gpgkeys.completion import testing
 
 
 class CompleterTests(TreeSetup):
@@ -20,8 +21,8 @@ class CompleterTests(TreeSetup):
         os.chdir('normaldir')
 
     def complete(self, text):
-        completion.replace_line(text)
-        completion.rl_complete_internal('\t')
+        testing.replace_line(text)
+        testing.rl_complete_internal('\t')
         return completion.line_buffer
 
     def test_simple(self):
