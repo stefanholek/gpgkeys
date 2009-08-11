@@ -1,9 +1,5 @@
-# gpgkeys 1.0
+# gpgkeys
 #
-
-# TODO:
-# - filename completion should handle names with spaces
-# - implement command aliases
 
 import os, sys
 import readline
@@ -287,10 +283,10 @@ class GPGKeys(cmd.Cmd):
     # Shell commands
 
     def shell_ls(self, *args):
-        self.shell_default('ls -F', *args)
+        self.shell_default('ls', '-F', *args)
 
     def shell_ll(self, *args):
-        self.shell_default('ls -lF', *args)
+        self.shell_default('ls', '-lF', *args)
 
     def shell_chdir(self, *args):
         if args:
@@ -298,7 +294,7 @@ class GPGKeys(cmd.Cmd):
         else:
             dir = os.path.expanduser('~')
         try:
-            os.chdir(unescape(dir)) # XXX
+            os.chdir(unescape(dir))
         except OSError, e:
             self.stdout.write('%s\n' % (e,))
 
@@ -318,7 +314,7 @@ class GPGKeys(cmd.Cmd):
 
     def shell_default(self, *args):
         try:
-            self.system(*args)
+            self.system(*[escape(unescape(x)) for x in args])
         except OSError, e:
             self.stdout.write('%s\n' % (e,))
 
@@ -349,7 +345,7 @@ class GPGKeys(cmd.Cmd):
     def ispipe(self, line, begidx):
         return self.follows('|', line, begidx, ('',))
 
-    def ispostpipe(self, line, begidx):
+    def isredir(self, line, begidx):
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
@@ -357,29 +353,23 @@ class GPGKeys(cmd.Cmd):
     def isfilename(self, text):
         return (text.find('/') >= 0)
 
-    def completefiles_(self, text, line, begidx):
+    def complete_(self, text, line, begidx, default):
         if self.ispipe(line, begidx):
             if not self.isfilename(text):
                 return self.completesys(text)
-        return self.completefiles(text)
+            return self.completefiles(text)
+        if self.isredir(line, begidx):
+            return self.completefiles(text)
+        return default(text)
+
+    def completefiles_(self, text, line, begidx):
+        return self.complete_(text, line, begidx, self.completefiles)
 
     def completekeys_(self, text, line, begidx):
-        if self.ispipe(line, begidx):
-            if not self.isfilename(text):
-                return self.completesys(text)
-            return self.completefiles(text)
-        if self.ispostpipe(line, begidx):
-            return self.completefiles(text)
-        return self.completekeys(text)
+        return self.complete_(text, line, begidx, self.completekeys)
 
     def completedefault_(self, text, line, begidx):
-        if self.ispipe(line, begidx):
-            if not self.isfilename(text):
-                return self.completesys(text)
-            return self.completefiles(text)
-        if self.ispostpipe(line, begidx):
-            return self.completefiles(text)
-        return self.completedefault()
+        return self.complete_(text, line, begidx, self.completedefault)
 
     def completeoptions(self, text, options):
         return [x for x in sorted(options) if x.startswith(text)]
@@ -433,7 +423,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_ls(self, text, line, begidx, endidx):
-        return self.complete_list(text)
+        return self.complete_list(text, line, begidx, endidx)
 
     def complete_listsec(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
@@ -442,7 +432,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_lx(self, text, line, begidx, endidx):
-        return self.complete_listsec(text)
+        return self.complete_listsec(text, line, begidx, endidx)
 
     def complete_listsig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
@@ -451,7 +441,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_ll(self, text, line, begidx, endidx):
-        return self.complete_listsig(text)
+        return self.complete_listsig(text, line, begidx, endidx)
 
     def complete_checksig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST + CHECK
@@ -466,7 +456,7 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_e(self, text, line, begidx, endidx):
-        return self.complete_edit(text)
+        return self.complete_edit(text, line, begidx, endidx)
 
     def complete_lsign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
