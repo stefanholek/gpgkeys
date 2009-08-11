@@ -338,12 +338,12 @@ class GPGKeys(cmd.Cmd):
         # True if 'string' is a filename
         return (os.sep in string)
 
-    def follows(self, string, line, begidx, deltas=('"', "'", '')):
+    def follows(self, string, line, begidx, deltas_=('"', "'", '')):
         # True if 'string' immediately preceeds the completion
         idx = line.rfind(string, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(string):begidx]
-            if delta.strip() in deltas:
+            if delta.strip() in deltas_:
                 return True
         return False
 
@@ -371,9 +371,6 @@ class GPGKeys(cmd.Cmd):
             return self.completefiles(text)
         return default(text)
 
-    def completeoptions(self, text, options):
-        return [x for x in sorted(options) if x.startswith(text)]
-
     def completefiles_(self, text, line, begidx):
         return self.complete_(text, line, begidx, self.completefiles)
 
@@ -382,6 +379,9 @@ class GPGKeys(cmd.Cmd):
 
     def completedefault_(self, text, line, begidx):
         return self.complete_(text, line, begidx, self.completedefault)
+
+    def completeoptions(self, text, options):
+        return [x for x in options if x.startswith(text)]
 
     def complete_genkey(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + EXPERT
@@ -649,7 +649,6 @@ class Logging(object):
         self.do_log = do_log
         self.log('-----', date=False, scale=False)
 
-    @print_exc
     def log(self, format, *args, **kw):
         if not self.do_log:
             return
@@ -683,7 +682,6 @@ class FileCompletion(Logging):
     Backslash quoting is disabled between single quotes.
     """
 
-    @print_exc
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
@@ -808,7 +806,6 @@ class SystemCompletion(object):
             text = text[1:]
         return [prefix+x for x in self.read_path() if x.startswith(text)]
 
-    @print_exc
     def read_path(self):
         path = os.environ.get('PATH')
         dirs = path.split(':')
@@ -825,7 +822,6 @@ class KeyCompletion(object):
     its completion cache.
     """
 
-    @print_exc
     def __init__(self):
         home = os.environ.get('GNUPGHOME', '~/.gnupg')
         home = os.path.expanduser(home)
@@ -847,7 +843,6 @@ class KeyCompletion(object):
                 return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
         return matches
 
-    @print_exc
     def update_keys(self):
         mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
         if self.mtimes != mtimes:
@@ -863,12 +858,11 @@ class KeyCompletion(object):
             self.mtimes = mtimes
             self.keyspecs = keyspecs
 
-    @print_exc
     def read_pubkeys(self):
         process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        for line in stdout.rstrip().split('\n'):
+        for line in stdout.strip().split('\n'):
             if line[:3] == 'pub':
                 fields = line.split(':')
                 keyid = fields[4]
