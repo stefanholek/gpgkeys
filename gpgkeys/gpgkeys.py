@@ -345,7 +345,7 @@ class GPGKeys(cmd.Cmd):
         return False
 
     def iscommand(self, line, begidx):
-        # True if the completion is a shell command at the start of the line
+        # True if the completion is a shell command
         delta = line[0:begidx]
         return delta.strip() in ('!', '.', 'shell')
 
@@ -353,18 +353,18 @@ class GPGKeys(cmd.Cmd):
         # True if the completion is a shell command following a pipe
         return self.follows('|', line, begidx, ('',))
 
-    def ispastredir(self, line, begidx):
-        # True if the completion happens anywhere after a shell redirect
+    def isredir(self, line, begidx):
+        # True if the completion is anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
 
     def basecomplete(self, text, line, begidx, default):
         if self.ispipe(line, begidx):
-            if not self.isfilename(text):
-                return self.completesys(text)
-            return self.completefiles(text)
-        if self.ispastredir(line, begidx):
+            if self.isfilename(text):
+                return self.completefiles(text)
+            return self.completesys(text)
+        if self.isredir(line, begidx):
             return self.completefiles(text)
         return default(text)
 
