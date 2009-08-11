@@ -70,12 +70,12 @@ class GPGKeys(cmd.Cmd):
             return None, None, line
         elif line[0] == '?':
             line = 'help ' + line[1:]
-        elif line[0] == '!' or line[0] == '.': # Allow '.'
+        elif line[0] == '!' or line[0] == '.':
             if hasattr(self, 'do_shell'):
                 line = 'shell ' + line[1:]
             else:
                 return None, None, line
-        elif line[0] == '#': # Allow comments
+        elif line[0] == '#':
             line = ''
         i, n = 0, len(line)
         while i < n and line[i] in self.identchars:
@@ -85,7 +85,7 @@ class GPGKeys(cmd.Cmd):
 
     def __getattr__(self, name):
         # Automatically expand unique command prefixes
-        # Thanks to Thomas Lotze
+        # https://svn.thomas-lotze.de/repos/public/tl.cli/trunk/tl/cli/_cmd.py
         if name.startswith(('do_', 'complete_', 'help_')):
             matches = set(x for x in self.get_names() if x.startswith(name))
             if len(matches) == 1:
@@ -330,7 +330,16 @@ class GPGKeys(cmd.Cmd):
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
 
+    def isoption(self, text):
+        # True if 'text' is an option flag
+        return text.startswith('-')
+
+    def isfilename(self, text):
+        # True if 'text' is a filename
+        return (os.sep in text)
+
     def follows(self, text, line, begidx, deltas=('"', "'", '')):
+        # True if 'text' immediately preceeds the completion
         idx = line.rfind(text, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(text):begidx]
@@ -339,19 +348,19 @@ class GPGKeys(cmd.Cmd):
         return False
 
     def iscommand(self, line, begidx):
-        delta = line[0:begidx].strip()
-        return delta in ('!', '.', 'shell')
+        # True if the completion is a shell command at the start of the line
+        delta = line[0:begidx]
+        return delta.strip() in ('!', '.', 'shell')
 
     def ispipe(self, line, begidx):
+        # True if the completion is a shell command following a pipe
         return self.follows('|', line, begidx, ('',))
 
     def isredir(self, line, begidx):
+        # True if completion happens anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
-
-    def isfilename(self, text):
-        return (text.find('/') >= 0)
 
     def complete_(self, text, line, begidx, default):
         if self.ispipe(line, begidx):
@@ -362,6 +371,9 @@ class GPGKeys(cmd.Cmd):
             return self.completefiles(text)
         return default(text)
 
+    def completeoptions(self, text, options):
+        return [x for x in sorted(options) if x.startswith(text)]
+
     def completefiles_(self, text, line, begidx):
         return self.complete_(text, line, begidx, self.completefiles)
 
@@ -371,18 +383,15 @@ class GPGKeys(cmd.Cmd):
     def completedefault_(self, text, line, begidx):
         return self.complete_(text, line, begidx, self.completedefault)
 
-    def completeoptions(self, text, options):
-        return [x for x in sorted(options) if x.startswith(text)]
-
     def complete_genkey(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + EXPERT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completedefault_(text, line, begidx)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + OUTPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
             return self.completefiles(text)
@@ -390,19 +399,19 @@ class GPGKeys(cmd.Cmd):
 
     def complete_import(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completefiles_(text, line, begidx)
 
     def complete_importsec(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completefiles_(text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
         options = GLOBAL + OUTPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
             return self.completefiles(text)
@@ -410,7 +419,7 @@ class GPGKeys(cmd.Cmd):
 
     def complete_exportsec(self, text, line, begidx, endidx):
         options = GLOBAL + OUTPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
             return self.completefiles(text)
@@ -418,7 +427,7 @@ class GPGKeys(cmd.Cmd):
 
     def complete_list(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
@@ -427,7 +436,7 @@ class GPGKeys(cmd.Cmd):
 
     def complete_listsec(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
@@ -436,7 +445,7 @@ class GPGKeys(cmd.Cmd):
 
     def complete_listsig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
@@ -445,13 +454,13 @@ class GPGKeys(cmd.Cmd):
 
     def complete_checksig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST + CHECK
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_edit(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN + EXPERT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
@@ -460,86 +469,86 @@ class GPGKeys(cmd.Cmd):
 
     def complete_lsign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_sign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_del(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_delsec(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_delsecpub(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_recv(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_send(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_refresh(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_fetch(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completedefault_(text, line, begidx)
 
     def complete_dump(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_dumpsec(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_fdump(self, text, line, begidx, endidx):
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completefiles_(text, line, begidx)
 
     def complete_shell(self, text, line, begidx, endidx):
         # If the user types '. foo' we end up here
         options = GLOBAL
-        if text.startswith('-'):
+        if self.isoption(text):
             return self.completeoptions(text, options)
         if self.iscommand(line, begidx):
             if not self.isfilename(text):
@@ -550,7 +559,7 @@ class GPGKeys(cmd.Cmd):
         # If the user types '.foo' we end up here and not
         # in complete_shell.
         if self.iscommand(text, 1):
-            if not self.isfilename(text):
+            if not self.isoption(text) and not self.isfilename(text):
                 return self.completesys(text)
         return cmd.Cmd.completenames(self, text, *ignored)
 
@@ -678,7 +687,6 @@ class FileCompletion(Logging):
     def __init__(self, do_log=True):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
-        #rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&{("
         completer.word_break_characters = '\\ \t\n"\'`@$><=;|&{('
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quote_characters = '\\ \t\n"\''
