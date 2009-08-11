@@ -330,13 +330,13 @@ class GPGKeys(cmd.Cmd):
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
 
-    def isoption(self, text):
-        # True if 'text' is an option flag
-        return text.startswith('-')
+    def isoption(self, string):
+        # True if 'string' is an option flag
+        return string.startswith('-')
 
-    def isfilename(self, text):
-        # True if 'text' is a filename
-        return (os.sep in text)
+    def isfilename(self, string):
+        # True if 'string' is a filename
+        return (os.sep in string)
 
     def follows(self, string, line, begidx, deltas=('"', "'", '')):
         # True if 'string' immediately preceeds the completion
@@ -357,7 +357,7 @@ class GPGKeys(cmd.Cmd):
         return self.follows('|', line, begidx, ('',))
 
     def isredir(self, line, begidx):
-        # True if completion happens anywhere after a shell redirect
+        # True if the completion happens anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
