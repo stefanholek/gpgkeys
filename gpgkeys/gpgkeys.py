@@ -96,17 +96,19 @@ class GPGKeys(cmd.Cmd):
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer(do_log=True)
+        self.init_completer(do_log=True) # XXX
         self.init_history()
 
     def emptyline(self):
         pass
 
     def default(self, args):
-        # Pass to GnuPG as is
-        # XXX Really?
-        args = split(args)
-        self.gnupg(*args)
+        self.stderr.write('Unknown command\n')
+
+    #def do_gpg(self, args):
+    #    """Run gpg (Usage: gpg <opts> <args>)"""
+    #    args = split(args)
+    #    self.gnupg(*args[1:])
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
@@ -356,7 +358,7 @@ class GPGKeys(cmd.Cmd):
         # True if the completion is a shell command following a pipe
         return self.follows('|', line, begidx, ('',))
 
-    def isredir(self, line, begidx):
+    def ispastredir(self, line, begidx):
         # True if the completion happens anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
@@ -367,7 +369,7 @@ class GPGKeys(cmd.Cmd):
             if not self.isfilename(text):
                 return self.completesys(text)
             return self.completefiles(text)
-        if self.isredir(line, begidx):
+        if self.ispastredir(line, begidx):
             return self.completefiles(text)
         return default(text)
 
@@ -647,6 +649,7 @@ class Logging(object):
 
     def __init__(self, do_log=False):
         self.do_log = do_log
+        self.log_file = os.path.abspath('gpgkeys.log')
         self.log('-----', date=False, scale=False)
 
     def log(self, format, *args, **kw):
@@ -656,7 +659,7 @@ class Logging(object):
         now = datetime.now().isoformat()[:19]
         now = '%s %s\t' % (now[:10], now[11:])
 
-        f = open('/Users/stefan/PGP2004/gpgkeys.log', 'at')
+        f = open(self.log_file, 'at')
         try:
             if kw.get('date', True):
                 f.write(now)
