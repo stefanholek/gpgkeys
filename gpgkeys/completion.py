@@ -1,3 +1,15 @@
+"""\
+=====================================
+Alternative Python readline interface
+=====================================
+
+This module aims to provide a full implementation of the readline
+`completion interface`_. It does not concern itself with other parts
+of the readline library, notably history.
+
+.. _`completion interface`: http://tiswww.case.edu/php/chet/readline/readline.html#SEC44
+"""
+
 import readline # [sic]
 import _readline as readline
 
@@ -31,6 +43,14 @@ class Completer(object):
     # For filename_quoting_function
     SINGLE_MATCH = 1
     MULT_MATCH = 2
+
+    @property
+    def basic_quote_characters(self):
+        return readline.get_basic_quote_characters()
+
+    @property
+    def basic_word_break_characters(self):
+        return readline.get_basic_word_break_characters()
 
     @apply
     def quote_characters():
@@ -159,14 +179,6 @@ class Completer(object):
         def set(self, function):
             readline.set_filename_dequoting_function(function)
         return property(get, set)
-
-    @property
-    def basic_word_break_characters(self):
-        return readline.get_basic_word_break_characters()
-
-    @property
-    def basic_quote_characters(self):
-        return readline.get_basic_quote_characters()
 
     # Configuration
 
@@ -401,7 +413,7 @@ completion = Completion()
 
 
 class Testing(object):
-    """Additional attributes and methods useful for testing and debugging."""
+    """Additional attributes and methods for testing."""
 
     @property
     def rl_point(self):
