@@ -362,7 +362,7 @@ class GPGKeys(cmd.Cmd):
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
 
-    def complete_(self, text, line, begidx, default):
+    def basecomplete(self, text, line, begidx, default):
         if self.ispipe(line, begidx):
             if not self.isfilename(text):
                 return self.completesys(text)
@@ -372,13 +372,13 @@ class GPGKeys(cmd.Cmd):
         return default(text)
 
     def completefiles_(self, text, line, begidx):
-        return self.complete_(text, line, begidx, self.completefiles)
+        return self.basecomplete(text, line, begidx, self.completefiles)
 
     def completekeys_(self, text, line, begidx):
-        return self.complete_(text, line, begidx, self.completekeys)
+        return self.basecomplete(text, line, begidx, self.completekeys)
 
     def completedefault_(self, text, line, begidx):
-        return self.complete_(text, line, begidx, self.completedefault)
+        return self.basecomplete(text, line, begidx, self.completedefault)
 
     def completeoptions(self, text, options):
         return [x for x in options if x.startswith(text)]
