@@ -338,11 +338,11 @@ class GPGKeys(cmd.Cmd):
         # True if 'text' is a filename
         return (os.sep in text)
 
-    def follows(self, text, line, begidx, deltas=('"', "'", '')):
-        # True if 'text' immediately preceeds the completion
-        idx = line.rfind(text, 0, begidx)
+    def follows(self, string, line, begidx, deltas=('"', "'", '')):
+        # True if 'string' immediately preceeds the completion
+        idx = line.rfind(string, 0, begidx)
         if idx >= 0:
-            delta = line[idx+len(text):begidx]
+            delta = line[idx+len(string):begidx]
             if delta.strip() in deltas:
                 return True
         return False
