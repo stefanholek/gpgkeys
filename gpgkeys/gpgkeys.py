@@ -96,19 +96,14 @@ class GPGKeys(cmd.Cmd):
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer(do_log=True) # XXX
+        self.init_completer()
         self.init_history()
 
     def emptyline(self):
         pass
 
     def default(self, args):
-        self.stderr.write('Unknown command\n')
-
-    #def do_gpg(self, args):
-    #    """Run gpg (Usage: gpg <opts> <args>)"""
-    #    args = split(args)
-    #    self.gnupg(*args[1:])
+        self.stdout.write('Unknown command (type help for help)\n')
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
