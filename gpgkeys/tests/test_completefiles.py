@@ -16,7 +16,7 @@ class CompleterTests(TreeSetup):
     def setUp(self):
         TreeSetup.setUp(self)
         self.cmd = GPGKeys()
-        self.cmd.init_completer(do_log=False)
+        self.cmd.init_completer()
         completer.completer = self.cmd.complete
         os.chdir('normaldir')
 
@@ -58,7 +58,7 @@ class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
         self.cmd = GPGKeys()
-        self.cmd.init_completer(do_log=False)
+        self.cmd.init_completer()
         self.is_quoted = self.cmd.file_completion.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):

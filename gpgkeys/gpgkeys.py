@@ -96,7 +96,7 @@ class GPGKeys(cmd.Cmd):
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer()
+        self.init_completer(do_log=True)
         self.init_history()
 
     def emptyline(self):
@@ -320,7 +320,7 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
-    def init_completer(self, do_log=True):
+    def init_completer(self, do_log=False):
         self.file_completion = FileCompletion(do_log)
         self.completefiles = self.file_completion.complete
 
@@ -645,7 +645,7 @@ class Logging(object):
     """Simple logging for filename completion
     """
 
-    def __init__(self, do_log=True):
+    def __init__(self, do_log=False):
         self.do_log = do_log
         self.log('-----', date=False, scale=False)
 
@@ -684,10 +684,10 @@ class FileCompletion(Logging):
     """
 
     @print_exc
-    def __init__(self, do_log=True):
+    def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
-        completer.word_break_characters = '\\ \t\n"\'`@$><=;|&{('
+        completer.word_break_characters = '\\ \t\n"\'`><=;|&'
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quote_characters = '\\ \t\n"\''
         completer.filename_quoting_function = self.quote_filename
