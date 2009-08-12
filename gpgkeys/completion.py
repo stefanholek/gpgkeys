@@ -427,12 +427,6 @@ class Testing(object):
     def replace_line(self, text):
         return readline.replace_line(text)
 
-    def insert_text(self, text):
-        return readline.insert_text(text)
-
-    def stuff_char(self, char):
-        return readline.stuff_char(char)
-
     def rl_complete_internal(self, what_to_do):
         return readline.rl_complete_internal(what_to_do)
 
