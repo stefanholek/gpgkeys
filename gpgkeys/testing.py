@@ -35,26 +35,29 @@ class TreeSetup(JailSetup):
         try:
             os.mkdir('normaldir')
             os.chdir('normaldir')
-            self.mkfile('"FOAD_World"')
-            self.mkfile('"Goodbye_World".txt')
-            self.mkfile('"Hello World".gif')
-            self.mkfile('"Hello World".txt')
-            self.mkfile("Al'Hambra.txt")
-            self.mkfile('Foo\\"Peng\\".txt')
-            self.mkfile('Foo\\Bar.txt')
-            self.mkfile('Foo\\Baz.txt')
-            self.mkfile('Hello World.txt')
-            self.mkfile('Lee "Scratch" Perry.txt')
-            self.mkfile('Simple.txt')
+            self.mkbaseset()
             os.chdir(os.pardir)
         except:
             self.cleanUp()
             raise
 
+    def mkbaseset(self):
+        self.mkfile('"FOAD_World"')
+        self.mkfile('"Goodbye_World".txt')
+        self.mkfile('"Hello World".gif')
+        self.mkfile('"Hello World".txt')
+        self.mkfile("Al'Hambra.txt")
+        self.mkfile('Foo\\"Peng\\".txt')
+        self.mkfile('Foo\\Bar.txt')
+        self.mkfile('Foo\\Baz.txt')
+        self.mkfile('Hello World.txt')
+        self.mkfile('Lee "Scratch" Perry.txt')
+        self.mkfile('Simple.txt')
+
     def mkfile(self, filename):
         f = open(filename, 'wt')
         try:
-            f.write('foo\n')
+            f.write('23\n')
         finally:
             f.close()
 
