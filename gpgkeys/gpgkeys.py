@@ -2,34 +2,31 @@
 #
 
 import os, sys
-import readline
 import atexit
 import subprocess
 
 from datetime import datetime
-from os.path import abspath, join, expanduser, isdir
 
-from escape import escape
-from escape import unescape
 from escape import split
 from escape import get_quote_char
 
 from completion import completer
 from completion import completion
 from completion import cmd
+from completion import readline
 from completion import print_exc
 
 gnupg_exe = 'gpg'
 
 GNUPGHOME = os.environ.get('GNUPGHOME', '~/.gnupg')
-GNUPGHOME = abspath(expanduser(GNUPGHOME))
+GNUPGHOME = os.path.abspath(os.path.expanduser(GNUPGHOME))
 
 UMASK = 0077
 
 GLOBAL = []
 KEY    = ['--openpgp']
 SIGN   = ['--local-user']
-CHECK  = ['--trusted-key']
+CHECK  = [] #'--trusted-key']
 LIST   = ['--fingerprint', '--with-colons']
 INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
@@ -283,41 +280,50 @@ class GPGKeys(cmd.Cmd):
 
     # Shell commands
 
+    def shell_getdir(self, dir):
+        process = subprocess.Popen('cd %s; pwd' % dir,
+            shell=True, stdout=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        if process.returncode == 0:
+            for line in stdout.strip().split('\n'):
+                return line
+        return ''
+
     def shell_ls(self, *args):
-        self.shell_default('ls', '-F', *args)
+        self.system('ls', '-F', *args)
 
     def shell_ll(self, *args):
-        self.shell_default('ls', '-lF', *args)
+        self.system('ls', '-lF', *args)
 
     def shell_chdir(self, *args):
         if args:
-            dir = args[0]
+            dir = self.shell_getdir(args[0])
         else:
-            dir = expanduser('~')
-        try:
-            os.chdir(unescape(dir))
-        except OSError, e:
-            self.stdout.write('%s\n' % (e,))
+            dir = os.path.expanduser('~')
+        if dir:
+            try:
+                os.chdir(dir)
+            except OSError, e:
+                self.stdout.write('%s\n' % (e,))
 
     def shell_umask(self, *args):
         if args:
-            try:
-                mask = int(args[0], 8)
-            except ValueError, e:
-                self.stdout.write('%s\n' % (e,))
-                return
-            if mask < 512:
-                os.umask(mask)
-        try:
-            self.system('umask', *args)
-        except OSError, e:
-            self.stdout.write('%s\n' % (e,))
+            if self.system('umask', *args) == 0:
+                try:
+                    mask = int(args[0], 8)
+                except ValueError, e:
+                    self.stdout.write('%s\n' % (e,))
+                else:
+                    if mask < 512:
+                        try:
+                            os.umask(mask)
+                        except OSError, e:
+                            self.stdout.write('%s\n' % (e,))
+        else:
+            self.system('umask')
 
     def shell_default(self, *args):
-        try:
-            self.system(*[escape(unescape(x)) for x in args])
-        except OSError, e:
-            self.stdout.write('%s\n' % (e,))
+        self.system(*args)
 
     # Completions
 
@@ -630,7 +636,7 @@ class GPGKeys(cmd.Cmd):
     # History
 
     def init_history(self):
-        histfile = expanduser('~/.gpgkeys_history')
+        histfile = os.path.expanduser('~/.gpgkeys_history')
         length = 100
         try:
             readline.read_history_file(histfile)
@@ -659,7 +665,7 @@ class Logging(object):
 
     def __init__(self, do_log=False):
         self.do_log = do_log
-        self.log_file = abspath('gpgkeys.log')
+        self.log_file = os.path.abspath('gpgkeys.log')
         self.log('-----', date=False, scale=False)
 
     def log(self, format, *args, **kw):
@@ -707,7 +713,7 @@ class FileCompletion(Logging):
         completer.tilde_expansion = False
         self.tilde_expansion = True
 
-        self.quoted = {'"': '\\"', "'": "'\\''"}
+        self.quoted = {}
         for c in completer.word_break_characters:
             self.quoted.setdefault(c, '\\'+c)
 
@@ -764,13 +770,13 @@ class FileCompletion(Logging):
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
             qc = quote_char or completer.quote_characters[0]
-            # Dequote quote character first
-            text = text.replace(self.quoted[qc], qc)
-            # Don't backslash-dequote characters between single quotes
-            if qc != "'" and len(text) > 1:
+            # Don't backslash-dequote characters between single quotes,
+            # except for single quotes.
+            if qc == "'":
+                text = text.replace("'\\''", "'")
+            else:
                 for c in completer.word_break_characters:
-                    if c not in completer.quote_characters:
-                        text = text.replace(self.quoted[c], c)
+                    text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
 
@@ -782,13 +788,15 @@ class FileCompletion(Logging):
         if text:
             qc = quote_char or completer.quote_characters[0]
             # Don't backslash-quote backslashes between single quotes
-            if qc != "'":
+            if qc == "'":
+                text = text.replace("'", "'\\''")
+            else:
                 text = text.replace('\\', self.quoted['\\'])
-            text = text.replace(qc, self.quoted[qc])
+                text = text.replace(qc, self.quoted[qc])
+            check = text
             # Don't quote strings if all characters are already
             # backslash-quoted.
-            check = text
-            if qc != "'" and check and not quote_char:
+            if check and qc != "'" and not quote_char:
                 for c in completer.word_break_characters:
                     check = check.replace(self.quoted[c], '')
                 if check:
@@ -800,7 +808,7 @@ class FileCompletion(Logging):
             # Add leading and trailing quote characters
             if check:
                 if match_type == completer.SINGLE_MATCH:
-                    if not isdir(text):
+                    if not os.path.isdir(text):
                         text = text + qc
                 text = qc + text
         self.log('quote_filename\t\t%r', text)
@@ -824,7 +832,7 @@ class SystemCompletion(object):
         dirs = path.split(':')
         for dir in dirs:
             for file in os.listdir(dir):
-                if os.access(join(dir, file), os.R_OK|os.X_OK):
+                if os.access(os.path.join(dir, file), os.R_OK|os.X_OK):
                     yield file
 
 
@@ -836,8 +844,8 @@ class KeyCompletion(object):
     """
 
     def __init__(self):
-        self.pubring = join(GNUPGHOME, 'pubring.gpg')
-        self.secring = join(GNUPGHOME, 'secring.gpg')
+        self.pubring = os.path.join(GNUPGHOME, 'pubring.gpg')
+        self.secring = os.path.join(GNUPGHOME, 'secring.gpg')
         self.mtimes = (0, 0)
         self.keyspecs = {}
 
@@ -889,7 +897,7 @@ class KeyserverCompletion(object):
     """
 
     def __init__(self):
-        self.gpgconf = join(GNUPGHOME, 'gpg.conf')
+        self.gpgconf = os.path.join(GNUPGHOME, 'gpg.conf')
         self.mtime = 0
         self.servers = []
 
