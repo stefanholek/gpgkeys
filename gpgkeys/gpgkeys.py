@@ -7,6 +7,7 @@ import atexit
 import subprocess
 
 from datetime import datetime
+from os.path import abspath, join, expanduser, isdir
 
 from escape import escape
 from escape import unescape
@@ -19,6 +20,9 @@ from completion import cmd
 from completion import print_exc
 
 gnupg_exe = 'gpg'
+
+GNUPGHOME = os.environ.get('GNUPGHOME', '~/.gnupg')
+GNUPGHOME = abspath(expanduser(GNUPGHOME))
 
 UMASK = 0077
 
@@ -289,7 +293,7 @@ class GPGKeys(cmd.Cmd):
         if args:
             dir = args[0]
         else:
-            dir = os.path.expanduser('~')
+            dir = expanduser('~')
         try:
             os.chdir(unescape(dir))
         except OSError, e:
@@ -326,6 +330,9 @@ class GPGKeys(cmd.Cmd):
 
         self.key_completion = KeyCompletion()
         self.completekeys = self.key_completion.complete
+
+        self.keyserver_completion = KeyserverCompletion()
+        self.completekeyservers = self.keyserver_completion.complete
 
     def isoption(self, string):
         # True if 'string' is an option flag
@@ -498,24 +505,32 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + SERVER
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--keyserver', line, begidx):
+            return self.completekeyservers(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_recv(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--keyserver', line, begidx):
+            return self.completekeyservers(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_send(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--keyserver', line, begidx):
+            return self.completekeyservers(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_refresh(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--keyserver', line, begidx):
+            return self.completekeyservers(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_fetch(self, text, line, begidx, endidx):
@@ -615,7 +630,7 @@ class GPGKeys(cmd.Cmd):
     # History
 
     def init_history(self):
-        histfile = os.path.expanduser('~/.gpgkeys_history')
+        histfile = expanduser('~/.gpgkeys_history')
         length = 100
         try:
             readline.read_history_file(histfile)
@@ -644,7 +659,7 @@ class Logging(object):
 
     def __init__(self, do_log=False):
         self.do_log = do_log
-        self.log_file = os.path.abspath('gpgkeys.log')
+        self.log_file = abspath('gpgkeys.log')
         self.log('-----', date=False, scale=False)
 
     def log(self, format, *args, **kw):
@@ -785,7 +800,7 @@ class FileCompletion(Logging):
             # Add leading and trailing quote characters
             if check:
                 if match_type == completer.SINGLE_MATCH:
-                    if not os.path.isdir(text):
+                    if not isdir(text):
                         text = text + qc
                 text = qc + text
         self.log('quote_filename\t\t%r', text)
@@ -809,7 +824,7 @@ class SystemCompletion(object):
         dirs = path.split(':')
         for dir in dirs:
             for file in os.listdir(dir):
-                if os.access(os.path.join(dir, file), os.R_OK|os.X_OK):
+                if os.access(join(dir, file), os.R_OK|os.X_OK):
                     yield file
 
 
@@ -821,10 +836,8 @@ class KeyCompletion(object):
     """
 
     def __init__(self):
-        home = os.environ.get('GNUPGHOME', '~/.gnupg')
-        home = os.path.expanduser(home)
-        self.pubring = os.path.join(home, 'pubring.gpg')
-        self.secring = os.path.join(home, 'secring.gpg')
+        self.pubring = join(GNUPGHOME, 'pubring.gpg')
+        self.secring = join(GNUPGHOME, 'secring.gpg')
         self.mtimes = (0, 0)
         self.keyspecs = {}
 
@@ -866,6 +879,23 @@ class KeyCompletion(object):
                 keyid = fields[4]
                 userid = fields[9]
                 yield (keyid, userid)
+
+
+class KeyserverCompletion(object):
+
+    # XXX Should read gpg.conf
+
+    def complete(self, text):
+        servers = [
+            'hkp://keyserver.cais.rnp.br',
+            'hkp://keyserver.noreply.org',
+            'hkp://keyserver.oeg.com.au',
+            'hkp://keyserver.ubuntu.com',
+            'hkp://pgp.srv.ualberta.ca',
+            'hkp://pgp.surfnet.nl',
+            'ldap://keyserver.pgp.com',
+        ]
+        return [x for x in servers if x.startswith(text)]
 
 
 def main(args=None):
