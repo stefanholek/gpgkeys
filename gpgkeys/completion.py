@@ -236,10 +236,6 @@ class Completion(object):
     """Interface to the current readline completion."""
 
     @property
-    def line_buffer(self):
-        return readline.get_line_buffer()
-
-    @property
     def begidx(self):
         return readline.get_begidx()
 
@@ -262,6 +258,14 @@ class Completion(object):
     @property
     def invoking_key(self):
         return readline.get_completion_invoking_key()
+
+    @apply
+    def line_buffer():
+        def get(self):
+            return readline.get_line_buffer()
+        def set(self, string):
+            readline.replace_line(string)
+        return property(get, set)
 
     @apply
     def append_character():
@@ -411,26 +415,6 @@ completion.inhibit_completion,
 ))
 
 completion = Completion()
-
-
-class Testing(object):
-    """Additional attributes and methods for testing."""
-
-    @property
-    def rl_point(self):
-        return readline.get_rl_point()
-
-    @property
-    def rl_end(self):
-        return readline.get_rl_end()
-
-    def replace_line(self, text):
-        return readline.replace_line(text)
-
-    def rl_complete_internal(self, what_to_do):
-        return readline.rl_complete_internal(what_to_do)
-
-testing = Testing()
 
 
 class cmd:

@@ -1763,6 +1763,72 @@ PyDoc_STRVAR(doc_get_basic_quote_characters,
 Get readline's default set of quote characters.");
 
 
+/* http://tiswww.case.edu/php/chet/readline/readline.html#SEC35 */
+
+/* Forced redisplay */
+
+static PyObject *
+forced_update_display(PyObject *self, PyObject *noarg)
+{
+	rl_forced_update_display();
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_forced_update_display,
+"forced_update_display() -> None\n\
+Change what's displayed on the screen even if readline thinks\n\
+the display state is ok.");
+
+
+/* Reset line state */
+
+static PyObject *
+reset_line_state(PyObject *self, PyObject *noarg)
+{
+	rl_reset_line_state();
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_reset_line_state,
+"reset_line_state() -> None\n\
+Reset the display state to a clean state and redisplay the current\n\
+line starting on a new line.");
+
+
+/* The prompt */
+
+static PyObject *
+get_prompt(PyObject *self, PyObject *noarg)
+{
+	if (!rl_prompt)
+		return PyString_FromStringAndSize(NULL, 0);
+
+	return PyString_FromString(rl_prompt);
+}
+
+PyDoc_STRVAR(doc_get_prompt,
+"get_prompt() -> string\n\
+Get the prompt readline uses.");
+
+
+static PyObject *
+set_prompt(PyObject *self, PyObject *args)
+{
+	char *value = NULL;
+
+	if (!PyArg_ParseTuple(args, "s:set_prompt", &value)) {
+		return NULL;
+	}
+        if (value)
+		rl_set_prompt(value);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(doc_set_prompt,
+"set_prompt(string) -> None\n\
+Set the prompt.");
+
+
 /* </_readline.c> */
 
 
@@ -1928,6 +1994,12 @@ static struct PyMethodDef readline_methods[] =
          METH_NOARGS, doc_get_basic_word_break_characters},
         {"get_basic_quote_characters", get_basic_quote_characters,
          METH_NOARGS, doc_get_basic_quote_characters},
+	{"forced_update_display", forced_update_display,
+         METH_NOARGS, doc_forced_update_display},
+	{"reset_line_state", reset_line_state,
+         METH_NOARGS, doc_reset_line_state},
+        {"get_prompt", get_prompt, METH_NOARGS, doc_get_prompt},
+        {"set_prompt", set_prompt, METH_VARARGS, doc_set_prompt},
         /* </_readline.c> */
 
 	{0, 0}
