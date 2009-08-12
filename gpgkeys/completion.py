@@ -16,7 +16,8 @@ import _readline as readline
 import sys
 import cmd as _cmd
 
-_MAXMATCHES = 100000 # Just in case
+# Reign in runaway filename completions
+_MAXMATCHES = 100000
 
 
 def print_exc(func):
