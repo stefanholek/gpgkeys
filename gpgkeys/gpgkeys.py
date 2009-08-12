@@ -882,20 +882,40 @@ class KeyCompletion(object):
 
 
 class KeyserverCompletion(object):
+    """Perform keyserver completion
 
-    # XXX Should read gpg.conf
+    To become available for completion, keyservers must be configured
+    in ~/.gpg.conf.
+    """
 
+    def __init__(self):
+        self.gpgconf = join(GNUPGHOME, 'gpg.conf')
+        self.mtime = 0
+        self.servers = []
+
+    @print_exc
     def complete(self, text):
-        servers = [
-            'hkp://keyserver.cais.rnp.br',
-            'hkp://keyserver.noreply.org',
-            'hkp://keyserver.oeg.com.au',
-            'hkp://keyserver.ubuntu.com',
-            'hkp://pgp.srv.ualberta.ca',
-            'hkp://pgp.surfnet.nl',
-            'ldap://keyserver.pgp.com',
-        ]
-        return [x for x in servers if x.startswith(text)]
+        self.update_servers()
+        return [x for x in self.servers if x.startswith(text)]
+
+    def update_servers(self):
+        mtime = os.stat(self.gpgconf).st_mtime
+        if self.mtime != mtime:
+            self.mtime = mtime
+            self.servers = list(self.read_servers())
+
+    def read_servers(self):
+        f = open(self.gpgconf, 'rt')
+        try:
+            config = f.read()
+        finally:
+            f.close()
+
+        for line in config.strip().split('\n'):
+            tokens = line.split()
+            if len(tokens) > 1:
+                if tokens[0] == 'keyserver':
+                    yield tokens[1]
 
 
 def main(args=None):
