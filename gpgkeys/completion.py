@@ -4,8 +4,7 @@ Alternative Python readline interface
 =====================================
 
 This module aims to provide a full implementation of the readline
-`completion interface`_. It does not concern itself with other parts
-of the readline library, notably history.
+`completion interface`_.
 
 .. _`completion interface`: http://tiswww.case.edu/php/chet/readline/readline.html#SEC44
 """
@@ -23,7 +22,7 @@ _MAXMATCHES = 100000
 def print_exc(func):
     """Decorator printing exceptions to stderr.
 
-    Useful while debugging completers.
+    Useful for debugging completers and hooks.
     """
     def wrapped_func(*args, **kw):
         try:
@@ -259,6 +258,14 @@ class Completion(object):
     def invoking_key(self):
         return readline.get_completion_invoking_key()
 
+    @property
+    def rl_point(self):
+        return readline.get_rl_point()
+
+    @property
+    def rl_end(self):
+        return readline.get_rl_end()
+
     @apply
     def line_buffer():
         def get(self):
@@ -418,7 +425,7 @@ completion = Completion()
 
 
 class cmd:
-    # Override some methods so they use completion's version of readline.
+    # Override methods so they use completion's version of readline.
 
     class Cmd(_cmd.Cmd):
         """A simple framework for writing line-oriented command interpreters.
