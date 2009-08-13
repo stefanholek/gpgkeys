@@ -53,10 +53,9 @@ parse_and_bind(PyObject *self, PyObject *args)
 		return NULL;
 	/* Make a copy -- rl_parse_and_bind() modifies its argument */
 	/* Bernard Herzog */
-	copy = malloc(1 + strlen(s));
+	copy = strdup(s);
 	if (copy == NULL)
 		return PyErr_NoMemory();
-	strcpy(copy, s);
 	rl_parse_and_bind(copy);
 	free(copy); /* Free the copy */
 	Py_RETURN_NONE;
@@ -1424,7 +1423,7 @@ PyDoc_STRVAR(doc_get_pre_input_hook,
 Get the current pre_input_hook function.");
 
 
-/* Debugging and testing */
+/* Internals */
 
 static PyObject *
 get_rl_point(PyObject *self, PyObject *noarg)
@@ -1466,6 +1465,35 @@ py_rl_complete_internal(PyObject *self, PyObject *args)
 PyDoc_STRVAR(doc_rl_complete_internal,
 "rl_complete_internal(string) -> int\n\
 Complete the word at or before the cursor position.");
+
+
+extern char _rl_find_completion_word(int *fp, int *dp);
+
+static PyObject *
+find_completion_word(PyObject *self, PyObject *noargs)
+{
+	int begidx, endidx;
+        PyObject *py_begidx, *py_endidx;
+
+        /* The magic incantation */
+        endidx = rl_point;
+        if (rl_point)
+                _rl_find_completion_word(NULL, NULL);
+        begidx = rl_point;
+        rl_point = endidx;
+
+        py_begidx = PyInt_FromLong(begidx);
+        py_endidx = PyInt_FromLong(endidx);
+
+        if (!py_begidx || !py_endidx)
+                return NULL;
+
+        return PyTuple_Pack(2, py_begidx, py_endidx);
+}
+
+PyDoc_STRVAR(doc_find_completion_word,
+"find_completion_word() -> (int, int)\n\
+Find the bounds of the current word for completion purposes.");
 
 
 /* Word-break hook */
@@ -1941,8 +1969,6 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_directory_completion_hook},
 	{"set_directory_completion_hook", set_directory_completion_hook,
 	 METH_VARARGS, doc_set_directory_completion_hook},
-	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
-	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
 	{"get_complete_with_tilde_expansion", get_complete_with_tilde_expansion,
 	 METH_NOARGS, doc_get_complete_with_tilde_expansion},
 	{"set_complete_with_tilde_expansion", set_complete_with_tilde_expansion,
@@ -1951,19 +1977,24 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_match_hidden_files},
 	{"set_match_hidden_files", set_match_hidden_files,
 	 METH_VARARGS, doc_set_match_hidden_files},
-	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
-        {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
-        {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
-	{"rl_complete_internal", py_rl_complete_internal,
-         METH_VARARGS, doc_rl_complete_internal},
         {"get_basic_word_break_characters", get_basic_word_break_characters,
          METH_NOARGS, doc_get_basic_word_break_characters},
         {"get_basic_quote_characters", get_basic_quote_characters,
          METH_NOARGS, doc_get_basic_quote_characters},
+	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
+        {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
+        {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
+        /* completion.readline namespace only */
+	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
+	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"forced_update_display", forced_update_display,
          METH_NOARGS, doc_forced_update_display},
 	{"reset_line_state", reset_line_state,
          METH_NOARGS, doc_reset_line_state},
+	{"find_completion_word", find_completion_word,
+         METH_NOARGS, doc_find_completion_word},
+	{"rl_complete_internal", py_rl_complete_internal,
+         METH_VARARGS, doc_rl_complete_internal},
         /* </_readline.c> */
 
 	{0, 0}
