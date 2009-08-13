@@ -21,8 +21,8 @@ def scan_open(s, c, x, lx):
     return q
 
 
-def get_quote_char(s, lx=-1, any=False):
-    if lx < 0:
+def get_quote_char(s, lx=None, any=False):
+    if lx is None:
         lx = sys.maxint
     lx = min(len(s), lx)
 
@@ -41,47 +41,6 @@ def get_quote_char(s, lx=-1, any=False):
         qc = '\\'
 
     return qc
-
-
-def escape(args):
-    if args:
-        qc = get_quote_char(args)
-        if '\\ ' in args or '\\"' in args or "'\\''" in args:
-            return args
-        if qc != "'":
-            if '\\\\' in args:
-                return args
-            args = args.replace('\\', '\\\\')
-        args = args.replace(' ', '\\ ')
-        args = args.replace('"', '\\"')
-        args = args.replace("'", "'\\''")
-    return args
-
-
-def unescape(args):
-    qc = get_quote_char(args)
-    if qc in ('"', "'"):
-        return qc_unescape(args, qc)
-    return bs_unescape(args, qc)
-
-
-def qc_unescape(args, qc):
-    if len(args) > 1:
-        if args[-1] == qc and args[-2] != '\\':
-            args = args[:-1]
-        if args[0] == qc:
-            args = args[1:]
-    return bs_unescape(args, qc)
-
-
-def bs_unescape(args, qc):
-    if len(args) > 1:
-        if qc != "'":
-            args = args.replace('\\\\', '\\')
-        args = args.replace('\\ ', ' ')
-        args = args.replace('\\"', '"')
-        args = args.replace("'\\''", "'")
-    return args
 
 
 def split(args):
@@ -123,6 +82,49 @@ def bs_split(args, qc):
     if n:
         r.append(args[j:])
     return tuple(r)
+
+
+# Bitrot from here on down
+
+def escape(args):
+    if args:
+        qc = get_quote_char(args, any=True)
+        if '\\ ' in args or '\\"' in args or "'\\''" in args:
+            return args
+        if qc != "'":
+            if '\\\\' in args:
+                return args
+            args = args.replace('\\', '\\\\')
+        args = args.replace(' ', '\\ ')
+        args = args.replace('"', '\\"')
+        args = args.replace("'", "'\\''")
+    return args
+
+
+def unescape(args):
+    qc = get_quote_char(args, any=True)
+    if qc in ('"', "'"):
+        return qc_unescape(args, qc)
+    return bs_unescape(args, qc)
+
+
+def qc_unescape(args, qc):
+    if len(args) > 1:
+        if args[-1] == qc and args[-2] != '\\':
+            args = args[:-1]
+        if args[0] == qc:
+            args = args[1:]
+    return bs_unescape(args, qc)
+
+
+def bs_unescape(args, qc):
+    if len(args) > 1:
+        if qc != "'":
+            args = args.replace('\\\\', '\\')
+        args = args.replace('\\ ', ' ')
+        args = args.replace('\\"', '"')
+        args = args.replace("'\\''", "'")
+    return args
 
 
 def startidx(s, idx=-1):
