@@ -10,10 +10,10 @@ from datetime import datetime
 from escape import split
 from escape import get_quote_char
 
+from completion import readline
 from completion import completer
 from completion import completion
 from completion import cmd
-from completion import readline
 from completion import print_exc
 
 gnupg_exe = 'gpg'
@@ -345,7 +345,7 @@ class GPGKeys(cmd.Cmd):
         self.completekeyservers = self.keyserver_completion.complete
 
         completer.word_break_hook = self.word_break_hook
-        self.log = self.file_completion.log
+        self.log = self.system_completion.log
 
     @print_exc
     def word_break_hook(self):
@@ -357,14 +357,14 @@ class GPGKeys(cmd.Cmd):
         line = origline.lstrip()
         stripped = len(origline) - len(line)
         if line[0] in ('!', '.'):
-            # Unhook ourselves to avoid infinite recursion
+            # Unhook to avoid infinite recursion
             completer.word_break_hook = None
             begidx, endidx = readline.find_completion_word()
             completer.word_break_hook = self.word_break_hook
             self.log('word_break_hook\t\t%r %r %r',
                 completion.line_buffer, begidx, endidx, scale=True)
             if begidx - stripped == 0:
-                return completer.word_break_characters + line[0]
+                return line[0] + completer.word_break_characters
 
     def isoption(self, string):
         # True if 'string' is an option flag
@@ -374,12 +374,12 @@ class GPGKeys(cmd.Cmd):
         # True if 'string' is a filename
         return (os.sep in string)
 
-    def follows(self, string, line, begidx, deltas_=('"', "'", '')):
+    def follows(self, string, line, begidx, deltas=('"', "'", '')):
         # True if 'string' immediately preceeds the completion
         idx = line.rfind(string, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(string):begidx]
-            return delta.strip() in deltas_
+            return delta.strip() in deltas
         return False
 
     def iscommand(self, line, begidx):
@@ -398,10 +398,11 @@ class GPGKeys(cmd.Cmd):
                 line.rfind('<', 0, begidx) >= 0)
 
     def basecomplete(self, text, line, begidx, default):
+        # Handle completion after pipes and redirects
         if self.ispipe(line, begidx):
-            if self.isfilename(text):
-                return self.completefiles(text)
-            return self.completesys(text)
+            if not self.isfilename(text):
+                return self.completesys(text)
+            return self.completefiles(text)
         if self.isredir(line, begidx):
             return self.completefiles(text)
         return default(text)
