@@ -614,7 +614,7 @@ class GPGKeys(cmd.Cmd):
                         usage = doc[lparen+1:rparen]
                         doc = doc[:lparen-1]
 
-                        self.stdout.write("\n%s\n" % usage)
+                        self.stdout.write("%s\n" % usage)
 
                         opts = []
                         func = getattr(self, 'complete_' + arg, None)
