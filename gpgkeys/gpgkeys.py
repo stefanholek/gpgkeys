@@ -42,6 +42,8 @@ class GPGKeys(cmd.Cmd):
     doc_header = 'Available commands (type help <topic>):'
     undoc_header = 'Shortcut commands (type help <topic>):'
 
+    nohelp = "gpgkeys: no help on '%s'"
+
     def __init__(self, completekey='tab', stdin=None, stdout=None, verbose=False):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         self.verbose = verbose
@@ -104,7 +106,8 @@ class GPGKeys(cmd.Cmd):
         pass
 
     def default(self, args):
-        self.stdout.write('Unknown command (type help for help)\n')
+        args = split(args)
+        self.stdout.write('gpgkeys: unknown command: %s\n' % args[0])
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
@@ -611,7 +614,7 @@ class GPGKeys(cmd.Cmd):
                         usage = doc[lparen+1:rparen]
                         doc = doc[:lparen-1]
 
-                        self.stdout.write("%s\n" % usage)
+                        self.stdout.write("\n%s\n" % usage)
 
                         opts = []
                         func = getattr(self, 'complete_' + arg, None)
