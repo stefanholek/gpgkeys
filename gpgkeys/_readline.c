@@ -1795,40 +1795,6 @@ Reset the display state to a clean state and redisplay the current\n\
 line starting on a new line.");
 
 
-/* The prompt */
-
-static PyObject *
-get_prompt(PyObject *self, PyObject *noarg)
-{
-	if (!rl_prompt)
-		return PyString_FromStringAndSize(NULL, 0);
-
-	return PyString_FromString(rl_prompt);
-}
-
-PyDoc_STRVAR(doc_get_prompt,
-"get_prompt() -> string\n\
-Get the prompt readline uses.");
-
-
-static PyObject *
-set_prompt(PyObject *self, PyObject *args)
-{
-	char *value = NULL;
-
-	if (!PyArg_ParseTuple(args, "s:set_prompt", &value)) {
-		return NULL;
-	}
-        if (value)
-		rl_set_prompt(value);
-	Py_RETURN_NONE;
-}
-
-PyDoc_STRVAR(doc_set_prompt,
-"set_prompt(string) -> None\n\
-Set the prompt.");
-
-
 /* </_readline.c> */
 
 
@@ -1998,8 +1964,6 @@ static struct PyMethodDef readline_methods[] =
          METH_NOARGS, doc_forced_update_display},
 	{"reset_line_state", reset_line_state,
          METH_NOARGS, doc_reset_line_state},
-        {"get_prompt", get_prompt, METH_NOARGS, doc_get_prompt},
-        {"set_prompt", set_prompt, METH_VARARGS, doc_set_prompt},
         /* </_readline.c> */
 
 	{0, 0}
