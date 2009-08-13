@@ -33,6 +33,8 @@ OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
 
+LOGGING = False
+
 
 class GPGKeys(cmd.Cmd):
 
@@ -99,7 +101,7 @@ class GPGKeys(cmd.Cmd):
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer()
+        self.init_completer(LOGGING)
         self.init_history()
 
     def emptyline(self):
@@ -283,6 +285,12 @@ class GPGKeys(cmd.Cmd):
 
     # Shell commands
 
+    def shell_ls(self, *args):
+        self.system('ls', '-F', *args)
+
+    def shell_ll(self, *args):
+        self.system('ls', '-lF', *args)
+
     def shell_getdir(self, dir):
         process = subprocess.Popen('cd %s; pwd' % dir,
             shell=True, stdout=subprocess.PIPE)
@@ -290,13 +298,6 @@ class GPGKeys(cmd.Cmd):
         if process.returncode == 0:
             for line in stdout.strip().split('\n'):
                 return line
-        return ''
-
-    def shell_ls(self, *args):
-        self.system('ls', '-F', *args)
-
-    def shell_ll(self, *args):
-        self.system('ls', '-lF', *args)
 
     def shell_chdir(self, *args):
         if args:
@@ -328,13 +329,13 @@ class GPGKeys(cmd.Cmd):
     def shell_default(self, *args):
         self.system(*args)
 
-    # Completions
+    # Completion
 
     def init_completer(self, do_log=False):
         self.file_completion = FileCompletion(do_log)
         self.completefiles = self.file_completion.complete
 
-        self.system_completion = SystemCompletion()
+        self.system_completion = SystemCompletion(do_log)
         self.completesys = self.system_completion.complete
 
         self.key_completion = KeyCompletion()
@@ -342,6 +343,28 @@ class GPGKeys(cmd.Cmd):
 
         self.keyserver_completion = KeyserverCompletion()
         self.completekeyservers = self.keyserver_completion.complete
+
+        completer.word_break_hook = self.word_break_hook
+        self.log = self.file_completion.log
+
+    @print_exc
+    def word_break_hook(self):
+        # If we are completing '.<command>' make '.' a word break
+        # character. Same for '!'.
+        self.log('word_break_hook\t\t%r %r',
+            completion.line_buffer, completion.rl_point, scale=True)
+        origline = completion.line_buffer
+        line = origline.lstrip()
+        stripped = len(origline) - len(line)
+        if line[0] in ('!', '.'):
+            # Unhook ourselves to avoid infinite recursion
+            completer.word_break_hook = None
+            begidx, endidx = readline.find_completion_word()
+            completer.word_break_hook = self.word_break_hook
+            self.log('word_break_hook\t\t%r %r %r',
+                completion.line_buffer, begidx, endidx, scale=True)
+            if begidx - stripped == 0:
+                return completer.word_break_characters + line[0]
 
     def isoption(self, string):
         # True if 'string' is an option flag
@@ -356,8 +379,7 @@ class GPGKeys(cmd.Cmd):
         idx = line.rfind(string, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(string):begidx]
-            if delta.strip() in deltas_:
-                return True
+            return delta.strip() in deltas_
         return False
 
     def iscommand(self, line, begidx):
@@ -370,7 +392,7 @@ class GPGKeys(cmd.Cmd):
         return self.follows('|', line, begidx, ('',))
 
     def isredir(self, line, begidx):
-        # True if the completion is anywhere after a shell redirect
+        # True if the completion happens anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
@@ -567,7 +589,6 @@ class GPGKeys(cmd.Cmd):
         return self.completefiles_(text, line, begidx)
 
     def complete_shell(self, text, line, begidx, endidx):
-        # If the user types '. foo' we end up here
         options = GLOBAL
         if self.isoption(text):
             return self.completeoptions(text, options)
@@ -575,14 +596,6 @@ class GPGKeys(cmd.Cmd):
             if not self.isfilename(text):
                 return self.completesys(text)
         return self.completefiles_(text, line, begidx)
-
-    def completenames(self, text, *ignored):
-        # If the user types '.foo' we end up here and not
-        # in complete_shell.
-        if self.iscommand(text, 1):
-            if not self.isoption(text) and not self.isfilename(text):
-                return self.completesys(text)
-        return cmd.Cmd.completenames(self, text, *ignored)
 
     # Help
 
@@ -818,17 +831,19 @@ class FileCompletion(Logging):
         return text
 
 
-class SystemCompletion(object):
+class SystemCompletion(Logging):
     """Perform system command completion
     """
 
+    def __init__(self, do_log=False):
+        Logging.__init__(self, do_log)
+
     @print_exc
     def complete(self, text):
-        prefix = ''
-        if text.startswith(('!', '.')): # XXX
-            prefix = text[0]
-            text = text[1:]
-        return [prefix+x for x in self.read_path() if x.startswith(text)]
+        self.log('completesys\t\t%r', text)
+        matches = [x for x in self.read_path() if x.startswith(text)]
+        self.log('completesys\t\t%r', matches[:100])
+        return matches
 
     def read_path(self):
         path = os.environ.get('PATH')
