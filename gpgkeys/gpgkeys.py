@@ -37,6 +37,8 @@ LOGGING = False
 
 
 class GPGKeys(cmd.Cmd):
+    """Cmd interface for GnuPG with advanced completion capabilities.
+    """
 
     intro = 'gpgkeys 1.0 (type help for help)\n'
     prompt = 'gpgkeys> '
@@ -50,6 +52,11 @@ class GPGKeys(cmd.Cmd):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         self.verbose = verbose
         os.umask(UMASK)
+
+    def preloop(self):
+        cmd.Cmd.preloop(self)
+        self.init_completer(LOGGING)
+        self.init_history()
 
     def system(self, *args):
         command = ' '.join(args)
@@ -98,11 +105,6 @@ class GPGKeys(cmd.Cmd):
         raise AttributeError(name)
 
     # Commands
-
-    def preloop(self):
-        cmd.Cmd.preloop(self)
-        self.init_completer(LOGGING)
-        self.init_history()
 
     def emptyline(self):
         pass
@@ -329,7 +331,7 @@ class GPGKeys(cmd.Cmd):
     def shell_default(self, *args):
         self.system(*args)
 
-    # Completion
+    # Completions
 
     def init_completer(self, do_log=False):
         self.file_completion = FileCompletion(do_log)
@@ -418,6 +420,8 @@ class GPGKeys(cmd.Cmd):
 
     def completeoptions(self, text, options):
         return [x for x in options if x.startswith(text)]
+
+    # Completion grid
 
     def complete_genkey(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + EXPERT
