@@ -22,7 +22,7 @@ class CompleterTests(TreeSetup):
 
     def complete(self, text):
         completion.line_buffer = text
-        readline.rl_complete_internal('\t')
+        readline.complete_internal('\t')
         return completion.line_buffer
 
     def test_simple(self):
