@@ -2009,7 +2009,7 @@ display_match_list(PyObject *self, PyObject *args)
 	rl_forced_update_display();
 	rl_display_fixed = 1;
 
-	/* Clear eventual KeyboardInterrupt */
+	/* Clear KeyboardInterrupt */
 	if (PyErr_CheckSignals() == -1 &&
 	    PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
 		PyErr_Clear();
