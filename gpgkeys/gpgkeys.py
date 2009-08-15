@@ -331,7 +331,7 @@ class GPGKeys(cmd.Cmd):
     def shell_default(self, *args):
         self.system(*args)
 
-    # Completions
+    # Completion
 
     def init_completer(self, do_log=False):
         self.file_completion = FileCompletion(do_log)
@@ -347,14 +347,12 @@ class GPGKeys(cmd.Cmd):
         self.completekeyservers = self.keyserver_completion.complete
 
         completer.word_break_hook = self.word_break_hook
-        self.log = self.system_completion.log
+        completer.display_matches_hook = self.display_matches_hook
 
     @print_exc
     def word_break_hook(self):
         # If we are completing '.<command>' make '.' a word break
-        # character. Same for '!'.
-        self.log('word_break_hook\t\t%r %r',
-            completion.line_buffer, completion.rl_point, scale=True)
+        # character.
         origline = completion.line_buffer
         line = origline.lstrip()
         stripped = len(origline) - len(line)
@@ -363,10 +361,31 @@ class GPGKeys(cmd.Cmd):
             completer.word_break_hook = None
             begidx, endidx = readline.find_completion_word()
             completer.word_break_hook = self.word_break_hook
-            self.log('word_break_hook\t\t%r %r %r',
-                completion.line_buffer, begidx, endidx, scale=True)
             if begidx - stripped == 0:
                 return line[0] + completer.word_break_characters
+
+    @print_exc
+    def display_matches_hook(self, substitution, matches, max_length):
+        # Handle our own display because we can
+        num_matches = len(matches)
+        if num_matches > completer.query_items > 0:
+            self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
+            self.stdout.flush()
+            while True:
+                c = readline.read_key()
+                if c in 'yY ': # Spacebar
+                    readline.display_match_list(substitution, matches, max_length)
+                    break
+                if c in 'nN\x7f\x04': # Rubout, Ctrl+D
+                    self.stdout.write('\n')
+                    readline.redisplay(True)
+                    break
+                if c in '.': # Easter egg
+                    matches = matches[:completer.query_items] + ['...']
+                    readline.display_match_list(substitution, matches, max(max_length, 3))
+                    break
+        else:
+            readline.display_match_list(substitution, matches, max_length)
 
     def isoption(self, string):
         # True if 'string' is an option flag
