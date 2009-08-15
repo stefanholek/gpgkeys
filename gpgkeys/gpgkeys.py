@@ -359,7 +359,7 @@ class GPGKeys(cmd.Cmd):
         line = origline.lstrip()
         stripped = len(origline) - len(line)
         if line[0] in ('!', '.'):
-            # Unhook to avoid infinite recursion
+            # Unhook ourselves to avoid infinite recursion
             completer.word_break_hook = None
             begidx, endidx = readline.find_completion_word()
             completer.word_break_hook = self.word_break_hook
