@@ -1704,7 +1704,7 @@ read_key(PyObject* self, PyObject* noargs)
 	c = rl_read_key();
 	RL_UNSETSTATE(RL_STATE_MOREINPUT);
 
-	/* Suppress KeyboardInterrupt since it's too late
+	/* Clear KeyboardInterrupt since it's too late
 	   now anyway */
 	if (PyErr_CheckSignals() == -1 &&
 	    PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
@@ -1831,7 +1831,7 @@ PyDoc_STRVAR(doc_get_basic_word_break_characters,
 Get readline's default set of word break characters.");
 
 
-/* PyList to StringArray and back */
+/* StringArray helpers */
 
 char**
 StringArray_new(size_t size)
@@ -1852,7 +1852,6 @@ StringArray_new(size_t size)
 	return p;
 }
 
-
 void
 StringArray_free(char **strings)
 {
@@ -1865,7 +1864,6 @@ StringArray_free(char **strings)
 	}
 }
 
-
 size_t
 StringArray_size(char **strings)
 {
@@ -1876,7 +1874,6 @@ StringArray_size(char **strings)
 		size++;
 	return size;
 }
-
 
 int
 StringArray_insert(char ***strings, size_t pos, char *string)
@@ -1903,6 +1900,8 @@ StringArray_insert(char ***strings, size_t pos, char *string)
 	return 0;
 }
 
+
+/* PyList to StringArray and back */
 
 PyObject*
 PyList_FromStringArray(char **strings)
@@ -2009,6 +2008,11 @@ display_match_list(PyObject *self, PyObject *args)
 	rl_display_match_list(strings, num_matches, max_length);
 	rl_forced_update_display();
 	rl_display_fixed = 1;
+
+	/* Clear eventual KeyboardInterrupt */
+	if (PyErr_CheckSignals() == -1 &&
+	    PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
+		PyErr_Clear();
 
 	StringArray_free(strings);
 	Py_RETURN_NONE;
