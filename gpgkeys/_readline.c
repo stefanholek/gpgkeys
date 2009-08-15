@@ -546,15 +546,29 @@ Insert text into the command line.");
 
 /* Redisplay the line buffer */
 
+extern int rl_display_fixed;
+
 static PyObject *
-redisplay(PyObject *self, PyObject *noarg)
+redisplay(PyObject *self, PyObject *args)
 {
-	rl_redisplay();
+	int force = 0;
+
+	if (!PyArg_ParseTuple(args, "|i:redisplay", &force))
+		return NULL;
+
+	if (force) {
+		rl_forced_update_display();
+		rl_display_fixed = 1;
+	}
+	else {
+		rl_redisplay();
+	}
+
 	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(doc_redisplay,
-"redisplay() -> None\n\
+"redisplay([force]) -> None\n\
 Change what's displayed on the screen to reflect the current\n\
 contents of the line buffer.");
 
@@ -1151,7 +1165,7 @@ on_filename_dequoting_function(const char *text, char quote_char)
 
 static PyObject *char_is_quoted_function = NULL;
 
-int
+static int
 on_char_is_quoted_function(const char *text, int index);
 
 static PyObject *
@@ -1189,7 +1203,7 @@ PyDoc_STRVAR(doc_get_char_is_quoted_function,
 Get the function that determines whether or not a specific character in the line buffer is quoted.");
 
 
-int
+static int
 on_char_is_quoted_function(const char *text, int index)
 {
 	int result = 0;
@@ -1368,11 +1382,11 @@ Up to this many items will be displayed in response to a possible-completions ca
 static PyObject *
 get_completion_invoking_key(PyObject *self, PyObject *noarg)
 {
-	return PyInt_FromLong(rl_completion_invoking_key);
+	return PyString_FromFormat("%c", rl_completion_invoking_key);
 }
 
 PyDoc_STRVAR(doc_get_completion_invoking_key,
-"get_completion_invoking_key() -> int\n\
+"get_completion_invoking_key() -> string\n\
 The final character in the key sequence that invoked the completion function.");
 
 
@@ -1447,26 +1461,6 @@ PyDoc_STRVAR(doc_get_rl_end,
 Return the rl_end.");
 
 
-static PyObject *
-complete_internal(PyObject *self, PyObject *args)
-{
-	char *what_to_do = NULL;
-	int result = 1;
-
-	if (!PyArg_ParseTuple(args, "s:complete_internal", &what_to_do)) {
-		return NULL;
-	}
-	if (what_to_do) {
-		result = rl_complete_internal(*what_to_do);
-	}
-	return PyInt_FromLong(result);
-}
-
-PyDoc_STRVAR(doc_complete_internal,
-"complete_internal(string) -> int\n\
-Complete the word at or before the cursor position.");
-
-
 extern char _rl_find_completion_word(int *fp, int *dp);
 
 static PyObject *
@@ -1496,11 +1490,31 @@ PyDoc_STRVAR(doc_find_completion_word,
 Find the bounds of the current word for completion purposes.");
 
 
+static PyObject *
+complete_internal(PyObject *self, PyObject *args)
+{
+	char *what_to_do = NULL;
+	int result = 1;
+
+	if (!PyArg_ParseTuple(args, "s:complete_internal", &what_to_do)) {
+		return NULL;
+	}
+	if (what_to_do) {
+		result = rl_complete_internal(*what_to_do);
+	}
+	return PyInt_FromLong(result);
+}
+
+PyDoc_STRVAR(doc_complete_internal,
+"complete_internal(string) -> int\n\
+Complete the word at or before the cursor position.");
+
+
 /* Word-break hook */
 
 static PyObject *completion_word_break_hook = NULL;
 
-char *
+static char *
 on_completion_word_break_hook(void);
 
 static PyObject *
@@ -1538,7 +1552,7 @@ PyDoc_STRVAR(doc_get_completion_word_break_hook,
 A function to call when readline is deciding where to separate words for word completion.");
 
 
-char *
+static char *
 on_completion_word_break_hook(void)
 {
 	char *result = NULL;
@@ -1577,7 +1591,7 @@ on_completion_word_break_hook(void)
 
 static PyObject *directory_completion_hook = NULL;
 
-int
+static int
 on_directory_completion_hook(char **directory);
 
 static PyObject *
@@ -1615,7 +1629,7 @@ PyDoc_STRVAR(doc_get_directory_completion_hook,
 This function is allowed to modify the directory portion of filenames readline completes.");
 
 
-int
+static int
 on_directory_completion_hook(char **directory)
 {
 	int result = 0;
@@ -1679,7 +1693,32 @@ PyDoc_STRVAR(doc_replace_line,
 Replace the line buffer contents with string.");
 
 
-/* Stuff char */
+/* Read a key (from the keyboard) */
+
+static PyObject*
+read_key(PyObject* self, PyObject* noargs)
+{
+	int c;
+
+	RL_SETSTATE(RL_STATE_MOREINPUT);
+	c = rl_read_key();
+	RL_UNSETSTATE(RL_STATE_MOREINPUT);
+
+	/* Suppress KeyboardInterrupt since it's too late
+	   now anyway */
+	if (PyErr_CheckSignals() == -1 &&
+	    PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
+		PyErr_Clear();
+
+	return PyString_FromFormat("%c", c);
+}
+
+PyDoc_STRVAR(doc_read_key,
+"read_key() -> string\n\
+Read a key from readline's input stream.");
+
+
+/* Stuff a character into the input stream */
 
 static PyObject *
 stuff_char(PyObject *self, PyObject *args)
@@ -1700,24 +1739,6 @@ PyDoc_STRVAR(doc_stuff_char,
 "stuff_char(string) -> bool\n\
 Insert a character into readline's input stream. \
 Returns True if the insert was successful.");
-
-
-/* Read key */
-
-PyObject*
-read_key(PyObject* self, PyObject* noargs)
-{
-	int c;
-
-	RL_SETSTATE(RL_STATE_MOREINPUT);
-	c = rl_read_key();
-	RL_UNSETSTATE(RL_STATE_MOREINPUT);
-	return PyInt_FromLong(c);
-}
-
-PyDoc_STRVAR(doc_read_key,
-"read_key() -> int\n\
-Read a key from readline's input stream.");
 
 
 /* Tilde expansion flag */
@@ -1784,19 +1805,6 @@ PyDoc_STRVAR(doc_set_match_hidden_files,
 If True, include hidden files when computing the list of matches.");
 
 
-/* Get basic word break characters */
-
-static PyObject *
-get_basic_word_break_characters(PyObject *self, PyObject *noarg)
-{
-	return PyString_FromString(rl_basic_word_break_characters);
-}
-
-PyDoc_STRVAR(doc_get_basic_word_break_characters,
-"get_basic_word_break_characters() -> string\n\
-Get readline's default set of word break characters.");
-
-
 /* Get basic quote characters */
 
 static PyObject *
@@ -1810,22 +1818,17 @@ PyDoc_STRVAR(doc_get_basic_quote_characters,
 Get readline's default set of quote characters.");
 
 
-/* Forced redisplay */
-
-extern int rl_display_fixed;
+/* Get basic word break characters */
 
 static PyObject *
-forced_update_display(PyObject *self, PyObject *noarg)
+get_basic_word_break_characters(PyObject *self, PyObject *noarg)
 {
-	rl_forced_update_display();
-	rl_display_fixed = 1;
-	Py_RETURN_NONE;
+	return PyString_FromString(rl_basic_word_break_characters);
 }
 
-PyDoc_STRVAR(doc_forced_update_display,
-"forced_update_display() -> None\n\
-Change what's displayed on the screen even if readline thinks\n\
-the display state is ok.");
+PyDoc_STRVAR(doc_get_basic_word_break_characters,
+"get_basic_word_break_characters() -> string\n\
+Get readline's default set of word break characters.");
 
 
 /* PyList to StringArray and back */
@@ -1970,7 +1973,7 @@ PyList_AsStringArray(PyObject *list)
 
 /* Display match list */
 
-PyObject*
+static PyObject*
 display_match_list(PyObject *self, PyObject *args)
 {
 	char *substitution = NULL;
@@ -2029,7 +2032,7 @@ static struct PyMethodDef readline_methods[] =
 	{"parse_and_bind", parse_and_bind, METH_VARARGS, doc_parse_and_bind},
 	{"get_line_buffer", get_line_buffer, METH_NOARGS, doc_get_line_buffer},
 	{"insert_text", insert_text, METH_VARARGS, doc_insert_text},
-	{"redisplay", redisplay, METH_NOARGS, doc_redisplay},
+	{"redisplay", redisplay, METH_VARARGS, doc_redisplay},
 	{"read_init_file", read_init_file, METH_VARARGS, doc_read_init_file},
 	{"read_history_file", read_history_file,
 	 METH_VARARGS, doc_read_history_file},
@@ -2173,19 +2176,17 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_match_hidden_files},
 	{"set_match_hidden_files", set_match_hidden_files,
 	 METH_VARARGS, doc_set_match_hidden_files},
-	{"get_basic_word_break_characters", get_basic_word_break_characters,
-	 METH_NOARGS, doc_get_basic_word_break_characters},
 	{"get_basic_quote_characters", get_basic_quote_characters,
 	 METH_NOARGS, doc_get_basic_quote_characters},
+	{"get_basic_word_break_characters", get_basic_word_break_characters,
+	 METH_NOARGS, doc_get_basic_word_break_characters},
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
 	{"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
 	{"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
-	/* completion.readline namespace only */
 	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
-	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
+	/* completion.readline namespace only */
 	{"read_key", read_key, METH_NOARGS, doc_read_key},
-	{"forced_update_display", forced_update_display,
-	 METH_NOARGS, doc_forced_update_display},
+	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"display_match_list", display_match_list,
 	 METH_VARARGS, doc_display_match_list},
 	{"find_completion_word", find_completion_word,
