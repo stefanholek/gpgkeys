@@ -1656,29 +1656,7 @@ on_directory_completion_hook(char **directory)
 }
 
 
-/* Input stuffing */
-
-static PyObject *
-stuff_char(PyObject *self, PyObject *args)
-{
-	char *value = NULL;
-	int r = 0;
-
-	if (!PyArg_ParseTuple(args, "s:stuff_char", &value)) {
-		return NULL;
-	}
-	if (value && *value) {
-		r = rl_stuff_char(*value);
-	}
-	return PyBool_FromLong(r);
-}
-
-PyDoc_STRVAR(doc_stuff_char,
-"stuff_char(string) -> bool\n\
-Insert a character into readline's input stream.");
-
-
-/* Replacing line buffer contents */
+/* Replace line buffer contents */
 
 static PyObject *
 replace_line(PyObject *self, PyObject *args)
@@ -1699,6 +1677,47 @@ replace_line(PyObject *self, PyObject *args)
 PyDoc_STRVAR(doc_replace_line,
 "replace_line(string) -> None\n\
 Replace the line buffer contents with string.");
+
+
+/* Stuff char */
+
+static PyObject *
+stuff_char(PyObject *self, PyObject *args)
+{
+	char *value = NULL;
+	int r = 0;
+
+	if (!PyArg_ParseTuple(args, "s:stuff_char", &value)) {
+		return NULL;
+	}
+	if (value && *value) {
+		r = rl_stuff_char(*value);
+	}
+	return PyBool_FromLong(r);
+}
+
+PyDoc_STRVAR(doc_stuff_char,
+"stuff_char(string) -> bool\n\
+Insert a character into readline's input stream. \
+Returns True if the insert was successful.");
+
+
+/* Read key */
+
+PyObject*
+read_key(PyObject* self, PyObject* noargs)
+{
+	int c;
+
+	RL_SETSTATE(RL_STATE_MOREINPUT);
+	c = rl_read_key();
+	RL_UNSETSTATE(RL_STATE_MOREINPUT);
+	return PyInt_FromLong(c);
+}
+
+PyDoc_STRVAR(doc_read_key,
+"read_key() -> int\n\
+Read a key from readline's input stream.");
 
 
 /* Tilde expansion flag */
@@ -1999,6 +2018,7 @@ PyDoc_STRVAR(doc_display_match_list,
 "display_match_list(substitution, [matches], longest_match_length) -> None\n\
 Display a list of matches in columnar format on readline's output stream.");
 
+
 /* </_readline.c> */
 
 
@@ -2163,6 +2183,7 @@ static struct PyMethodDef readline_methods[] =
 	/* completion.readline namespace only */
 	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
+	{"read_key", read_key, METH_NOARGS, doc_read_key},
 	{"forced_update_display", forced_update_display,
 	 METH_NOARGS, doc_forced_update_display},
 	{"display_match_list", display_match_list,
