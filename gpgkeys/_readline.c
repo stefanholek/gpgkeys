@@ -1448,12 +1448,12 @@ Return the rl_end.");
 
 
 static PyObject *
-py_rl_complete_internal(PyObject *self, PyObject *args)
+complete_internal(PyObject *self, PyObject *args)
 {
 	char *what_to_do = NULL;
         int result = 1;
 
-	if (!PyArg_ParseTuple(args, "s:rl_complete_internal", &what_to_do)) {
+	if (!PyArg_ParseTuple(args, "s:complete_internal", &what_to_do)) {
 		return NULL;
 	}
         if (what_to_do) {
@@ -1462,8 +1462,8 @@ py_rl_complete_internal(PyObject *self, PyObject *args)
         return PyInt_FromLong(result);
 }
 
-PyDoc_STRVAR(doc_rl_complete_internal,
-"rl_complete_internal(string) -> int\n\
+PyDoc_STRVAR(doc_complete_internal,
+"complete_internal(string) -> int\n\
 Complete the word at or before the cursor position.");
 
 
@@ -1492,7 +1492,7 @@ find_completion_word(PyObject *self, PyObject *noargs)
 }
 
 PyDoc_STRVAR(doc_find_completion_word,
-"find_completion_word() -> (int, int)\n\
+"find_completion_word() -> (begidx, endidx)\n\
 Find the bounds of the current word for completion purposes.");
 
 
@@ -1791,14 +1791,15 @@ PyDoc_STRVAR(doc_get_basic_quote_characters,
 Get readline's default set of quote characters.");
 
 
-/* http://tiswww.case.edu/php/chet/readline/readline.html#SEC35 */
-
 /* Forced redisplay */
+
+extern int rl_display_fixed;
 
 static PyObject *
 forced_update_display(PyObject *self, PyObject *noarg)
 {
 	rl_forced_update_display();
+        rl_display_fixed = 1;
 	Py_RETURN_NONE;
 }
 
@@ -1808,20 +1809,195 @@ Change what's displayed on the screen even if readline thinks\n\
 the display state is ok.");
 
 
-/* Reset line state */
+/* PyList to StringArray and back */
 
-static PyObject *
-reset_line_state(PyObject *self, PyObject *noarg)
+char**
+StringArray_new(size_t size)
 {
-	rl_reset_line_state();
-	Py_RETURN_NONE;
+        char **p;
+        size_t i;
+
+        /* Provide for terminating NULL pointer */
+        size++;
+
+        p = malloc(sizeof(char*) * size);
+        if (p == NULL) {
+                PyErr_NoMemory();
+                return NULL;
+        }
+        for (i = 0; i < size; i++)
+                p[i] = NULL;
+        return p;
 }
 
-PyDoc_STRVAR(doc_reset_line_state,
-"reset_line_state() -> None\n\
-Reset the display state to a clean state and redisplay the current\n\
-line starting on a new line.");
 
+void
+StringArray_free(char **strings)
+{
+        char **p;
+
+        if (strings) {
+                for (p = strings; *p; p++)
+                        free(*p);
+                free(strings);
+        }
+}
+
+
+size_t
+StringArray_size(char **strings)
+{
+        char **p;
+        size_t size = 0;
+
+        for (p = strings; *p; p++)
+                size++;
+        return size;
+}
+
+
+int
+StringArray_insert(char ***strings, size_t pos, char *string)
+{
+        char **new;
+        char **p;
+        size_t size, i;
+
+        size = StringArray_size(*strings);
+        if (size == -1)
+                return -1;
+
+        new = StringArray_new(size+1);
+        if (new == NULL)
+                return -1;
+
+        for (p = *strings, i = 0; *p; p++) {
+                if (i == pos)
+                        new[i++] = string;
+                new[i++] = *p;
+        }
+        free(*strings);
+        *strings = new;
+        return 0;
+}
+
+
+PyObject*
+PyList_FromStringArray(char **strings)
+{
+        PyObject *list;
+        PyObject *s;
+        size_t size, i;
+
+        size = StringArray_size(strings);
+        if (size == -1)
+                return NULL;
+
+        list = PyList_New(size);
+        if (list == NULL)
+                goto error;
+
+        for (i = 0; i < size; i++) {
+                s = PyString_FromString(strings[i]);
+                if (s == NULL)
+                	goto error;
+                if (PyList_SetItem(list, i, s) == -1)
+                        goto error;
+        }
+        return list;
+  error:
+        Py_XDECREF(list);
+        return NULL;
+}
+
+
+char**
+PyList_AsStringArray(PyObject *list)
+{
+        char **strings;
+        char **p;
+        char *s;
+        PyObject *r;
+	Py_ssize_t size, i;
+
+        size = PyList_Size(list);
+        if (size == -1)
+                return NULL;
+
+        strings = StringArray_new(size);
+        if (strings == NULL)
+                return NULL;
+
+        for (p = strings, i = 0; i < size; i++) {
+                r = PyList_GetItem(list, i);
+                if (r == NULL)
+                        goto error;
+                s = PyString_AsString(r);
+                if (s == NULL)
+                        goto error;
+                s = strdup(s);
+                if (s == NULL) {
+                        PyErr_NoMemory();
+                        goto error;
+                }
+                *p++ = s;
+        }
+        return strings;
+  error:
+        StringArray_free(strings);
+        return NULL;
+}
+
+
+/* Display match list */
+
+PyObject*
+display_match_list(PyObject *self, PyObject *args)
+{
+        char *substitution = NULL;
+        PyObject *matches = NULL;
+        Py_ssize_t num_matches = 0;
+        int max_length = 0;
+        char **strings;
+        char *s;
+
+	if (!PyArg_ParseTuple(args, "sOi:display_match_list",
+                              &substitution, &matches, &max_length)) {
+		return NULL;
+        }
+
+        num_matches = PyList_Size(matches);
+        if (num_matches == -1)
+                return NULL;
+
+        strings = PyList_AsStringArray(matches);
+        if (strings == NULL)
+                return NULL;
+
+        s = strdup(substitution);
+        if (s == NULL) {
+                PyErr_NoMemory();
+                goto error;
+        }
+
+        /* Put the substitution back into the list at position 0 */
+        if (StringArray_insert(&strings, 0, s) == -1)
+                goto error;
+
+        rl_display_match_list(strings, num_matches, max_length);
+        rl_forced_update_display();
+        rl_display_fixed = 1;
+
+        StringArray_free(strings);
+        Py_RETURN_NONE;
+  error:
+        StringArray_free(strings);
+        return NULL;
+}
+
+PyDoc_STRVAR(doc_display_match_list,
+"display_match_list(substitution, [matches], longest_match_length) -> None\n\
+Display a list of strings in columnar format on readline's output stream.");
 
 /* </_readline.c> */
 
@@ -1989,12 +2165,12 @@ static struct PyMethodDef readline_methods[] =
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"forced_update_display", forced_update_display,
          METH_NOARGS, doc_forced_update_display},
-	{"reset_line_state", reset_line_state,
-         METH_NOARGS, doc_reset_line_state},
+	{"display_match_list", display_match_list,
+         METH_VARARGS, doc_display_match_list},
 	{"find_completion_word", find_completion_word,
          METH_NOARGS, doc_find_completion_word},
-	{"rl_complete_internal", py_rl_complete_internal,
-         METH_VARARGS, doc_rl_complete_internal},
+	{"complete_internal", complete_internal,
+         METH_VARARGS, doc_complete_internal},
         /* </_readline.c> */
 
 	{0, 0}
@@ -2057,21 +2233,13 @@ static void
 on_completion_display_matches_hook(char **matches,
 				   int num_matches, int max_length)
 {
-	int i;
-	PyObject *m=NULL, *s=NULL, *r=NULL;
+	PyObject *m=NULL, *r=NULL;
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
-	m = PyList_New(num_matches);
+	m = PyList_FromStringArray(matches+1);
 	if (m == NULL)
 		goto error;
-	for (i = 0; i < num_matches; i++) {
-		s = PyString_FromString(matches[i+1]);
-		if (s == NULL)
-			goto error;
-		if (PyList_SetItem(m, i, s) == -1)
-			goto error;
-	}
 
 	r = PyObject_CallFunction(completion_display_matches_hook,
 				  "sOi", matches[0], m, max_length);
