@@ -247,16 +247,16 @@ class Completion(object):
         return readline.get_completion_type()
 
     @property
+    def invoking_key(self):
+        return readline.get_completion_invoking_key()
+
+    @property
     def found_quote(self):
         return readline.get_completion_found_quote()
 
     @property
     def quote_character(self):
         return readline.get_completion_quote_character()
-
-    @property
-    def invoking_key(self):
-        return readline.get_completion_invoking_key()
 
     @property
     def rl_point(self):
@@ -388,6 +388,7 @@ line_buffer:                    %r
 begidx:                         %s
 endidx:                         %s
 completion_type:                %s (%r)
+invoking_key:                   %r
 append_character:               %r
 suppress_append:                %s
 found_quote:                    %s
@@ -396,7 +397,6 @@ suppress_quote:                 %s
 attempted_completion_over:      %s
 filename_completion_desired:    %s
 filename_quoting_desired:       %s
-invoking_key:                   %s (%r)
 sort_matches:                   %s
 ignore_duplicates:              %s
 mark_symlink_dirs:              %s
@@ -406,6 +406,7 @@ completion.line_buffer,
 completion.begidx,
 completion.endidx,
 completion.completion_type, chr(completion.completion_type),
+completion.invoking_key,
 completion.append_character,
 completion.suppress_append,
 completion.found_quote,
@@ -414,7 +415,6 @@ completion.suppress_quote,
 completion.attempted_completion_over,
 completion.filename_completion_desired,
 completion.filename_quoting_desired,
-completion.invoking_key, chr(completion.invoking_key),
 completion.sort_matches,
 completion.ignore_duplicates,
 completion.mark_symlink_dirs,
