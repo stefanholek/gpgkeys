@@ -367,7 +367,7 @@ py_replace_history(PyObject *self, PyObject *args)
 	HIST_ENTRY *old_entry;
 
 	if (!PyArg_ParseTuple(args, "is:replace_history", &entry_number,
-	      		      &line)) {
+			      &line)) {
 		return NULL;
 	}
 	if (entry_number < 0) {
@@ -1016,38 +1016,38 @@ on_filename_quoting_function(const char *text, int match_type, char *quote_point
    passed-in 'text' pointer to indicate no change. */
 {
 	char *result = (char*)text;
-        char *s = NULL;
-        char quote_char_string[2] = "\0\0";
+	char *s = NULL;
+	char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
 	if (quote_pointer && *quote_pointer) {
-        	quote_char_string[0] = *quote_pointer;
-        }
+		quote_char_string[0] = *quote_pointer;
+	}
 
-        r = PyObject_CallFunction(filename_quoting_function, "sis",
-                                  text, match_type, quote_char_string);
-        if (r == NULL)
-                goto error;
-        if (r == Py_None) {
-                result = (char*)text;
-        }
-        else {
-                s = PyString_AsString(r);
-                if (s == NULL)
-                        goto error;
+	r = PyObject_CallFunction(filename_quoting_function, "sis",
+				  text, match_type, quote_char_string);
+	if (r == NULL)
+		goto error;
+	if (r == Py_None) {
+		result = (char*)text;
+	}
+	else {
+		s = PyString_AsString(r);
+		if (s == NULL)
+			goto error;
 
-                s = strdup(s);
-                if (s != NULL)
-                	result = s;
-        }
-        Py_DECREF(r);
-        goto done;
+		s = strdup(s);
+		if (s != NULL)
+			result = s;
+	}
+	Py_DECREF(r);
+	goto done;
   error:
-        PyErr_Clear();
-        Py_XDECREF(r);
+	PyErr_Clear();
+	Py_XDECREF(r);
   done:
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
@@ -1102,49 +1102,49 @@ on_filename_dequoting_function(const char *text, char quote_char)
    at least a copy of 'text', and never NULL. */
 {
 	char *result = NULL;
-        char *s = NULL;
-        char quote_char_string[2] = "\0\0";
+	char *s = NULL;
+	char quote_char_string[2] = "\0\0";
 	PyObject *r;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
 	if (quote_char) {
-        	quote_char_string[0] = quote_char;
-        }
+		quote_char_string[0] = quote_char;
+	}
 
-        r = PyObject_CallFunction(filename_dequoting_function, "ss",
-                                  text, quote_char_string);
-        if (r == NULL) {
-                result = strdup(text);
-                goto error;
-        }
-        if (r == Py_None) {
-                result = strdup(text);
-        }
-        else {
-                s = PyString_AsString(r);
-                if (s == NULL) {
-                        result = strdup(text);
-                        goto error;
-                }
-                result = strdup(s);
-        }
-        Py_DECREF(r);
-        goto done;
+	r = PyObject_CallFunction(filename_dequoting_function, "ss",
+				  text, quote_char_string);
+	if (r == NULL) {
+		result = strdup(text);
+		goto error;
+	}
+	if (r == Py_None) {
+		result = strdup(text);
+	}
+	else {
+		s = PyString_AsString(r);
+		if (s == NULL) {
+			result = strdup(text);
+			goto error;
+		}
+		result = strdup(s);
+	}
+	Py_DECREF(r);
+	goto done;
   error:
-        PyErr_Clear();
-        Py_XDECREF(r);
+	PyErr_Clear();
+	Py_XDECREF(r);
   done:
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
 #endif
-        /* We really can't return NULL here, so we abort like
-           readline's xmalloc. */
-        if (result == NULL) {
+	/* We really can't return NULL here, so we abort like
+	   readline's xmalloc. */
+	if (result == NULL) {
 		fprintf(stderr, "_readline: out of virtual memory\n");
-                exit(2);
-        }
+		exit(2);
+	}
 	return result;
 }
 
@@ -1193,29 +1193,29 @@ int
 on_char_is_quoted_function(const char *text, int index)
 {
 	int result = 0;
-        int i = 0;
+	int i = 0;
 	PyObject *r;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
-        r = PyObject_CallFunction(char_is_quoted_function, "si", text, index);
-        if (r == NULL)
-                goto error;
-        if (r == Py_None) {
-                result = 0;
-        }
-        else {
+	r = PyObject_CallFunction(char_is_quoted_function, "si", text, index);
+	if (r == NULL)
+		goto error;
+	if (r == Py_None) {
+		result = 0;
+	}
+	else {
 		i = PyInt_AsLong(r);
 		if (i == -1 && PyErr_Occurred())
 			goto error;
-                result = i;
-        }
-        Py_DECREF(r);
-        goto done;
+		result = i;
+	}
+	Py_DECREF(r);
+	goto done;
   error:
-        PyErr_Clear();
-        Py_XDECREF(r);
+	PyErr_Clear();
+	Py_XDECREF(r);
   done:
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
@@ -1229,18 +1229,18 @@ on_char_is_quoted_function(const char *text, int index)
 static PyObject *
 filename_completion_function(PyObject *self, PyObject *args)
 {
-        int state;
+	int state;
 	char *value;
-        char *completion;
+	char *completion;
 
 	if (!PyArg_ParseTuple(args, "si:filename_completion_function", &value, &state)) {
 		return NULL;
 	}
 	completion = rl_filename_completion_function(value, state);
 	if (completion)
-                /* We don't own the string so no freeing required */
+		/* We don't own the string so no freeing required */
 		return PyString_FromString(completion);
-        Py_RETURN_NONE;
+	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(doc_filename_completion_function,
@@ -1251,18 +1251,18 @@ A generator function for filename completion in the general case.");
 static PyObject *
 username_completion_function(PyObject *self, PyObject *args)
 {
-        int state;
+	int state;
 	char *value;
-        char *completion;
+	char *completion;
 
 	if (!PyArg_ParseTuple(args, "si:username_completion_function", &value, &state)) {
 		return NULL;
 	}
 	completion = rl_username_completion_function(value, state);
 	if (completion)
-                /* We don't own the string so no freeing required */
+		/* We don't own the string so no freeing required */
 		return PyString_FromString(completion);
-        Py_RETURN_NONE;
+	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(doc_username_completion_function,
@@ -1274,8 +1274,8 @@ static PyObject *
 py_tilde_expand(PyObject *self, PyObject *args)
 {
 	char *value;
-        char *expanded;
-        PyObject *r;
+	char *expanded;
+	PyObject *r;
 
 	if (!PyArg_ParseTuple(args, "s:tilde_expand", &value)) {
 		return NULL;
@@ -1283,12 +1283,12 @@ py_tilde_expand(PyObject *self, PyObject *args)
 	expanded = tilde_expand(value);
 	if (expanded) {
 		r = PyString_FromString(expanded);
-                free(expanded);
-                return r;
-        }
-        /* We never get here since tilde_expand aborts on
-           out-of-memory condition. */
-        return PyErr_NoMemory();
+		free(expanded);
+		return r;
+	}
+	/* We never get here since tilde_expand aborts on
+	   out-of-memory condition. */
+	return PyErr_NoMemory();
 }
 
 PyDoc_STRVAR(doc_tilde_expand,
@@ -1451,15 +1451,15 @@ static PyObject *
 complete_internal(PyObject *self, PyObject *args)
 {
 	char *what_to_do = NULL;
-        int result = 1;
+	int result = 1;
 
 	if (!PyArg_ParseTuple(args, "s:complete_internal", &what_to_do)) {
 		return NULL;
 	}
-        if (what_to_do) {
-                result = rl_complete_internal(*what_to_do);
-        }
-        return PyInt_FromLong(result);
+	if (what_to_do) {
+		result = rl_complete_internal(*what_to_do);
+	}
+	return PyInt_FromLong(result);
 }
 
 PyDoc_STRVAR(doc_complete_internal,
@@ -1473,22 +1473,22 @@ static PyObject *
 find_completion_word(PyObject *self, PyObject *noargs)
 {
 	int begidx, endidx;
-        PyObject *py_begidx, *py_endidx;
+	PyObject *py_begidx, *py_endidx;
 
-        /* The magic incantation */
-        endidx = rl_point;
-        if (rl_point)
-                _rl_find_completion_word(NULL, NULL);
-        begidx = rl_point;
-        rl_point = endidx;
+	/* The magic incantation */
+	endidx = rl_point;
+	if (rl_point)
+		_rl_find_completion_word(NULL, NULL);
+	begidx = rl_point;
+	rl_point = endidx;
 
-        py_begidx = PyInt_FromLong(begidx);
-        py_endidx = PyInt_FromLong(endidx);
+	py_begidx = PyInt_FromLong(begidx);
+	py_endidx = PyInt_FromLong(endidx);
 
-        if (!py_begidx || !py_endidx)
-                return NULL;
+	if (!py_begidx || !py_endidx)
+		return NULL;
 
-        return PyTuple_Pack(2, py_begidx, py_endidx);
+	return PyTuple_Pack(2, py_begidx, py_endidx);
 }
 
 PyDoc_STRVAR(doc_find_completion_word,
@@ -1542,29 +1542,29 @@ char *
 on_completion_word_break_hook(void)
 {
 	char *result = NULL;
-        char *s = NULL;
+	char *s = NULL;
 	PyObject *r;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
-        r = PyObject_CallFunction(completion_word_break_hook, NULL);
-        if (r == NULL)
-                goto error;
-        if (r == Py_None) {
-                result = NULL;
-        }
-        else {
-                s = PyString_AsString(r);
-                if (s == NULL)
-                        goto error;
-                result = strdup(s);
-        }
-        Py_DECREF(r);
-        goto done;
+	r = PyObject_CallFunction(completion_word_break_hook, NULL);
+	if (r == NULL)
+		goto error;
+	if (r == Py_None) {
+		result = NULL;
+	}
+	else {
+		s = PyString_AsString(r);
+		if (s == NULL)
+			goto error;
+		result = strdup(s);
+	}
+	Py_DECREF(r);
+	goto done;
   error:
-        PyErr_Clear();
-        Py_XDECREF(r);
+	PyErr_Clear();
+	Py_XDECREF(r);
   done:
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
@@ -1619,35 +1619,35 @@ int
 on_directory_completion_hook(char **directory)
 {
 	int result = 0;
-        char *s = NULL;
+	char *s = NULL;
 	PyObject *r;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
-        r = PyObject_CallFunction(directory_completion_hook, "s", *directory);
-        if (r == NULL)
-                goto error;
-        if (r == Py_None) {
-                result = 0;
-        }
-        else {
-                s = PyString_AsString(r);
-                if (s == NULL)
-                        goto error;
+	r = PyObject_CallFunction(directory_completion_hook, "s", *directory);
+	if (r == NULL)
+		goto error;
+	if (r == Py_None) {
+		result = 0;
+	}
+	else {
+		s = PyString_AsString(r);
+		if (s == NULL)
+			goto error;
 
-                s = strdup(s);
-                if (s != NULL) {
-                        free(*directory);
-                        *directory = s;
-                        result = 1;
-                }
-        }
-        Py_DECREF(r);
-        goto done;
+		s = strdup(s);
+		if (s != NULL) {
+			free(*directory);
+			*directory = s;
+			result = 1;
+		}
+	}
+	Py_DECREF(r);
+	goto done;
   error:
-        PyErr_Clear();
-        Py_XDECREF(r);
+	PyErr_Clear();
+	Py_XDECREF(r);
   done:
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
@@ -1662,14 +1662,14 @@ static PyObject *
 stuff_char(PyObject *self, PyObject *args)
 {
 	char *value = NULL;
-        int r = 0;
+	int r = 0;
 
 	if (!PyArg_ParseTuple(args, "s:stuff_char", &value)) {
-	        return NULL;
+		return NULL;
 	}
 	if (value && *value) {
-                r = rl_stuff_char(*value);
-        }
+		r = rl_stuff_char(*value);
+	}
 	return PyBool_FromLong(r);
 }
 
@@ -1686,13 +1686,13 @@ replace_line(PyObject *self, PyObject *args)
 	char *value = NULL;
 
 	if (!PyArg_ParseTuple(args, "s:replace_line", &value)) {
-	        return NULL;
+		return NULL;
 	}
 	if (value) {
-                rl_replace_line(value, 0);
-                /* Move rl_point to end of line */
-                rl_point = rl_end;
-        }
+		rl_replace_line(value, 0);
+		/* Move rl_point to end of line */
+		rl_point = rl_end;
+	}
 	Py_RETURN_NONE;
 }
 
@@ -1799,7 +1799,7 @@ static PyObject *
 forced_update_display(PyObject *self, PyObject *noarg)
 {
 	rl_forced_update_display();
-        rl_display_fixed = 1;
+	rl_display_fixed = 1;
 	Py_RETURN_NONE;
 }
 
@@ -1814,138 +1814,138 @@ the display state is ok.");
 char**
 StringArray_new(size_t size)
 {
-        char **p;
-        size_t i;
+	char **p;
+	size_t i;
 
-        /* Provide for terminating NULL pointer */
-        size++;
+	/* Provide for terminating NULL pointer */
+	size++;
 
-        p = malloc(sizeof(char*) * size);
-        if (p == NULL) {
-                PyErr_NoMemory();
-                return NULL;
-        }
-        for (i = 0; i < size; i++)
-                p[i] = NULL;
-        return p;
+	p = malloc(sizeof(char*) * size);
+	if (p == NULL) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+	for (i = 0; i < size; i++)
+		p[i] = NULL;
+	return p;
 }
 
 
 void
 StringArray_free(char **strings)
 {
-        char **p;
+	char **p;
 
-        if (strings) {
-                for (p = strings; *p; p++)
-                        free(*p);
-                free(strings);
-        }
+	if (strings) {
+		for (p = strings; *p; p++)
+			free(*p);
+		free(strings);
+	}
 }
 
 
 size_t
 StringArray_size(char **strings)
 {
-        char **p;
-        size_t size = 0;
+	char **p;
+	size_t size = 0;
 
-        for (p = strings; *p; p++)
-                size++;
-        return size;
+	for (p = strings; *p; p++)
+		size++;
+	return size;
 }
 
 
 int
 StringArray_insert(char ***strings, size_t pos, char *string)
 {
-        char **new;
-        char **p;
-        size_t size, i;
+	char **new;
+	char **p;
+	size_t size, i;
 
-        size = StringArray_size(*strings);
-        if (size == -1)
-                return -1;
+	size = StringArray_size(*strings);
+	if (size == -1)
+		return -1;
 
-        new = StringArray_new(size+1);
-        if (new == NULL)
-                return -1;
+	new = StringArray_new(size+1);
+	if (new == NULL)
+		return -1;
 
-        for (p = *strings, i = 0; *p; p++) {
-                if (i == pos)
-                        new[i++] = string;
-                new[i++] = *p;
-        }
-        free(*strings);
-        *strings = new;
-        return 0;
+	for (p = *strings, i = 0; *p; p++) {
+		if (i == pos)
+			new[i++] = string;
+		new[i++] = *p;
+	}
+	free(*strings);
+	*strings = new;
+	return 0;
 }
 
 
 PyObject*
 PyList_FromStringArray(char **strings)
 {
-        PyObject *list;
-        PyObject *s;
-        size_t size, i;
+	PyObject *list;
+	PyObject *s;
+	size_t size, i;
 
-        size = StringArray_size(strings);
-        if (size == -1)
-                return NULL;
+	size = StringArray_size(strings);
+	if (size == -1)
+		return NULL;
 
-        list = PyList_New(size);
-        if (list == NULL)
-                goto error;
+	list = PyList_New(size);
+	if (list == NULL)
+		goto error;
 
-        for (i = 0; i < size; i++) {
-                s = PyString_FromString(strings[i]);
-                if (s == NULL)
-                	goto error;
-                if (PyList_SetItem(list, i, s) == -1)
-                        goto error;
-        }
-        return list;
+	for (i = 0; i < size; i++) {
+		s = PyString_FromString(strings[i]);
+		if (s == NULL)
+			goto error;
+		if (PyList_SetItem(list, i, s) == -1)
+			goto error;
+	}
+	return list;
   error:
-        Py_XDECREF(list);
-        return NULL;
+	Py_XDECREF(list);
+	return NULL;
 }
 
 
 char**
 PyList_AsStringArray(PyObject *list)
 {
-        char **strings;
-        char **p;
-        char *s;
-        PyObject *r;
+	char **strings;
+	char **p;
+	char *s;
+	PyObject *r;
 	Py_ssize_t size, i;
 
-        size = PyList_Size(list);
-        if (size == -1)
-                return NULL;
+	size = PyList_Size(list);
+	if (size == -1)
+		return NULL;
 
-        strings = StringArray_new(size);
-        if (strings == NULL)
-                return NULL;
+	strings = StringArray_new(size);
+	if (strings == NULL)
+		return NULL;
 
-        for (p = strings, i = 0; i < size; i++) {
-                r = PyList_GetItem(list, i);
-                if (r == NULL)
-                        goto error;
-                s = PyString_AsString(r);
-                if (s == NULL)
-                        goto error;
-                s = strdup(s);
-                if (s == NULL) {
-                        PyErr_NoMemory();
-                        goto error;
-                }
-                *p++ = s;
-        }
-        return strings;
+	for (p = strings, i = 0; i < size; i++) {
+		r = PyList_GetItem(list, i);
+		if (r == NULL)
+			goto error;
+		s = PyString_AsString(r);
+		if (s == NULL)
+			goto error;
+		s = strdup(s);
+		if (s == NULL) {
+			PyErr_NoMemory();
+			goto error;
+		}
+		*p++ = s;
+	}
+	return strings;
   error:
-        StringArray_free(strings);
-        return NULL;
+	StringArray_free(strings);
+	return NULL;
 }
 
 
@@ -1954,45 +1954,45 @@ PyList_AsStringArray(PyObject *list)
 PyObject*
 display_match_list(PyObject *self, PyObject *args)
 {
-        char *substitution = NULL;
-        PyObject *matches = NULL;
-        Py_ssize_t num_matches = 0;
-        int max_length = 0;
-        char **strings;
-        char *s;
+	char *substitution = NULL;
+	PyObject *matches = NULL;
+	Py_ssize_t num_matches = 0;
+	int max_length = 0;
+	char **strings;
+	char *s;
 
 	if (!PyArg_ParseTuple(args, "sOi:display_match_list",
-                              &substitution, &matches, &max_length)) {
+			      &substitution, &matches, &max_length)) {
 		return NULL;
-        }
+	}
 
-        num_matches = PyList_Size(matches);
-        if (num_matches == -1)
-                return NULL;
+	num_matches = PyList_Size(matches);
+	if (num_matches == -1)
+		return NULL;
 
-        strings = PyList_AsStringArray(matches);
-        if (strings == NULL)
-                return NULL;
+	strings = PyList_AsStringArray(matches);
+	if (strings == NULL)
+		return NULL;
 
-        s = strdup(substitution);
-        if (s == NULL) {
-                PyErr_NoMemory();
-                goto error;
-        }
+	s = strdup(substitution);
+	if (s == NULL) {
+		PyErr_NoMemory();
+		goto error;
+	}
 
-        /* Put the substitution back into the list at position 0 */
-        if (StringArray_insert(&strings, 0, s) == -1)
-                goto error;
+	/* Put the substitution back into the list at position 0 */
+	if (StringArray_insert(&strings, 0, s) == -1)
+		goto error;
 
-        rl_display_match_list(strings, num_matches, max_length);
-        rl_forced_update_display();
-        rl_display_fixed = 1;
+	rl_display_match_list(strings, num_matches, max_length);
+	rl_forced_update_display();
+	rl_display_fixed = 1;
 
-        StringArray_free(strings);
-        Py_RETURN_NONE;
+	StringArray_free(strings);
+	Py_RETURN_NONE;
   error:
-        StringArray_free(strings);
-        return NULL;
+	StringArray_free(strings);
+	return NULL;
 }
 
 PyDoc_STRVAR(doc_display_match_list,
@@ -2049,7 +2049,7 @@ static struct PyMethodDef readline_methods[] =
 #ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
 	{"clear_history", py_clear_history, METH_NOARGS, doc_clear_history},
 
-        /* <_readline.c> */
+	/* <_readline.c> */
 	{"get_completion_append_character", get_completion_append_character,
 	 METH_NOARGS, doc_get_completion_append_character},
 	{"set_completion_append_character", set_completion_append_character,
@@ -2153,25 +2153,25 @@ static struct PyMethodDef readline_methods[] =
 	 METH_NOARGS, doc_get_match_hidden_files},
 	{"set_match_hidden_files", set_match_hidden_files,
 	 METH_VARARGS, doc_set_match_hidden_files},
-        {"get_basic_word_break_characters", get_basic_word_break_characters,
-         METH_NOARGS, doc_get_basic_word_break_characters},
-        {"get_basic_quote_characters", get_basic_quote_characters,
-         METH_NOARGS, doc_get_basic_quote_characters},
+	{"get_basic_word_break_characters", get_basic_word_break_characters,
+	 METH_NOARGS, doc_get_basic_word_break_characters},
+	{"get_basic_quote_characters", get_basic_quote_characters,
+	 METH_NOARGS, doc_get_basic_quote_characters},
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
-        {"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
-        {"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
-        /* completion.readline namespace only */
+	{"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
+	{"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
+	/* completion.readline namespace only */
 	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"forced_update_display", forced_update_display,
-         METH_NOARGS, doc_forced_update_display},
+	 METH_NOARGS, doc_forced_update_display},
 	{"display_match_list", display_match_list,
-         METH_VARARGS, doc_display_match_list},
+	 METH_VARARGS, doc_display_match_list},
 	{"find_completion_word", find_completion_word,
-         METH_NOARGS, doc_find_completion_word},
+	 METH_NOARGS, doc_find_completion_word},
 	{"complete_internal", complete_internal,
-         METH_VARARGS, doc_complete_internal},
-        /* </_readline.c> */
+	 METH_VARARGS, doc_complete_internal},
+	/* </_readline.c> */
 
 	{0, 0}
 };
@@ -2406,7 +2406,7 @@ readline_until_enter_or_signal(char *prompt, int *signal)
 
 			/* [Bug #1552726] Only limit the pause if an input hook has been 
 			   defined.  */
-		 	struct timeval *timeoutp = NULL;
+			struct timeval *timeoutp = NULL;
 			if (PyOS_InputHook) 
 				timeoutp = &timeout;
 			FD_SET(fileno(rl_instream), &selectset);
