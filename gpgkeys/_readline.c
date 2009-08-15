@@ -1997,7 +1997,7 @@ display_match_list(PyObject *self, PyObject *args)
 
 PyDoc_STRVAR(doc_display_match_list,
 "display_match_list(substitution, [matches], longest_match_length) -> None\n\
-Display a list of strings in columnar format on readline's output stream.");
+Display a list of matches in columnar format on readline's output stream.");
 
 /* </_readline.c> */
 
