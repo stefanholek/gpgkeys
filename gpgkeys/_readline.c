@@ -1861,7 +1861,6 @@ StringArray_new(size_t size)
 	return p;
 }
 
-
 static void
 StringArray_free(char **strings)
 {
@@ -1874,7 +1873,6 @@ StringArray_free(char **strings)
 	}
 }
 
-
 static size_t
 StringArray_size(char **strings)
 {
@@ -1885,7 +1883,6 @@ StringArray_size(char **strings)
 		size++;
 	return size;
 }
-
 
 static int
 StringArray_insert(char ***strings, size_t pos, char *string)
@@ -1913,7 +1910,7 @@ StringArray_insert(char ***strings, size_t pos, char *string)
 }
 
 
-/* PyList to StringArray and back */
+/* StringArray to PyList and back */
 
 static PyObject*
 PyList_FromStringArray(char **strings)
@@ -2197,14 +2194,13 @@ static struct PyMethodDef readline_methods[] =
 	{"get_basic_word_break_characters", get_basic_word_break_characters,
 	 METH_NOARGS, doc_get_basic_word_break_characters},
 	{"tilde_expand", py_tilde_expand, METH_VARARGS, doc_tilde_expand},
-	{"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
-	{"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
 	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
 	{"read_key", read_key, METH_NOARGS, doc_read_key},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"display_match_list", display_match_list,
 	 METH_VARARGS, doc_display_match_list},
-	/* completion.readline namespace only */
+	{"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
+	{"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
 	{"find_completion_word", find_completion_word,
 	 METH_NOARGS, doc_find_completion_word},
 	{"complete_internal", complete_internal,
