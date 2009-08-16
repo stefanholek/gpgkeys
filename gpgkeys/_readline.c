@@ -222,7 +222,7 @@ PyDoc_STRVAR(doc_set_completion_display_matches_hook,
 "set_completion_display_matches_hook([function]) -> None\n\
 Set or remove the completion display function.\n\
 The function is called as\n\
-  function(substitution, [matches], longest_match_length)\n\
+  function(substitution, matches, longest_match_length)\n\
 once each time matches need to be displayed.");
 
 static PyObject *
@@ -1442,23 +1442,23 @@ Get the current pre_input_hook function.");
 static PyObject *
 get_rl_point(PyObject *self, PyObject *noarg)
 {
-       return PyInt_FromLong(rl_point);
+	return PyInt_FromLong(rl_point);
 }
 
 PyDoc_STRVAR(doc_get_rl_point,
 "get_rl_point() -> int\n\
-Return the rl_point.");
+Return rl_point.");
 
 
 static PyObject *
 get_rl_end(PyObject *self, PyObject *noarg)
 {
-       return PyInt_FromLong(rl_end);
+	return PyInt_FromLong(rl_end);
 }
 
 PyDoc_STRVAR(doc_get_rl_end,
 "get_rl_end() -> int\n\
-Return the rl_end.");
+Return rl_end.");
 
 
 extern char _rl_find_completion_word(int *fp, int *dp);
@@ -1487,7 +1487,7 @@ find_completion_word(PyObject *self, PyObject *noargs)
 
 PyDoc_STRVAR(doc_find_completion_word,
 "find_completion_word() -> (begidx, endidx)\n\
-Find the bounds of the current word for completion purposes.");
+Find the bounds of the word at or before the cursor position.");
 
 
 static PyObject *
@@ -1833,26 +1833,21 @@ Get readline's default set of word break characters.");
 
 /* StringArray helpers */
 
-char**
+static char**
 StringArray_new(size_t size)
 {
 	char **p;
-	size_t i;
 
-	/* Provide for terminating NULL pointer */
-	size++;
-
-	p = malloc(sizeof(char*) * size);
+	p = calloc(size+1, sizeof(char*));
 	if (p == NULL) {
 		PyErr_NoMemory();
 		return NULL;
 	}
-	for (i = 0; i < size; i++)
-		p[i] = NULL;
 	return p;
 }
 
-void
+
+static void
 StringArray_free(char **strings)
 {
 	char **p;
@@ -1864,7 +1859,8 @@ StringArray_free(char **strings)
 	}
 }
 
-size_t
+
+static size_t
 StringArray_size(char **strings)
 {
 	char **p;
@@ -1875,7 +1871,8 @@ StringArray_size(char **strings)
 	return size;
 }
 
-int
+
+static int
 StringArray_insert(char ***strings, size_t pos, char *string)
 {
 	char **new;
@@ -1903,7 +1900,7 @@ StringArray_insert(char ***strings, size_t pos, char *string)
 
 /* PyList to StringArray and back */
 
-PyObject*
+static PyObject*
 PyList_FromStringArray(char **strings)
 {
 	PyObject *list;
@@ -1932,7 +1929,7 @@ PyList_FromStringArray(char **strings)
 }
 
 
-char**
+static char**
 PyList_AsStringArray(PyObject *list)
 {
 	char **strings;
@@ -2022,7 +2019,7 @@ display_match_list(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(doc_display_match_list,
-"display_match_list(substitution, [matches], longest_match_length) -> None\n\
+"display_match_list(substitution, matches, longest_match_length) -> None\n\
 Display a list of matches in columnar format on readline's output stream.");
 
 
