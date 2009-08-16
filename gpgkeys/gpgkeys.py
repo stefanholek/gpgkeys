@@ -598,7 +598,7 @@ class GPGKeys(cmd.Cmd):
 
     @print_exc
     def display_matches_hook(self, substitution, matches, max_length):
-        # Handle our own display for demonstration purposes
+        # Handle our own display because we can
         num_matches = len(matches)
         if num_matches > completer.query_items > 0:
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
