@@ -869,17 +869,16 @@ class SystemCompletion(Logging):
     @print_exc
     def complete(self, text):
         self.log('completesys\t\t%r', text)
-        matches = [x for x in self.read_path() if x.startswith(text)]
+        matches = list(self.read_path(text))
         self.log('completesys\t\t%r', matches[:100])
         return matches
 
-    def read_path(self):
-        path = os.environ.get('PATH')
-        dirs = path.split(':')
-        for dir in dirs:
-            for file in os.listdir(dir):
-                if os.access(os.path.join(dir, file), os.R_OK|os.X_OK):
-                    yield file
+    def read_path(self, text):
+        for dir in os.environ.get('PATH').split(':'):
+            for name in os.listdir(dir):
+                if name.startswith(text):
+                    if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
+                        yield name
 
 
 class KeyCompletion(object):
