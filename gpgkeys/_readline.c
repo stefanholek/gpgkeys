@@ -1294,15 +1294,12 @@ py_tilde_expand(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s:tilde_expand", &value)) {
 		return NULL;
 	}
+
+	/* tilde_expand aborts on out of memory condition */
 	expanded = tilde_expand(value);
-	if (expanded) {
-		r = PyString_FromString(expanded);
-		free(expanded);
-		return r;
-	}
-	/* We never get here since tilde_expand aborts on
-	   out-of-memory condition. */
-	return PyErr_NoMemory();
+	r = PyString_FromString(expanded);
+	free(expanded);
+	return r;
 }
 
 PyDoc_STRVAR(doc_tilde_expand,
@@ -1534,7 +1531,7 @@ PyDoc_STRVAR(doc_set_completion_word_break_hook,
 "set_completion_word_break_hook([function]) -> None\n\
 A function to call when readline is deciding where to separate words for word completion.\n\
 The function is called as\n\
-  function().");
+  function(text, begidx, endidx).");
 
 
 static PyObject *
@@ -1558,11 +1555,28 @@ on_completion_word_break_hook(void)
 	char *result = NULL;
 	char *s = NULL;
 	PyObject *r;
+	int begidx, endidx;
+	char *text;
 
 #ifdef WITH_THREAD
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 #endif
-	r = PyObject_CallFunction(completion_word_break_hook, NULL);
+	endidx = rl_point;
+	if (rl_point) {
+		/* Unhook ourselves to avoid infinite recursion */
+		rl_completion_word_break_hook = NULL;
+		_rl_find_completion_word(NULL, NULL);
+		rl_completion_word_break_hook =
+			(rl_cpvfunc_t *)on_completion_word_break_hook;
+	}
+	begidx = rl_point;
+	rl_point = endidx;
+
+	/* rl_copy_text aborts on out of memory condition */
+	text = rl_copy_text(begidx, endidx);
+
+	r = PyObject_CallFunction(completion_word_break_hook, "sii",
+	                          text, begidx, endidx);
 	if (r == NULL)
 		goto error;
 	if (r == Py_None) {
@@ -1580,6 +1594,7 @@ on_completion_word_break_hook(void)
 	PyErr_Clear();
 	Py_XDECREF(r);
   done:
+  	free(text);
 #ifdef WITH_THREAD
 	PyGILState_Release(gilstate);
 #endif
@@ -2185,11 +2200,11 @@ static struct PyMethodDef readline_methods[] =
 	{"get_rl_point", get_rl_point, METH_NOARGS, doc_get_rl_point},
 	{"get_rl_end", get_rl_end, METH_NOARGS, doc_get_rl_end},
 	{"replace_line", replace_line, METH_VARARGS, doc_replace_line},
-	/* completion.readline namespace only */
 	{"read_key", read_key, METH_NOARGS, doc_read_key},
 	{"stuff_char", stuff_char, METH_VARARGS, doc_stuff_char},
 	{"display_match_list", display_match_list,
 	 METH_VARARGS, doc_display_match_list},
+	/* completion.readline namespace only */
 	{"find_completion_word", find_completion_word,
 	 METH_NOARGS, doc_find_completion_word},
 	{"complete_internal", complete_internal,
