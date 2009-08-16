@@ -192,7 +192,7 @@ class Completer(object):
 
     @print_exc
     def dump_vars(self):
-        sys.stdout.write("""
+        sys.stdout.write("""\
 quote_characters:               %r
 word_break_characters:          %r
 special_prefixes:               %r
@@ -399,7 +399,7 @@ class Completion(object):
 
     @print_exc
     def dump_vars(self):
-        sys.stdout.write("""
+        sys.stdout.write("""\
 line_buffer:                    %r
 begidx:                         %s
 endidx:                         %s
