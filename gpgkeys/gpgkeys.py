@@ -350,17 +350,13 @@ class GPGKeys(cmd.Cmd):
         completer.display_matches_hook = self.display_matches_hook
 
     @print_exc
-    def word_break_hook(self):
+    def word_break_hook(self, text, begidx, endidx):
         # If we are completing '.<command>' make '.' a word break
-        # character.
+        # character. Same for '!'.
         origline = completion.line_buffer
         line = origline.lstrip()
-        stripped = len(origline) - len(line)
         if line[0] in ('!', '.'):
-            # Unhook ourselves to avoid infinite recursion
-            completer.word_break_hook = None
-            begidx, endidx = readline.find_completion_word()
-            completer.word_break_hook = self.word_break_hook
+            stripped = len(origline) - len(line)
             if begidx - stripped == 0:
                 return line[0] + completer.word_break_characters
 
@@ -372,20 +368,16 @@ class GPGKeys(cmd.Cmd):
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
             self.stdout.flush()
             while True:
-                c = readline.read_key()
+                c = completion.read_key()
                 if c in 'yY ': # Spacebar
-                    readline.display_match_list(substitution, matches, max_length)
+                    completion.display_match_list(substitution, matches, max_length)
                     break
-                if c in 'nN\x7f\x04': # Rubout, Ctrl+D
+                if c in 'nN\x7f': # Rubout
                     self.stdout.write('\n')
-                    readline.redisplay(True)
-                    break
-                if c in '.': # Easter egg
-                    matches = matches[:completer.query_items] + ['...']
-                    readline.display_match_list(substitution, matches, max(max_length, 3))
+                    completion.redisplay(force=True)
                     break
         else:
-            readline.display_match_list(substitution, matches, max_length)
+            completion.display_match_list(substitution, matches, max_length)
 
     def isoption(self, string):
         # True if 'string' is an option flag
