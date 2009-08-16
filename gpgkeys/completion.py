@@ -15,7 +15,7 @@ import _readline as readline
 import sys
 import cmd as _cmd
 
-# Reign in runaway filename completions
+# Rein in runaway completions
 _MAXMATCHES = 100000
 
 
@@ -379,6 +379,22 @@ class Completion(object):
     def expand_tilde(self, text):
         return readline.tilde_expand(text)
 
+    # Input stream
+
+    def read_key(self):
+        return readline.read_key()
+
+    def stuff_char(self, char):
+        return readline.stuff_char(char)
+
+    # Display
+
+    def redisplay(self, force=False):
+        readline.redisplay(force)
+
+    def display_match_list(self, substitution, matches, max_length):
+        readline.display_match_list(substitution, matches, max_length)
+
     # Debugging
 
     @print_exc
@@ -425,7 +441,7 @@ completion = Completion()
 
 
 class cmd:
-    # Override methods so they use completion's version of readline.
+    # Override some methods so they use completion's version of readline.
 
     class Cmd(_cmd.Cmd):
         """A simple framework for writing line-oriented command interpreters.
