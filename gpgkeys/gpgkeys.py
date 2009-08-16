@@ -331,7 +331,7 @@ class GPGKeys(cmd.Cmd):
     def shell_default(self, *args):
         self.system(*args)
 
-    # Completion
+    # Completions
 
     def init_completer(self, do_log=False):
         self.file_completion = FileCompletion(do_log)
@@ -348,36 +348,6 @@ class GPGKeys(cmd.Cmd):
 
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
-
-    @print_exc
-    def word_break_hook(self, text, begidx, endidx):
-        # If we are completing '.<command>' make '.' a word break
-        # character. Same for '!'.
-        origline = completion.line_buffer
-        line = origline.lstrip()
-        if line[0] in ('!', '.'):
-            stripped = len(origline) - len(line)
-            if begidx - stripped == 0:
-                return line[0] + completer.word_break_characters
-
-    @print_exc
-    def display_matches_hook(self, substitution, matches, max_length):
-        # Handle our own display because we can
-        num_matches = len(matches)
-        if num_matches > completer.query_items > 0:
-            self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
-            self.stdout.flush()
-            while True:
-                c = completion.read_key()
-                if c in 'yY ': # Spacebar
-                    completion.display_match_list(substitution, matches, max_length)
-                    break
-                if c in 'nN\x7f': # Rubout
-                    self.stdout.write('\n')
-                    completion.redisplay(force=True)
-                    break
-        else:
-            completion.display_match_list(substitution, matches, max_length)
 
     def isoption(self, string):
         # True if 'string' is an option flag
@@ -613,6 +583,38 @@ class GPGKeys(cmd.Cmd):
                 return self.completesys(text)
         return self.completefiles_(text, line, begidx)
 
+    # Completion hooks
+
+    @print_exc
+    def word_break_hook(self, text, begidx, endidx):
+        # If we are completing '.<command>' make '.' a word break
+        # character. Same for '!'.
+        origline = completion.line_buffer
+        line = origline.lstrip()
+        if line[0] in ('!', '.'):
+            stripped = len(origline) - len(line)
+            if begidx - stripped == 0:
+                return line[0] + completer.word_break_characters
+
+    @print_exc
+    def display_matches_hook(self, substitution, matches, max_length):
+        # Handle our own display for demonstration purposes
+        num_matches = len(matches)
+        if num_matches > completer.query_items > 0:
+            self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
+            self.stdout.flush()
+            while True:
+                c = completion.read_key()
+                if c in 'yY ': # Spacebar
+                    completion.display_match_list(substitution, matches, max_length)
+                    break
+                if c in 'nN\x7f': # Rubout
+                    self.stdout.write('\n')
+                    completion.redisplay(force=True)
+                    break
+        else:
+            completion.display_match_list(substitution, matches, max_length)
+
     # Help
 
     shortcuts = {'ls': 'list',
@@ -637,7 +639,6 @@ class GPGKeys(cmd.Cmd):
                     doc=getattr(self, 'do_' + arg).__doc__
                     if doc:
                         doc = str(doc)
-                        # /me covers eyes...
                         lparen = doc.rfind('(')
                         rparen = doc.rfind(')')
                         usage = doc[lparen+1:rparen]
