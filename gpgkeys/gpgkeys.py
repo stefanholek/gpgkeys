@@ -748,7 +748,7 @@ class FileCompletion(Logging):
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
-        completer.word_break_characters = '\\ \t\n"\'`><=;|&'
+        completer.word_break_characters = '\\ \t\n"\'`><=;|&!?*'
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quote_characters = '\\ \t\n"\''
         completer.filename_quoting_function = self.quote_filename
