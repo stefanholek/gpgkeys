@@ -6,9 +6,9 @@ from os.path import dirname
 from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import TreeSetup
 
-from gpgkeys.completion import completer
-from gpgkeys.completion import completion
-from gpgkeys.completion import readline
+from completion import completer
+from completion import completion
+from completion import readline
 
 
 class CompleterTests(TreeSetup):
