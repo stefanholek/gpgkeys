@@ -885,8 +885,8 @@ class KeyCompletion(object):
     @print_exc
     def complete(self, text, keyids_only=True):
         self.update_keys()
-        keyid = text.upper()
-        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
+        text = text.upper()
+        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
         if len(matches) == 1:
             if keyids_only:
                 return [x[0] for x in self.keyspecs[matches[0]]]
