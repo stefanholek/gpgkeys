@@ -96,8 +96,7 @@ class GPGKeys(cmd.Cmd):
         return cmd, arg, line
 
     def __getattr__(self, name):
-        # Automatically expand unique command prefixes
-        # https://svn.thomas-lotze.de/repos/public/tl.cli/trunk/tl/cli/_cmd.py
+        # Expand unique command prefixes. Thanks to TL.
         if name.startswith(('do_', 'complete_', 'help_')):
             matches = set(x for x in self.get_names() if x.startswith(name))
             if len(matches) == 1:
@@ -775,7 +774,7 @@ class FileCompletion(Logging):
             self.log('char_is_quoted\t\tTrue1')
             return True
         # If we have a backslash-quoted character, we must tell
-        # readline not to word-break at the backslash.
+        # readline not to word-break at the backslash either.
         if (qc != "'" and
             text[index] == '\\' and
             index+1 < len(text) and
@@ -790,8 +789,8 @@ class FileCompletion(Logging):
                 self.log('char_is_quoted\t\tTrue3')
                 return True
         else:
-            # If we still have an unquoted character, check if there
-            # was an opening quote character.
+            # If we still have an unquoted character, check if
+            # there was an opening quote character.
             if (index > 0 and
                 text[index] in completer.word_break_characters):
                 if qc in completer.quote_characters:
@@ -806,7 +805,7 @@ class FileCompletion(Logging):
         if len(text) > 1:
             qc = quote_char or completer.quote_characters[0]
             # Don't backslash-dequote characters between single quotes,
-            # except for single quotes.
+            # except single quotes.
             if qc == "'":
                 text = text.replace("'\\''", "'")
             else:
