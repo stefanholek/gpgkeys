@@ -334,18 +334,10 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.file_completion = FileCompletion(do_log)
-        self.completefiles = self.file_completion.complete
-
-        self.system_completion = SystemCompletion(do_log)
-        self.completesys = self.system_completion.complete
-
-        self.key_completion = KeyCompletion()
-        self.completekeys = self.key_completion.complete
-
-        self.keyserver_completion = KeyserverCompletion()
-        self.completekeyservers = self.keyserver_completion.complete
-
+        self.completefiles = FileCompletion(do_log).complete
+        self.completesys = SystemCompletion(do_log).complete
+        self.completekeys = KeyCompletion().complete
+        self.completekeyservers = KeyserverCompletion().complete
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
@@ -756,10 +748,9 @@ class FileCompletion(Logging):
         completer.match_hidden_files = False
         completer.tilde_expansion = False
         self.tilde_expansion = True
-
         self.quoted = {}
         for c in completer.word_break_characters:
-            self.quoted.setdefault(c, '\\'+c)
+            self.quoted[c] = '\\'+c
 
     @print_exc
     def complete(self, text):
@@ -869,16 +860,14 @@ class SystemCompletion(Logging):
     @print_exc
     def complete(self, text):
         self.log('completesys\t\t%r', text)
-        matches = list(self.read_path(text))
-        self.log('completesys\t\t%r', matches[:100])
-        return matches
-
-    def read_path(self, text):
+        matches = []
         for dir in os.environ.get('PATH').split(':'):
             for name in os.listdir(dir):
                 if name.startswith(text):
                     if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
-                        yield name
+                        matches.append(name)
+        self.log('completesys\t\t%r', matches[:100])
+        return matches
 
 
 class KeyCompletion(object):
@@ -897,7 +886,6 @@ class KeyCompletion(object):
     @print_exc
     def complete(self, text, keyids_only=True):
         self.update_keys()
-
         keyid = text.upper()
         matches = [x for x in self.keyspecs.iterkeys() if x.startswith(keyid)]
         if len(matches) == 1:
@@ -915,14 +903,14 @@ class KeyCompletion(object):
                 keyspecs.setdefault(key, [])
                 keyspecs[key].append(value)
 
-            for keyid, userid in self.read_pubkeys():
+            for keyid, userid in self.read_keys():
                 keyid = keyid[8:]
                 info = (keyid, userid)
                 append('%s %s' % info, info)
             self.mtimes = mtimes
             self.keyspecs = keyspecs
 
-    def read_pubkeys(self):
+    def read_keys(self):
         process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
