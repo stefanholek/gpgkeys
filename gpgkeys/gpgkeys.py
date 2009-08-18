@@ -595,7 +595,7 @@ class GPGKeys(cmd.Cmd):
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
             self.stdout.flush()
             while True:
-                c = completion.read_key()
+                c = readline.read_key()
                 if c in 'yY ': # Spacebar
                     completion.display_match_list(substitution, matches, max_length)
                     break
