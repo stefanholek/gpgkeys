@@ -601,7 +601,7 @@ class GPGKeys(cmd.Cmd):
                     break
                 if c in 'nN\x7f': # Rubout
                     self.stdout.write('\n')
-                    completion.redisplay(force=True)
+                    readline.redisplay(True)
                     break
         else:
             completion.display_match_list(substitution, matches, max_length)
