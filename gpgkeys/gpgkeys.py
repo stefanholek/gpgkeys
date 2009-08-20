@@ -922,7 +922,7 @@ class KeyserverCompletion(object):
     """Perform keyserver completion
 
     To become available for completion, keyservers must be configured
-    in ~/.gpg.conf.
+    in $GNUPGHOME/gpg.conf.
     """
 
     def __init__(self):
