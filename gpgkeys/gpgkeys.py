@@ -75,8 +75,8 @@ class GPGKeys(cmd.Cmd):
     # Overrides
 
     def parseline(self, line):
-        # Make '.' work as shell escape character
-        # Make '#' work as comment character
+        # Make '.' work as shell escape character.
+        # Make '#' work as comment character.
         line = line.strip()
         if not line:
             return None, None, line
@@ -333,56 +333,58 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefiles = FileCompletion(do_log).complete
-        self.completesys = SystemCompletion(do_log).complete
-        self.completekeys = KeyCompletion().complete
-        self.completekeyservers = KeyserverCompletion().complete
+        self.completefilenames = FilenameCompletion(do_log)
+        self.completecommands = CommandCompletion(do_log)
+        self.completekeys = KeyCompletion()
+        self.completekeyservers = KeyserverCompletion()
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
-    def isoption(self, string):
-        # True if 'string' is an option flag
-        return string.startswith('-')
+    def isoption(self, text):
+        # True if 'text' is an option flag
+        return text.startswith('-')
 
-    def isfilename(self, string):
-        # True if 'string' is a filename
-        return (os.sep in string)
+    def isfilename(self, text):
+        # True if 'text' is a filename
+        return (os.sep in text)
 
-    def follows(self, string, line, begidx, deltas=('"', "'", '')):
-        # True if 'string' immediately preceeds the completion
-        idx = line.rfind(string, 0, begidx)
+    def follows(self, text, line, begidx):
+        # True if 'text' immediately preceeds the completion
+        idx = line.rfind(text, 0, begidx)
         if idx >= 0:
-            delta = line[idx+len(string):begidx]
-            return delta.strip() in deltas
+            delta = line[idx+len(text):begidx]
+            return delta.strip() in ('"', "'", '')
         return False
 
     def iscommand(self, line, begidx):
-        # True if the completion is a shell command
+        # True if the completion is a shell command at position 0
         delta = line[0:begidx]
         return delta.strip() in ('!', '.', 'shell')
 
-    def ispipe(self, line, begidx):
-        # True if the completion is a shell command following a pipe
-        return self.follows('|', line, begidx, ('',))
+    def postpipe(self, line, begidx):
+        # True if the completion is a shell command following
+        # a pipe or semicolon
+        delta = line[0:begidx]
+        return delta.strip()[-1:] in ('|', ';')
 
-    def isredir(self, line, begidx):
-        # True if the completion happens anywhere after a shell redirect
+    def postredir(self, line, begidx):
+        # True if the completion happens anywhere after a shell
+        # redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
 
     def basecomplete(self, text, line, begidx, default):
-        # Handle completion after pipes and redirects
-        if self.ispipe(line, begidx):
+        if self.postpipe(line, begidx):
             if not self.isfilename(text):
-                return self.completesys(text)
-            return self.completefiles(text)
-        if self.isredir(line, begidx):
-            return self.completefiles(text)
+                return self.completecommands(text)
+            return self.completefilenames(text)
+        if self.postredir(line, begidx):
+            return self.completefilenames(text)
         return default(text)
 
-    def completefiles_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completefiles)
+    def completefilenames_(self, text, line, begidx):
+        return self.basecomplete(text, line, begidx, self.completefilenames)
 
     def completekeys_(self, text, line, begidx):
         return self.basecomplete(text, line, begidx, self.completekeys)
@@ -406,27 +408,27 @@ class GPGKeys(cmd.Cmd):
         if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
-            return self.completefiles(text)
+            return self.completefilenames(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
         if self.isoption(text):
             return self.completeoptions(text, options)
-        return self.completefiles_(text, line, begidx)
+        return self.completefilenames_(text, line, begidx)
 
     def complete_importsec(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
         if self.isoption(text):
             return self.completeoptions(text, options)
-        return self.completefiles_(text, line, begidx)
+        return self.completefilenames_(text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
         options = GLOBAL + OUTPUT
         if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
-            return self.completefiles(text)
+            return self.completefilenames(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_exportsec(self, text, line, begidx, endidx):
@@ -434,7 +436,7 @@ class GPGKeys(cmd.Cmd):
         if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
-            return self.completefiles(text)
+            return self.completefilenames(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_list(self, text, line, begidx, endidx):
@@ -563,7 +565,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL
         if self.isoption(text):
             return self.completeoptions(text, options)
-        return self.completefiles_(text, line, begidx)
+        return self.completefilenames_(text, line, begidx)
 
     def complete_shell(self, text, line, begidx, endidx):
         options = GLOBAL
@@ -571,8 +573,8 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         if self.iscommand(line, begidx):
             if not self.isfilename(text):
-                return self.completesys(text)
-        return self.completefiles_(text, line, begidx)
+                return self.completecommands(text)
+        return self.completefilenames_(text, line, begidx)
 
     # Completion hooks
 
@@ -724,7 +726,7 @@ class Logging(object):
             f.close()
 
 
-class FileCompletion(Logging):
+class FilenameCompletion(Logging):
     """Perform filename completion
 
     Extends readline's default filename quoting by taking
@@ -745,20 +747,17 @@ class FileCompletion(Logging):
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
         completer.match_hidden_files = False
-        completer.tilde_expansion = False
-        self.tilde_expansion = True
-        self.quoted = {}
-        for c in completer.word_break_characters:
-            self.quoted[c] = '\\'+c
+        completer.tilde_expansion = True
+        self.quoted = dict((x, '\\'+x) for x in completer.word_break_characters)
 
     @print_exc
-    def complete(self, text):
-        self.log('completefiles\t\t%r', text)
-        if text.startswith('~') and os.sep not in text:
+    def __call__(self, text):
+        self.log('completefilenames\t\t%r', text)
+        if text.startswith('~') and (os.sep not in text):
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
-        self.log('completefiles\t\t%r', matches[:100])
+        self.log('completefilenames\t\t%r', matches[:100])
         return matches
 
     @print_exc
@@ -817,8 +816,6 @@ class FileCompletion(Logging):
     @print_exc
     def quote_filename(self, text, match_type, quote_char):
         self.log('quote_filename\t\t%r %d %r', text, match_type, quote_char)
-        if self.tilde_expansion and '~' in text:
-            text = completion.expand_tilde(text)
         if text:
             qc = quote_char or completer.quote_characters[0]
             # Don't backslash-quote backslashes between single quotes
@@ -849,7 +846,7 @@ class FileCompletion(Logging):
         return text
 
 
-class SystemCompletion(Logging):
+class CommandCompletion(Logging):
     """Perform system command completion
     """
 
@@ -857,15 +854,15 @@ class SystemCompletion(Logging):
         Logging.__init__(self, do_log)
 
     @print_exc
-    def complete(self, text):
-        self.log('completesys\t\t%r', text)
+    def __call__(self, text):
+        self.log('completecommands\t\t%r', text)
         matches = []
         for dir in os.environ.get('PATH').split(':'):
             for name in os.listdir(dir):
                 if name.startswith(text):
                     if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
                         matches.append(name)
-        self.log('completesys\t\t%r', matches[:100])
+        self.log('completecommands\t\t%r', matches[:100])
         return matches
 
 
@@ -883,7 +880,7 @@ class KeyCompletion(object):
         self.keyspecs = {}
 
     @print_exc
-    def complete(self, text, keyids_only=True):
+    def __call__(self, text, keyids_only=True):
         self.update_keys()
         text = text.upper()
         matches = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
@@ -934,7 +931,7 @@ class KeyserverCompletion(object):
         self.servers = []
 
     @print_exc
-    def complete(self, text):
+    def __call__(self, text):
         self.update_servers()
         return [x for x in self.servers if x.startswith(text)]
 
