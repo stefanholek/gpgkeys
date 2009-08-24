@@ -4,21 +4,21 @@ import sys
 
 def rl_scan_quote(s, lx):
     # XXX MB support?
-    qc = ''
-    pass_next = False
+    quote_char = ''
+    skip_next = False
     for i in range(lx):
         c = s[i]
-        if pass_next:
+        if skip_next:
             continue
-        if qc != "'" and c == '\\':
-            pass_next = True
+        if quote_char != "'" and c == '\\':
+            skip_next = True
             continue
-        if qc != '':
-            if c == qc:
-                qc = ''
+        if quote_char != '':
+            if c == quote_char:
+                quote_char = ''
         elif c in '"\'':
-            qc = c
-    return qc
+            quote_char = c
+    return quote_char
 
 
 def scan_unquoted(s, c, x, lx):
