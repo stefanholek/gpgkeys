@@ -8,7 +8,7 @@ import subprocess
 from datetime import datetime
 
 from escape import split
-from escape import get_quote_char
+from escape import rl_scan_quote
 
 from completion import readline
 from completion import completer
@@ -579,7 +579,7 @@ class GPGKeys(cmd.Cmd):
     # Completion hooks
 
     @print_exc
-    def word_break_hook(self, text, begidx, endidx):
+    def word_break_hook(self, begidx, endidx):
         # If we are completing '.<command>' make '.' a word break
         # character. Same for '!'.
         origline = completion.line_buffer
@@ -752,18 +752,18 @@ class FilenameCompletion(Logging):
 
     @print_exc
     def __call__(self, text):
-        self.log('completefilenames\t\t%r', text)
+        self.log('completefilenames\t%r', text)
         if text.startswith('~') and (os.sep not in text):
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
-        self.log('completefilenames\t\t%r', matches[:100])
+        self.log('completefilenames\t%r', matches[:100])
         return matches
 
     @print_exc
     def char_is_quoted(self, text, index):
-        self.log('char_is_quoted\t\t%r %d', text, index, scale=True)
-        qc = get_quote_char(text, index)
+        qc = rl_scan_quote(text, index)
+        self.log('char_is_quoted\t\t%r %d %r', text, index, qc, scale=True)
         # If a character is preceeded by a backslash, we consider
         # it quoted.
         if (qc != "'" and
@@ -784,7 +784,7 @@ class FilenameCompletion(Logging):
         # whether it is quoted by the other quote character.
         if (index > 0 and
             text[index] in completer.quote_characters):
-            if qc in completer.quote_characters and qc != text[index]:
+            if qc and qc in completer.quote_characters and qc != text[index]:
                 self.log('char_is_quoted\t\tTrue3')
                 return True
         else:
@@ -792,7 +792,7 @@ class FilenameCompletion(Logging):
             # there was an opening quote character.
             if (index > 0 and
                 text[index] in completer.word_break_characters):
-                if qc in completer.quote_characters:
+                if qc and qc in completer.quote_characters:
                     self.log('char_is_quoted\t\tTrue4')
                     return True
         self.log('char_is_quoted\t\tFalse')

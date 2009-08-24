@@ -2,6 +2,24 @@ import os
 import sys
 
 
+def rl_scan_quote(s, lx):
+    quote_char = ''
+    pass_next = False
+    for i in range(lx):
+        c = s[i]
+        if pass_next:
+            continue
+        if quote_char != "'" and c == '\\':
+            pass_next = True
+            continue
+        if quote_char != '':
+            if c == quote_char:
+                quote_char = ''
+        elif c in '"\'':
+            quote_char = c
+    return quote_char
+
+
 def scan_unquoted(s, c, x, lx):
     q = s.find(c, x)
     while q > 0 and s[q-1] == '\\' and q < lx:

@@ -59,7 +59,7 @@ class CharIsQuotedTests(unittest.TestCase):
     def setUp(self):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        self.is_quoted = self.cmd.file_completion.char_is_quoted
+        self.is_quoted = self.cmd.completefilenames.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):
         self.assertEqual(self.is_quoted('\\"', 1), True)
