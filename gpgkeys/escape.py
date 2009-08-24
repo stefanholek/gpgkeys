@@ -3,21 +3,22 @@ import sys
 
 
 def rl_scan_quote(s, lx):
-    quote_char = ''
+    # XXX MB support?
+    qc = ''
     pass_next = False
     for i in range(lx):
         c = s[i]
         if pass_next:
             continue
-        if quote_char != "'" and c == '\\':
+        if qc != "'" and c == '\\':
             pass_next = True
             continue
-        if quote_char != '':
-            if c == quote_char:
-                quote_char = ''
+        if qc != '':
+            if c == qc:
+                qc = ''
         elif c in '"\'':
-            quote_char = c
-    return quote_char
+            qc = c
+    return qc
 
 
 def scan_unquoted(s, c, x, lx):
@@ -39,17 +40,13 @@ def scan_open(s, c, x, lx):
     return q
 
 
-def get_quote_char(s, lx=None, any=False):
+def get_quote_char(s, lx=None):
     if lx is None:
         lx = sys.maxint
     lx = min(len(s), lx)
 
-    if any:
-        dq = scan_unquoted(s, '"', 0, lx)
-        sq = scan_unquoted(s, "'", 0, lx)
-    else:
-        dq = scan_open(s, '"', 0, lx)
-        sq = scan_open(s, "'", 0, lx)
+    dq = scan_unquoted(s, '"', 0, lx)
+    sq = scan_unquoted(s, "'", 0, lx)
 
     if dq >= 0 and (sq < 0 or sq > dq):
         qc = '"'
@@ -62,7 +59,7 @@ def get_quote_char(s, lx=None, any=False):
 
 
 def split(args):
-    qc = get_quote_char(args, any=True)
+    qc = get_quote_char(args)
     if qc in ('"', "'"):
         return qc_split(args, qc)
     return bs_split(args, qc)
@@ -106,7 +103,7 @@ def bs_split(args, qc):
 
 def escape(args):
     if args:
-        qc = get_quote_char(args, any=True)
+        qc = get_quote_char(args)
         if '\\ ' in args or '\\"' in args or "'\\''" in args:
             return args
         if qc != "'":
@@ -120,7 +117,7 @@ def escape(args):
 
 
 def unescape(args):
-    qc = get_quote_char(args, any=True)
+    qc = get_quote_char(args)
     if qc in ('"', "'"):
         return qc_unescape(args, qc)
     return bs_unescape(args, qc)
