@@ -8,7 +8,7 @@ import subprocess
 from datetime import datetime
 
 from escape import split
-from escape import rl_scan_quote
+from escape import scan_open_quote
 
 from completion import readline
 from completion import completer
@@ -703,7 +703,7 @@ class Logging(object):
     def __init__(self, do_log=False):
         self.do_log = do_log
         self.log_file = os.path.abspath('gpgkeys.log')
-        self.log('-----', date=False, scale=False)
+        self.log('-----', date=False, ruler=False)
 
     def log(self, format, *args, **kw):
         if not self.do_log:
@@ -716,7 +716,7 @@ class Logging(object):
         try:
             if kw.get('date', True):
                 f.write(now)
-            if kw.get('scale', False):
+            if kw.get('ruler', False):
                 f.write('\t\t\t 0123456789012345678901234567890123456789012345678901234567890\n')
                 if kw.get('date', True):
                     f.write(now)
@@ -741,7 +741,7 @@ class FilenameCompletion(Logging):
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
-        completer.word_break_characters = '\\ \t\n"\'`><=;|&!?*'
+        completer.word_break_characters = '\\ \t\n"\'`><=;|&'
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quote_characters = '\\ \t\n"\''
         completer.filename_quoting_function = self.quote_filename
@@ -762,36 +762,30 @@ class FilenameCompletion(Logging):
 
     @print_exc
     def char_is_quoted(self, text, index):
-        qc = rl_scan_quote(text, index)
-        self.log('char_is_quoted\t\t%r %d %r', text, index, qc, scale=True)
+        qc = scan_open_quote(text, index)
+        self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
         # If a character is preceeded by a backslash, we consider
         # it quoted.
-        if (qc != "'" and
-            index > 0 and
-            text[index-1] == '\\' and
-            text[index] in completer.word_break_characters):
+        if qc != "'" and index > 0 and text[index-1] == '\\' and \
+            text[index] in completer.word_break_characters:
             self.log('char_is_quoted\t\tTrue1')
             return True
         # If we have a backslash-quoted character, we must tell
         # readline not to word-break at the backslash either.
-        if (qc != "'" and
-            text[index] == '\\' and
-            index+1 < len(text) and
-            text[index+1] in completer.word_break_characters):
+        if qc != "'" and text[index] == '\\' and index+1 < len(text) and \
+            text[index+1] in completer.word_break_characters:
             self.log('char_is_quoted\t\tTrue2')
             return True
-        # If we have an unquoted quote character, we must check
-        # whether it is quoted by the other quote character.
-        if (index > 0 and
-            text[index] in completer.quote_characters):
+        # If we have an unquoted quote character, check whether
+        # it is quoted by the other quote character.
+        if index > 0 and text[index] in completer.quote_characters:
             if qc and qc in completer.quote_characters and qc != text[index]:
                 self.log('char_is_quoted\t\tTrue3')
                 return True
         else:
-            # If we still have an unquoted character, check if
-            # there was an opening quote character.
-            if (index > 0 and
-                text[index] in completer.word_break_characters):
+            # If we still have an unquoted character, check whether
+            # there is an open quote character.
+            if index > 0 and text[index] in completer.word_break_characters:
                 if qc and qc in completer.quote_characters:
                     self.log('char_is_quoted\t\tTrue4')
                     return True
@@ -827,7 +821,7 @@ class FilenameCompletion(Logging):
             check = text
             # Don't quote strings if all characters are already
             # backslash-quoted.
-            if check and qc != "'" and not quote_char:
+            if qc != "'" and check and not quote_char:
                 for c in completer.word_break_characters:
                     check = check.replace(self.quoted[c], '')
                 if check:
