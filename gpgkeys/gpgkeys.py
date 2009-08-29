@@ -349,7 +349,7 @@ class GPGKeys(cmd.Cmd):
         return (os.sep in text)
 
     def follows(self, text, line, begidx):
-        # True if 'text' immediately preceeds the completion
+        # True if 'text' immediately precedes the completion
         idx = line.rfind(text, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(text):begidx]
@@ -764,7 +764,7 @@ class FilenameCompletion(Logging):
     def char_is_quoted(self, text, index):
         qc = scan_open_quote(text, index)
         self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
-        # If a character is preceeded by a backslash, we consider
+        # If a character is preceded by a backslash, we consider
         # it quoted.
         if qc != "'" and index > 0 and text[index-1] == '\\' and \
             text[index] in completer.word_break_characters:
