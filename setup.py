@@ -23,7 +23,7 @@ setup(name='gpgkeys',
       install_requires=[
           'setuptools',
           'setuptools_hg',
-          'completion',
+          'rl',
       ],
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',

@@ -1,7 +1,9 @@
 # gpgkeys
 #
 
-import os, sys
+import sys
+import os
+import cmd
 import atexit
 import subprocess
 
@@ -10,11 +12,10 @@ from datetime import datetime
 from escape import split
 from escape import scan_open_quote
 
-from completion import readline
-from completion import completer
-from completion import completion
-from completion import cmd
-from completion import print_exc
+from rl import completer
+from rl import completion
+from rl import history
+from rl import print_exc
 
 gnupg_exe = 'gpg'
 
@@ -22,6 +23,7 @@ GNUPGHOME = os.environ.get('GNUPGHOME', '~/.gnupg')
 GNUPGHOME = os.path.abspath(os.path.expanduser(GNUPGHOME))
 
 UMASK = 0077
+LOGGING = False
 
 GLOBAL = []
 KEY    = ['--openpgp']
@@ -32,8 +34,6 @@ INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
-
-LOGGING = False
 
 
 class GPGKeys(cmd.Cmd):
@@ -597,16 +597,14 @@ class GPGKeys(cmd.Cmd):
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
             self.stdout.flush()
             while True:
-                c = readline.read_key()
-                if c in 'yY ': # Spacebar
-                    completion.display_match_list(substitution, matches, max_length)
+                c = completion.read_key()
+                if c in 'yY\x20': # Spacebar
                     break
                 if c in 'nN\x7f': # Rubout
                     self.stdout.write('\n')
-                    readline.redisplay(True)
-                    break
-        else:
-            completion.display_match_list(substitution, matches, max_length)
+                    completion.redisplay(force=True)
+                    return
+        completion.display_match_list(substitution, matches, max_length)
 
     # Help
 
@@ -663,13 +661,9 @@ class GPGKeys(cmd.Cmd):
 
     def init_history(self):
         histfile = os.path.expanduser('~/.gpgkeys_history')
-        length = 100
-        try:
-            readline.read_history_file(histfile)
-        except IOError:
-            pass
-        readline.set_history_length(length)
-        atexit.register(readline.write_history_file, histfile)
+        history.read_file(histfile)
+        history.length = 100
+        atexit.register(history.write_file, histfile)
 
 
 def splitpipe(args):
