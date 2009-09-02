@@ -1,16 +1,16 @@
 # gpgkeys
 #
 
-import sys
 import os
+import sys
 import cmd
 import atexit
 import subprocess
 
 from datetime import datetime
 
-from escape import split
 from escape import scan_open_quote
+from escape import split
 
 from rl import completer
 from rl import completion
