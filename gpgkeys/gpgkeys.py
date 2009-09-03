@@ -598,9 +598,9 @@ class GPGKeys(cmd.Cmd):
             self.stdout.flush()
             while True:
                 c = completion.read_key()
-                if c in 'yY\x20': # Spacebar
+                if c in 'yY\x20': # SPACEBAR
                     break
-                if c in 'nN\x7f': # Rubout
+                if c in 'nN\x7f': # RUBOUT [<-]
                     self.stdout.write('\n')
                     completion.redisplay(force=True)
                     return
