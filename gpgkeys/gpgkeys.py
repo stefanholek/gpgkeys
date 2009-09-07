@@ -333,7 +333,7 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefilenames = FilenameCompletion(do_log)
+        self.completefilenames = BashFilenameCompletion(do_log)
         self.completecommands = CommandCompletion(do_log)
         self.completekeys = KeyCompletion()
         self.completekeyservers = KeyserverCompletion()
@@ -600,7 +600,7 @@ class GPGKeys(cmd.Cmd):
                 c = completion.read_key()
                 if c in 'yY\x20': # SPACEBAR
                     break
-                if c in 'nN\x7f': # RUBOUT [<-]
+                if c in 'nN\x7f': # RUBOUT
                     self.stdout.write('\n')
                     completion.redisplay(force=True)
                     return
@@ -697,7 +697,6 @@ class Logging(object):
     def __init__(self, do_log=False):
         self.do_log = do_log
         self.log_file = os.path.abspath('gpgkeys.log')
-        self.log('-----', date=False, ruler=False)
 
     def log(self, format, *args, **kw):
         if not self.do_log:
@@ -727,7 +726,7 @@ class FilenameCompletion(Logging):
     care of backslash-quoted characters.
 
     Quote characters are double quote and single quote.
-    Prefers double-quote quoting over backslash quoting a la bash.
+    Prefers double-quote quoting over backslash quoting.
     Word break characters are quoted with backslashes when needed.
     Backslash quoting is disabled between single quotes.
     """
@@ -740,9 +739,11 @@ class FilenameCompletion(Logging):
         completer.filename_quote_characters = '\\ \t\n"\''
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
+        completer.directory_completion_hook = self.dequote_dirname
         completer.match_hidden_files = False
         completer.tilde_expansion = True
         self.quoted = dict((x, '\\'+x) for x in completer.word_break_characters)
+        self.log('-----')
 
     @print_exc
     def __call__(self, text):
@@ -797,13 +798,23 @@ class FilenameCompletion(Logging):
                 text = text.replace("'\\''", "'")
             else:
                 for c in completer.word_break_characters:
-                    text = text.replace(self.quoted[c], c)
+                    if self.quoted[c] in text:
+                        text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
 
     @print_exc
-    def quote_filename(self, text, match_type, quote_char):
-        self.log('quote_filename\t\t%r %d %r', text, match_type, quote_char)
+    def dequote_dirname(self, text):
+        self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
+        saved, self.do_log = self.do_log, False
+        text = self.dequote_filename(text, completion.quote_character)
+        self.do_log = saved
+        self.log('dequote_dirname\t\t%r', text)
+        return text
+
+    @print_exc
+    def quote_filename(self, text, single_match, quote_char):
+        self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
         if text:
             qc = quote_char or completer.quote_characters[0]
             # Don't backslash-quote backslashes between single quotes
@@ -817,7 +828,8 @@ class FilenameCompletion(Logging):
             # backslash-quoted.
             if qc != "'" and check and not quote_char:
                 for c in completer.word_break_characters:
-                    check = check.replace(self.quoted[c], '')
+                    if self.quoted[c] in check:
+                        check = check.replace(self.quoted[c], '')
                 if check:
                     for c in completer.word_break_characters:
                         if c in check:
@@ -826,10 +838,34 @@ class FilenameCompletion(Logging):
                         check = ''
             # Add leading and trailing quote characters
             if check:
-                if match_type == completer.SINGLE_MATCH:
-                    if not os.path.isdir(text):
-                        text = text + qc
+                if single_match and not os.path.isdir(text):
+                    text = text + qc
                 text = qc + text
+        self.log('quote_filename\t\t%r', text)
+        return text
+
+
+class BashFilenameCompletion(FilenameCompletion):
+    """Perform filename completion
+
+    Prefers backslash quoting a la bash.
+    """
+
+    def __init__(self, do_log=False):
+        FilenameCompletion.__init__(self, do_log)
+        completer.filename_quote_characters = completer.word_break_characters
+
+    @print_exc
+    def quote_filename(self, text, single_match, quote_char):
+        # If the user has typed a quote character use it
+        if quote_char and quote_char in completer.quote_characters:
+            return FilenameCompletion.quote_filename(self, text, single_match, quote_char)
+        # If not, default to backslash quoting
+        self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
+        if text:
+            for c in completer.word_break_characters:
+                if c in text:
+                    text = text.replace(c, self.quoted[c])
         self.log('quote_filename\t\t%r', text)
         return text
 
@@ -846,10 +882,12 @@ class CommandCompletion(Logging):
         self.log('completecommands\t\t%r', text)
         matches = []
         for dir in os.environ.get('PATH').split(':'):
-            for name in os.listdir(dir):
-                if name.startswith(text):
-                    if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
-                        matches.append(name)
+            dir = os.path.expanduser(dir)
+            if os.path.isdir(dir):
+                for name in os.listdir(dir):
+                    if name.startswith(text):
+                        if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
+                            matches.append(name)
         self.log('completecommands\t\t%r', matches[:100])
         return matches
 
