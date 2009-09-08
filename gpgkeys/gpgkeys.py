@@ -667,12 +667,12 @@ class GPGKeys(cmd.Cmd):
 
 
 def splitpipe(args):
-    """Split args tuple at first '|' or '>' or '<'.
+    """Split args tuple at first '|' or '>' or '2>' or '<'.
     """
     pipe = ()
     for i in range(len(args)):
         a = args[i]
-        if a and a[0] in '|><':
+        if a and a.startswith(('|', '>', '2>', '<')):
             pipe = args[i:]
             args = args[:i]
             break
@@ -707,12 +707,10 @@ class Logging(object):
 
         f = open(self.log_file, 'at')
         try:
-            if kw.get('date', True):
-                f.write(now)
+            f.write(now)
             if kw.get('ruler', False):
                 f.write('\t\t\t 0123456789012345678901234567890123456789012345678901234567890\n')
-                if kw.get('date', True):
-                    f.write(now)
+                f.write(now)
             f.write(format % args)
             f.write('\n')
         finally:
