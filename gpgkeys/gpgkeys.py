@@ -121,9 +121,6 @@ class GPGKeys(cmd.Cmd):
         """End the session (Usage: quit)"""
         return True # Break the cmd loop
 
-    def do_q(self, args):
-        return self.do_quit(args)
-
     def do_clear(self, args):
         """Clear the terminal screen (Usage: clear)"""
         self.system('clear')
@@ -170,9 +167,6 @@ class GPGKeys(cmd.Cmd):
         """List secret keys (Usage: listsec <keyspec>)"""
         args = split(args)
         self.gnupg('--list-secret-keys', *args)
-
-    def do_lx(self, args):
-        self.do_listsec(args)
 
     def do_listsig(self, args):
         """List public keys including signatures (Usage: listsig <keyspec>)"""
@@ -454,9 +448,6 @@ class GPGKeys(cmd.Cmd):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
-    def complete_lx(self, text, line, begidx, endidx):
-        return self.complete_listsec(text, line, begidx, endidx)
-
     def complete_listsig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
         if self.isoption(text):
@@ -610,7 +601,6 @@ class GPGKeys(cmd.Cmd):
 
     shortcuts = {'ls': 'list',
                  'll': 'listsig',
-                 'lx': 'listsec',
                  'e':  'edit',
                  'q':  'quit'}
 
@@ -759,14 +749,14 @@ class FilenameCompletion(Logging):
         self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
         # If a character is preceded by a backslash, we consider
         # it quoted.
-        if qc != "'" and index > 0 and text[index-1] == '\\' and \
-            text[index] in completer.word_break_characters:
+        if (qc != "'" and index > 0 and text[index-1] == '\\' and
+            text[index] in completer.word_break_characters):
             self.log('char_is_quoted\t\tTrue1')
             return True
         # If we have a backslash-quoted character, we must tell
         # readline not to word-break at the backslash either.
-        if qc != "'" and text[index] == '\\' and index+1 < len(text) and \
-            text[index+1] in completer.word_break_characters:
+        if (qc != "'" and text[index] == '\\' and index+1 < len(text) and
+            text[index+1] in completer.word_break_characters):
             self.log('char_is_quoted\t\tTrue2')
             return True
         # If we have an unquoted quote character, check whether
@@ -836,7 +826,8 @@ class FilenameCompletion(Logging):
                         check = ''
             # Add leading and trailing quote characters
             if check:
-                if single_match and not os.path.isdir(text):
+                if (single_match and not os.path.isdir(text) and
+                    not completion.suppress_quote):
                     text = text + qc
                 text = qc + text
         self.log('quote_filename\t\t%r', text)
