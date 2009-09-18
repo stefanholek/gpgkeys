@@ -791,7 +791,8 @@ class FilenameCompletion(Logging):
 
     @print_exc
     def dequote_dirname(self, text):
-        # XXX We can no longer switch off tilde expansion
+        # XXX By using this hook we lose the ability to switch off
+        #     tilde expansion. Bug or feature?
         self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
         saved, self.do_log = self.do_log, False
         text = self.dequote_filename(text, completion.quote_character)
@@ -838,10 +839,6 @@ class BashCompletion(FilenameCompletion):
     Prefers backslash quoting a la bash.
     """
 
-    def __init__(self, do_log=False):
-        FilenameCompletion.__init__(self, do_log)
-        completer.tilde_expansion = False # XXX Not working
-
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
         # If the user has typed a quote character use it
@@ -865,9 +862,6 @@ class BashCompletion(FilenameCompletion):
 class CommandCompletion(Logging):
     """Perform system command completion
     """
-
-    def __init__(self, do_log=False):
-        Logging.__init__(self, do_log)
 
     @print_exc
     def __call__(self, text):
