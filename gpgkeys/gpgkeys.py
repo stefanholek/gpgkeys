@@ -601,8 +601,7 @@ class GPGKeys(cmd.Cmd):
 
     shortcuts = {'ls': 'list',
                  'll': 'listsig',
-                 'e':  'edit',
-                 'q':  'quit'}
+                 'e':  'edit'}
 
     def expandshortcut(self, arg):
         if self.shortcuts.has_key(arg):
@@ -843,6 +842,7 @@ class BashFilenameCompletion(FilenameCompletion):
     def __init__(self, do_log=False):
         FilenameCompletion.__init__(self, do_log)
         completer.filename_quote_characters = completer.word_break_characters
+        completer.tilde_expansion = False # XXX Not working
 
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
