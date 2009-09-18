@@ -327,7 +327,7 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefilenames = BashFilenameCompletion(do_log)
+        self.completefilenames = BashCompletion(do_log)
         self.completecommands = CommandCompletion(do_log)
         self.completekeys = KeyCompletion()
         self.completekeyservers = KeyserverCompletion()
@@ -706,6 +706,12 @@ class Logging(object):
             f.close()
 
 
+BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><=;|&(:"
+BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><=;|&(:"
+BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@<>=;|&()#$`?*[!:{~"
+BASH_COMMAND_SEPARATORS = ";|&{(`"
+
+
 class FilenameCompletion(Logging):
     """Perform filename completion
 
@@ -721,21 +727,22 @@ class FilenameCompletion(Logging):
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
         completer.quote_characters = '"\''
-        completer.word_break_characters = '\\ \t\n"\'`><=;|&'
+        completer.word_break_characters = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
-        completer.filename_quote_characters = '\\ \t\n"\''
+        completer.filename_quote_characters = BASH_FILENAME_QUOTE_CHARACTERS
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
         completer.directory_completion_hook = self.dequote_dirname
         completer.match_hidden_files = False
         completer.tilde_expansion = True
-        self.quoted = dict((x, '\\'+x) for x in completer.word_break_characters)
+        self.quoted = dict((x, '\\'+x) for x in completer.filename_quote_characters)
         self.log('-----')
 
     @print_exc
     def __call__(self, text):
         self.log('completefilenames\t%r', text)
         if text.startswith('~') and (os.sep not in text):
+            completion.suppress_quote = True # '~' triggers closing quote
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
@@ -746,30 +753,23 @@ class FilenameCompletion(Logging):
     def char_is_quoted(self, text, index):
         qc = scan_open_quote(text, index)
         self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
-        # If a character is preceded by a backslash, we consider
-        # it quoted.
-        if (qc != "'" and index > 0 and text[index-1] == '\\' and
-            text[index] in completer.word_break_characters):
-            self.log('char_is_quoted\t\tTrue1')
-            return True
-        # If we have a backslash-quoted character, we must tell
-        # readline not to word-break at the backslash either.
-        if (qc != "'" and text[index] == '\\' and index+1 < len(text) and
-            text[index+1] in completer.word_break_characters):
-            self.log('char_is_quoted\t\tTrue2')
-            return True
-        # If we have an unquoted quote character, check whether
-        # it is quoted by the other quote character.
-        if index > 0 and text[index] in completer.quote_characters:
-            if qc and qc in completer.quote_characters and qc != text[index]:
-                self.log('char_is_quoted\t\tTrue3')
+        if index > 0:
+            # If a character is preceded by a backslash, we consider
+            # it quoted.
+            if qc != "'" and text[index-1] == '\\':
+                self.log('char_is_quoted\t\tTrue1')
                 return True
-        else:
-            # If we still have an unquoted character, check whether
-            # there is an open quote character.
-            if index > 0 and text[index] in completer.word_break_characters:
+            # If we have an unquoted quote character, check whether
+            # it is quoted by the other quote character.
+            if text[index] in completer.quote_characters:
+                if qc and qc in completer.quote_characters and qc != text[index]:
+                    self.log('char_is_quoted\t\tTrue2')
+                    return True
+            else:
+                # If we have an unquoted character, check whether
+                # there is an open quote character.
                 if qc and qc in completer.quote_characters:
-                    self.log('char_is_quoted\t\tTrue4')
+                    self.log('char_is_quoted\t\tTrue3')
                     return True
         self.log('char_is_quoted\t\tFalse')
         return False
@@ -784,14 +784,14 @@ class FilenameCompletion(Logging):
             if qc == "'":
                 text = text.replace("'\\''", "'")
             else:
-                for c in completer.word_break_characters:
-                    if self.quoted[c] in text:
-                        text = text.replace(self.quoted[c], c)
+                for c in completer.filename_quote_characters:
+                    text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
 
     @print_exc
     def dequote_dirname(self, text):
+        # XXX We can no longer switch off tilde expansion
         self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
         saved, self.do_log = self.do_log, False
         text = self.dequote_filename(text, completion.quote_character)
@@ -810,15 +810,14 @@ class FilenameCompletion(Logging):
             else:
                 text = text.replace('\\', self.quoted['\\'])
                 text = text.replace(qc, self.quoted[qc])
-            check = text
             # Don't quote strings if all characters are already
             # backslash-quoted.
+            check = text
             if qc != "'" and check and not quote_char:
-                for c in completer.word_break_characters:
-                    if self.quoted[c] in check:
-                        check = check.replace(self.quoted[c], '')
+                for c in completer.filename_quote_characters:
+                    check = check.replace(self.quoted[c], '')
                 if check:
-                    for c in completer.word_break_characters:
+                    for c in completer.filename_quote_characters:
                         if c in check:
                             break
                     else:
@@ -833,7 +832,7 @@ class FilenameCompletion(Logging):
         return text
 
 
-class BashFilenameCompletion(FilenameCompletion):
+class BashCompletion(FilenameCompletion):
     """Perform filename completion
 
     Prefers backslash quoting a la bash.
@@ -841,7 +840,6 @@ class BashFilenameCompletion(FilenameCompletion):
 
     def __init__(self, do_log=False):
         FilenameCompletion.__init__(self, do_log)
-        completer.filename_quote_characters = completer.word_break_characters
         completer.tilde_expansion = False # XXX Not working
 
     @print_exc
@@ -852,9 +850,14 @@ class BashFilenameCompletion(FilenameCompletion):
         # If not, default to backslash quoting
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
         if text:
-            for c in completer.word_break_characters:
-                if c in text:
-                    text = text.replace(c, self.quoted[c])
+            def quote(s, c):
+                return s.replace(c, self.quoted[c])
+            for c in completer.filename_quote_characters:
+                # Don't quote a leading '~'
+                if c == '~' and text.startswith('~'):
+                    text = '~' + quote(text[1:], c)
+                else:
+                    text = quote(text, c)
         self.log('quote_filename\t\t%r', text)
         return text
 
