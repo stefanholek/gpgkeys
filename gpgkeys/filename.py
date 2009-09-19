@@ -70,13 +70,13 @@ class FilenameCompletionStrategy(Logging):
 
     @print_exc
     def __call__(self, text):
-        self.log('completefilenames\t%r', text)
+        self.log('complete_filename\t%r', text)
         if text.startswith('~') and (os.sep not in text):
             completion.suppress_quote = True # Tilde triggers closing quote
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
-        self.log('completefilenames\t%r', matches[:100])
+        self.log('complete_filename\t%r', matches[:20])
         return matches
 
     @print_exc
