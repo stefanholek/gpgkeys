@@ -181,8 +181,8 @@ class BashCompletionStrategy(FilenameCompletionStrategy):
                 return s.replace(c, self.quoted[c])
             for c in completer.filename_quote_characters:
                 # Don't quote a leading tilde
-                if c == '~' and text.startswith('~'):
-                    text = '~' + quote(text[1:], c)
+                if c == '~' and text.startswith(c):
+                    text = c + quote(text[1:], c)
                 else:
                     text = quote(text, c)
         self.log('quote_filename\t\t%r', text)
