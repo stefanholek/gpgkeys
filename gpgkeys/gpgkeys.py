@@ -340,17 +340,17 @@ class GPGKeys(cmd.Cmd):
 
     def isfilename(self, text):
         # True if 'text' is a filename
-        return (os.sep in text or '~' in text)
+        return (os.sep in text or text.startswith('~'))
 
     def follows(self, text, line, begidx):
-        # True if 'text' immediately precedes the completion
+        # True if the completion follows 'text'
         idx = line.rfind(text, 0, begidx)
         if idx >= 0:
             delta = line[idx+len(text):begidx]
             return delta.strip() in ('"', "'", '')
         return False
 
-    def iscommand(self, line, begidx):
+    def commandpos(self, line, begidx):
         # True if the completion is a shell command at position 0
         delta = line[0:begidx]
         return delta.strip() in ('!', '.', 'shell')
@@ -560,7 +560,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL
         if self.isoption(text):
             return self.completeoptions(text, options)
-        if self.iscommand(line, begidx):
+        if self.commandpos(line, begidx):
             if not self.isfilename(text):
                 return self.completecommands(text)
         return self.completefilenames_(text, line, begidx)
