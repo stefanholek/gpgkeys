@@ -41,6 +41,29 @@ def scan_first_quote(s, lx):
     return ''
 
 
+def scan_unquoted(s, cs, lx):
+    # XXX MB support?
+    quote_char = ''
+    skip_next = False
+    for i in range(lx):
+        c = s[i]
+        if skip_next:
+            skip_next = False
+            continue
+        if quote_char != "'" and c == '\\':
+            skip_next = True
+            continue
+        if quote_char != '':
+            if c == quote_char:
+                quote_char = ''
+        else:
+            if c in QUOTECHARS:
+                quote_char = c
+            elif c in cs:
+                return i
+    return -1
+
+
 def split(args):
     qc = scan_first_quote(args, len(args))
     if qc in QUOTECHARS:
