@@ -361,7 +361,7 @@ class GPGKeys(cmd.Cmd):
         return delta.strip()[-1:] in ('|', ';')
 
     def postredir(self, line, begidx):
-        # True if the completion starts anywhere after a shell redirect
+        # True if the completion is anywhere after a shell redirect
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
