@@ -179,6 +179,7 @@ class BashCompletionStrategy(FilenameCompletionStrategy):
         if text:
             def quote(s, c):
                 return s.replace(c, self.quoted[c])
+
             for c in completer.filename_quote_characters:
                 # Don't quote a leading tilde
                 if c == '~' and text.startswith(c):
