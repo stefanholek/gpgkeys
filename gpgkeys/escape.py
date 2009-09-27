@@ -41,7 +41,7 @@ def scan_first_quote(s, lx):
     return ''
 
 
-def scan_unquoted(s, cs, lx):
+def scan_unquoted(s, scs, lx):
     # XXX MB support?
     quote_char = ''
     skip_next = False
@@ -59,7 +59,7 @@ def scan_unquoted(s, cs, lx):
         else:
             if c in QUOTECHARS:
                 quote_char = c
-            elif c in cs:
+            elif c in scs:
                 return i
     return -1
 
