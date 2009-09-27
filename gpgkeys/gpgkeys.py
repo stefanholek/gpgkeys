@@ -137,12 +137,12 @@ class GPGKeys(cmd.Cmd):
 
     def do_import(self, args):
         """Import public keys from a file (Usage: import <filename>)"""
-        args = fix_merge_only(split(args))
+        args = fixmergeonly(split(args))
         self.gnupg('--import', *args)
 
     def do_importsec(self, args):
         """Import secret and public keys from a file (Usage: importsec <filename>)"""
-        args = fix_merge_only(split(args))
+        args = fixmergeonly(split(args))
         self.gnupg('--import --allow-secret-key', *args)
 
     def do_export(self, args):
@@ -221,7 +221,7 @@ class GPGKeys(cmd.Cmd):
 
     def do_recv(self, args):
         """Fetch keys from the keyserver (Usage: recv <keyids>)"""
-        args = fix_merge_only(split(args))
+        args = fixmergeonly(split(args))
         self.gnupg('--recv-keys', *args)
 
     def do_send(self, args):
@@ -231,12 +231,12 @@ class GPGKeys(cmd.Cmd):
 
     def do_refresh(self, args):
         """Refresh keys from the keyserver (Usage: refresh <keyspec>)"""
-        args = fix_merge_only(split(args))
+        args = fixmergeonly(split(args))
         self.gnupg('--refresh-keys', *args)
 
     def do_fetch(self, args):
         """Fetch keys from a URL (Usage: fetch <url>)"""
-        args = fix_merge_only(split(args))
+        args = fixmergeonly(split(args))
         self.gnupg('--fetch-keys', *args)
 
     def do_dump(self, args):
@@ -666,7 +666,7 @@ def splitpipe(args):
     return args, pipe
 
 
-def fix_merge_only(args):
+def fixmergeonly(args):
     # gpg: WARNING: "--merge-only" is a deprecated option
     # gpg: please use "--import-options merge-only" instead
     for i in range(len(args)):
