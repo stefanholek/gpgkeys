@@ -11,7 +11,7 @@ from escape import scan_open_quote
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><=;|&(:"
 BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><=;|&(:"
-BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@<>=;|&()#$`?*[!:{~"
+BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><=;|&()#$`?*[!:{~"
 BASH_COMMAND_SEPARATORS = ";|&{(`"
 
 
