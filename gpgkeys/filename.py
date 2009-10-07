@@ -11,7 +11,7 @@ from escape import scan_open_quote
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><=;|&(:"
 BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><=;|&(:"
-BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><=;|&()#$`?*[!:{~"
+BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><=;|&()#$`?*[!:{" #~
 BASH_COMMAND_SEPARATORS = ";|&{(`"
 
 
@@ -72,7 +72,6 @@ class FilenameCompletionStrategy(Logging):
     def __call__(self, text):
         self.log('complete_filename\t%r', text)
         if text.startswith('~') and (os.sep not in text):
-            completion.suppress_quote = True # Tilde triggers closing quote
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
@@ -177,15 +176,8 @@ class BashCompletionStrategy(FilenameCompletionStrategy):
         # If not, default to backslash quoting.
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
         if text:
-            def quote(s, c):
-                return s.replace(c, self.quoted[c])
-
             for c in completer.filename_quote_characters:
-                # Don't quote a leading tilde
-                if c == '~' and text.startswith(c):
-                    text = c + quote(text[1:], c)
-                else:
-                    text = quote(text, c)
+                text = text.replace(c, self.quoted[c])
         self.log('quote_filename\t\t%r', text)
         return text
 
