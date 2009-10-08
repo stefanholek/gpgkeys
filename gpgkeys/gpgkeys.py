@@ -340,7 +340,7 @@ class GPGKeys(cmd.Cmd):
 
     def isfilename(self, text):
         # True if 'text' is a filename
-        return (os.sep in text or text.startswith('~'))
+        return text.startswith('~') or (os.sep in text)
 
     def follows(self, text, line, begidx):
         # True if the completion follows 'text'
