@@ -362,6 +362,7 @@ class GPGKeys(cmd.Cmd):
 
     def postredir(self, line, begidx):
         # True if the completion is anywhere after a shell redirect
+        # FIXME
         return (line.rfind('|', 0, begidx) >= 0 or
                 line.rfind('>', 0, begidx) >= 0 or
                 line.rfind('<', 0, begidx) >= 0)
@@ -656,6 +657,7 @@ class GPGKeys(cmd.Cmd):
 def splitpipe(args):
     """Split args tuple at first '|' or '>' or '2>' or '<'.
     """
+    # FIXME
     pipe = ()
     for i in range(len(args)):
         a = args[i]
