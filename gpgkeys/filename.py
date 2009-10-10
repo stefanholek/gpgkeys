@@ -9,10 +9,14 @@ from rl import print_exc
 from escape import scan_open_quote
 
 BASH_QUOTE_CHARACTERS = "'\""
-BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><=;|&(:"
-BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><=;|&(:"
-BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><=;|&()#$`?*[!:{" #~
+BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
+BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><;|&=(:"
+BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><;|&=()#$`?*[!:{~"
 BASH_COMMAND_SEPARATORS = ";|&{(`"
+
+QUOTE_CHARACTERS = "\"'"
+WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
+FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
 
 class Logging(object):
@@ -56,9 +60,9 @@ class FilenameCompletionStrategy(Logging):
 
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
-        completer.quote_characters = '"\''
-        completer.word_break_characters = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS
-        completer.filename_quote_characters = BASH_FILENAME_QUOTE_CHARACTERS
+        completer.quote_characters = QUOTE_CHARACTERS
+        completer.word_break_characters = WORD_BREAK_CHARACTERS
+        completer.filename_quote_characters = FILENAME_QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
