@@ -1,11 +1,12 @@
-import os
-import sys
-
 WHITESPACE = (' ', '\t', '\n')
 QUOTECHARS = ('"', "'")
 
-SHELLCHARS = ('>', '<', '=', '|', '&', ';', ':', '(')
-SHELLTOKENS = ('>>', '2>', '>&', '>|', '<&')
+SHELLCHARS1 = ('>', '<', '|', '&', ';')
+SHELLCHARS2 = ('>>', '2>', '>&', '>|', '<&')
+SHELLCHARS3 = ('2>>',)
+
+WORDBREAKCHARS = WHITESPACE + QUOTECHARS + SHELLCHARS1
+SHELLREDIR = SHELLCHARS1[:3] + SHELLCHARS2 + SHELLCHARS3
 
 
 def scan_first_quote(s, lx):
@@ -14,11 +15,9 @@ def scan_first_quote(s, lx):
         c = s[i]
         if skip_next:
             skip_next = False
-            continue
-        if c == '\\':
+        elif c == '\\':
             skip_next = True
-            continue
-        if c in QUOTECHARS:
+        elif c in QUOTECHARS:
             return c
     return ''
 
@@ -30,11 +29,9 @@ def scan_open_quote(s, lx):
         c = s[i]
         if skip_next:
             skip_next = False
-            continue
-        if quote_char != "'" and c == '\\':
+        elif quote_char != "'" and c == '\\':
             skip_next = True
-            continue
-        if quote_char != '':
+        elif quote_char != '':
             if c == quote_char:
                 quote_char = ''
         elif c in QUOTECHARS:
@@ -42,66 +39,108 @@ def scan_open_quote(s, lx):
     return quote_char
 
 
-def scan_unquoted(s, lx, func):
+def scan_unquoted(s, lx, chars):
     skip_next = False
     quote_char = ''
     for i in range(lx):
         c = s[i]
         if skip_next:
             skip_next = False
-            continue
-        if quote_char != "'" and c == '\\':
+        elif quote_char != "'" and c == '\\':
             skip_next = True
-            continue
-        if quote_char != '':
+        elif quote_char != '':
             if c == quote_char:
                 quote_char = ''
-        else:
-            if c in QUOTECHARS:
-                quote_char = c
-            elif func(c):
-                return i
+        elif c in QUOTECHARS:
+            quote_char = c
+        elif c in chars:
+            return i
     return -1
 
 
-def split(args):
-    # FIXME
-    qc = scan_first_quote(args, len(args))
-    if qc in QUOTECHARS:
-        return qc_split(args, qc)
-    return bs_split(args, qc)
+class InfiniteString(str):
+    """A string without IndexErrors."""
+
+    def __getitem__(self, index):
+        if index < 0 or index >= len(self):
+            return None
+        return str.__getitem__(self, index)
 
 
-def qc_split(args, qc):
-    r = []
+def scan_tokens(s):
+    """Return a sequence of (start, end) tuples.
+
+    Each tuple represents the start and end indexes
+    of a token in the line.
+    """
+    skip_next = False
+    quote_char = ''
+    tokens = []
+    end = len(s)
+    s = InfiniteString(s)
     i = j = 0
-    n = len(args)
-    q = False
-    while i < n:
-        if args[i] == qc and args[max(i-1, 0)] != '\\':
-            q = not q
-        if args[i] in WHITESPACE and not q:
-            r.append(args[j:i])
-            j = i+1
-            while args[j] in WHITESPACE:
-                i = i+1
+
+    while i < end:
+        c = s[i]
+        if skip_next:
+            skip_next = False
+        elif quote_char != "'" and c == '\\':
+            skip_next = True
+        elif quote_char != '':
+            if c == quote_char:
+                quote_char = ''
+                tokens.append((j, i+1))
+                j = i+1
+        elif c in QUOTECHARS:
+            if i > j:
+                tokens.append((j, i))
+            j = i
+            quote_char = c
+        elif c in WHITESPACE:
+            if i > j:
+                tokens.append((j, i))
+                j = i+1
+            else:
                 j = j+1
-        i = i+1
-    if n:
-        r.append(args[j:])
-    return tuple(r)
-
-
-def bs_split(args, qc):
-    r = []
-    i = j = 0
-    n = len(args)
-    while i < n:
-        if args[i] in WHITESPACE and args[max(i-1, 0)] != '\\':
-            r.append(args[j:i])
+        elif c in ('|', '&', ';'):
+            if i > j:
+                tokens.append((j, i))
+            j = i
+            tokens.append((j, i+1))
             j = i+1
+        elif c == '>':
+            if i > j:
+                tokens.append((j, i))
+            j = i
+            if s[i+1] in ('>', '|', '&'):
+                i = i+1
+            tokens.append((j, i+1))
+            j = i+1
+        elif c == '<':
+            if i > j:
+                tokens.append((j, i))
+            j = i
+            if s[i+1] == '&':
+                i = i+1
+            tokens.append((j, i+1))
+            j = i+1
+        elif c == '2':
+            # '2' is not a word break character
+            if i == 0 or (s[i-1] in WORDBREAKCHARS and s[i-2] != '\\'):
+                j = i
+                if s[i+1] == '>':
+                    i = i+1
+                    if s[i+1] == '>':
+                        i = i+1
+                tokens.append((j, i+1))
+                j = i+1
         i = i+1
-    if n:
-        r.append(args[j:])
-    return tuple(r)
+
+    if end > j:
+        tokens.append((j, end))
+    return tuple(tokens)
+
+
+def split(args):
+    return tuple(args[j:i] for (j, i) in scan_tokens(args))
 
