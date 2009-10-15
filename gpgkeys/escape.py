@@ -1,15 +1,26 @@
 WHITESPACE = (' ', '\t', '\n')
 QUOTECHARS = ('"', "'")
 
-SHELLCHARS1 = ('>', '<', '|', '&', ';')
-SHELLCHARS2 = ('>>', '2>', '>&', '>|', '<&')
-SHELLCHARS3 = ('2>>',)
+DIGITS = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+SHELL1 = ('>', '<', '|', '&', ';')
+SHELL2 = ('>>', '>|', '>&', '&>', '<&', '<>', '<<')
+SHELL3 = ('<<-', '<<<')
 
-WORDBREAKCHARS = WHITESPACE + QUOTECHARS + SHELLCHARS1
-SHELLREDIR = SHELLCHARS1[:3] + SHELLCHARS2 + SHELLCHARS3
+WORDBREAKCHARS = WHITESPACE + QUOTECHARS + SHELL1
+
+# Token types
+T_WORD = 1
+T_SHELL = 2
+
+# Expect types
+E_NONE = 10
+E_COMMAND = 11
+E_FILENAME = 12
 
 
 def scan_first_quote(s, lx):
+    """Find the first quote character in s.
+    """
     skip_next = False
     for i in range(lx):
         c = s[i]
@@ -23,6 +34,8 @@ def scan_first_quote(s, lx):
 
 
 def scan_open_quote(s, lx):
+    """Find an open quote character before lx.
+    """
     skip_next = False
     quote_char = ''
     for i in range(lx):
@@ -40,6 +53,8 @@ def scan_open_quote(s, lx):
 
 
 def scan_unquoted(s, lx, chars):
+    """Find any one of the characters in chars before lx.
+    """
     skip_next = False
     quote_char = ''
     for i in range(lx):
@@ -58,6 +73,31 @@ def scan_unquoted(s, lx, chars):
     return -1
 
 
+def rscan_unquoted(s, lx, chars):
+    """Find any one of the characters in chars before lx, starting
+    at the end of the string.
+    """
+    skip_next = False
+    quote_char = ''
+    results = []
+    for i in range(lx):
+        c = s[i]
+        if skip_next:
+            skip_next = False
+        elif quote_char != "'" and c == '\\':
+            skip_next = True
+        elif quote_char != '':
+            if c == quote_char:
+                quote_char = ''
+        elif c in QUOTECHARS:
+            quote_char = c
+        elif c in chars:
+            results.append(i)
+    if results:
+        return results[-1]
+    return -1
+
+
 class InfiniteString(str):
     """A string without IndexErrors."""
 
@@ -67,18 +107,30 @@ class InfiniteString(str):
         return str.__getitem__(self, index)
 
 
-def scan_tokens(s):
-    """Return a sequence of (start, end) tuples.
+class Token(str):
+    """A string with some additional attributes."""
 
-    Each tuple represents the start and end indexes
-    of a token in the line.
+    def __new__(cls, string, start, end, type, expect):
+        ob = str.__new__(cls, string)
+        ob.start = start
+        ob.end = end
+        ob.type = type
+        ob.expect = expect
+        return ob
+
+
+def split(line):
+    """Return a tuple of tokens found in line.
     """
     skip_next = False
     quote_char = ''
     tokens = []
-    end = len(s)
-    s = InfiniteString(s)
+    end = len(line)
+    s = InfiniteString(line)
     i = j = 0
+
+    def append(start, end, type, expect):
+        tokens.append(Token(line[start:end], start, end, type, expect))
 
     while i < end:
         c = s[i]
@@ -89,58 +141,124 @@ def scan_tokens(s):
         elif quote_char != '':
             if c == quote_char:
                 quote_char = ''
-                tokens.append((j, i+1))
+                append(j, i+1, T_WORD, E_NONE)
                 j = i+1
         elif c in QUOTECHARS:
             if i > j:
-                tokens.append((j, i))
+                append(j, i, T_WORD, E_NONE)
             j = i
             quote_char = c
         elif c in WHITESPACE:
             if i > j:
-                tokens.append((j, i))
+                append(j, i, T_WORD, E_NONE)
                 j = i+1
             else:
                 j = j+1
-        elif c in ('|', '&', ';'):
+        elif c in ('|', ';'):
             if i > j:
-                tokens.append((j, i))
+                append(j, i, T_WORD, E_NONE)
             j = i
-            tokens.append((j, i+1))
+            append(j, i+1, T_SHELL, E_COMMAND)
             j = i+1
-        elif c == '>':
+        elif c in ('&',):
             if i > j:
-                tokens.append((j, i))
+                append(j, i, T_WORD, E_NONE)
             j = i
-            if s[i+1] in ('>', '|', '&'):
+            e = E_NONE
+            if s[i+1] in ('>',):
                 i = i+1
-            tokens.append((j, i+1))
+                e = E_FILENAME
+            append(j, i+1, T_SHELL, e)
             j = i+1
-        elif c == '<':
+        elif c in ('>',):
             if i > j:
-                tokens.append((j, i))
+                append(j, i, T_WORD, E_NONE)
             j = i
-            if s[i+1] == '&':
+            e = E_FILENAME
+            if s[i+1] in ('&',):
                 i = i+1
-            tokens.append((j, i+1))
+                if s[i+1] in DIGITS:
+                    i = i+1
+                    e = E_NONE # sic
+                    if s[i+1] in ('-',):
+                        i = i+1
+            elif s[i+1] in ('>', '|'):
+                i = i+1
+            append(j, i+1, T_SHELL, e)
             j = i+1
-        elif c == '2':
-            # '2' is not a word break character
+        elif c in ('<',):
+            if i > j:
+                append(j, i, T_WORD, E_NONE)
+            j = i
+            e = E_FILENAME
+            if s[i+1] in ('&',):
+                i = i+1
+                e = E_NONE
+                if s[i+1] in DIGITS:
+                    i = i+1
+                    if s[i+1] in ('-',):
+                        i = i+1
+                elif s[i+1] in ('-',):
+                    i = i+1
+            elif s[i+1] in ('>',):
+                i = i+1
+            elif s[i+1] in ('<',):
+                i = i+1
+                e = E_NONE
+                if s[i+1] in ('<', '-'):
+                    i = i+1
+            append(j, i+1, T_SHELL, e)
+            j = i+1
+        elif c in DIGITS:
+            # Digits are not word break characters; they must
+            # be preceded by a word break character to trigger.
             if i == 0 or (s[i-1] in WORDBREAKCHARS and s[i-2] != '\\'):
                 j = i
-                if s[i+1] == '>':
+                if s[i+1] in ('>',):
                     i = i+1
-                    if s[i+1] == '>':
+                    e = E_FILENAME
+                    if s[i+1] in ('&',):
                         i = i+1
-                tokens.append((j, i+1))
-                j = i+1
+                        e = E_NONE
+                        if s[i+1] in DIGITS:
+                            i = i+1
+                            if s[i+1] in ('-',):
+                                i = i+1
+                    elif s[i+1] in ('>', '|'):
+                        i = i+1
+                    append(j, i+1, T_SHELL, e)
+                    j = i+1
+                elif s[i+1] in ('<',):
+                    i = i+1
+                    e = E_FILENAME
+                    if s[i+1] in ('&',):
+                        i = i+1
+                        e = E_NONE
+                        if s[i+1] in DIGITS:
+                            i = i+1
+                            if s[i+1] in ('-',):
+                                i = i+1
+                        elif s[i+1] in ('-',):
+                            i = i+1
+                    elif s[i+1] in ('>',):
+                        i = i+1
+                    append(j, i+1, T_SHELL, e)
+                    j = i+1
         i = i+1
 
     if end > j:
-        tokens.append((j, end))
+        append(j, end, T_WORD, E_NONE)
     return tuple(tokens)
 
 
-def split(args):
-    return tuple(args[j:i] for (j, i) in scan_tokens(args))
+def splitpipe(tokens):
+    """Return two tuples: The first tuple contains tokens found before
+    the first shell redirect, the second contains the remaining tokens.
+    """
+    first = tokens
+    second = ()
+    for i in range(len(tokens)):
+        if tokens[i].type == T_SHELL:
+            first, second = tokens[:i], tokens[i:]
+    return first, second
 

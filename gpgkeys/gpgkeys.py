@@ -12,7 +12,10 @@ from rl import completion
 from rl import history
 from rl import print_exc
 
+from escape import scan_unquoted
+from escape import rscan_unquoted
 from escape import split
+from escape import splitpipe
 
 from filename import Logging
 from filename import FilenameCompletion
@@ -355,26 +358,34 @@ class GPGKeys(cmd.Cmd):
         delta = line[0:begidx]
         return delta.strip() in ('!', '.', 'shell')
 
-    def postpipe(self, line, begidx):
+    def pipepos(self, line, begidx):
         # True if the completion follows a pipe or semicolon
-        delta = line[0:begidx]
-        return delta.strip()[-1:] in ('|', ';')
+        idx = rscan_unquoted(line, begidx, ('|', ';'))
+        if idx >= 0:
+            delta = line[idx+1:begidx]
+            if delta.strip() in ('"', "'", ''):
+                # >| is not a pipe but an output redirect
+                if idx > 0 and line[idx] == '|':
+                    if rscan_unquoted(line, begidx, ('>',)) == idx-1:
+                        return False
+                return True
+        return False
 
     def postredir(self, line, begidx):
         # True if the completion is anywhere after a shell redirect
-        # FIXME
-        return (line.rfind('|', 0, begidx) >= 0 or
-                line.rfind('>', 0, begidx) >= 0 or
-                line.rfind('<', 0, begidx) >= 0)
+        return scan_unquoted(line, begidx, ('|', '>', '<')) >= 0
 
     def basecomplete(self, text, line, begidx, default):
-        if self.postpipe(line, begidx):
+        if self.pipepos(line, begidx):
             if not self.isfilename(text):
                 return self.completecommands(text)
             return self.completefilenames(text)
         if self.postredir(line, begidx):
             return self.completefilenames(text)
         return default(text)
+
+    def completeoptions(self, text, options):
+        return [x for x in options if x.startswith(text)]
 
     def completefilenames_(self, text, line, begidx):
         return self.basecomplete(text, line, begidx, self.completefilenames)
@@ -384,9 +395,6 @@ class GPGKeys(cmd.Cmd):
 
     def completedefault_(self, text, line, begidx):
         return self.basecomplete(text, line, begidx, self.completedefault)
-
-    def completeoptions(self, text, options):
-        return [x for x in options if x.startswith(text)]
 
     # Completion grid
 
@@ -652,20 +660,6 @@ class GPGKeys(cmd.Cmd):
         history.read_file(histfile)
         history.length = 100
         atexit.register(history.write_file, histfile)
-
-
-def splitpipe(args):
-    """Split args tuple at first '|' or '>' or '2>' or '<'.
-    """
-    # FIXME
-    pipe = ()
-    for i in range(len(args)):
-        a = args[i]
-        if a and a.startswith(('|', '>', '2>', '<')):
-            pipe = args[i:]
-            args = args[:i]
-            break
-    return args, pipe
 
 
 def fixmergeonly(args):

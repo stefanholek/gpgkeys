@@ -88,7 +88,7 @@ class FilenameCompletionStrategy(Logging):
         self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
         if index > 0:
             # If a character is preceded by a backslash, we consider
-            # it quoted.
+            # it quoted. FIXME
             if qc != "'" and text[index-1] == '\\':
                 self.log('char_is_quoted\t\tTrue1')
                 return True
