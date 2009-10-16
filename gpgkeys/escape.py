@@ -204,7 +204,7 @@ def split(line):
                 i = i+1
                 if s[i+1] in DIGITS:
                     i = i+1
-                    e = E_NONE # sic
+                    e = E_NONE # [sic]
                     if s[i+1] in ('-',):
                         i = i+1
             elif s[i+1] in ('>', '|'):
