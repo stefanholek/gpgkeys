@@ -147,9 +147,6 @@ class Token(str):
 def split(line):
     """Return a tuple of tokens found in line.
     """
-    # FIXME
-    # * Multi-digit numbers
-    # * Rips apart 'Al'\''Hambra.txt'
     skip_next = False
     quote_char = ''
     tokens = []
@@ -168,6 +165,14 @@ def split(line):
             skip_next = True
         elif quote_char != '':
             if c == quote_char:
+                # Don't close the token if this is a backslash-
+                # quoted single quote.
+                if c in ("'",):
+                    if s[i+1] in ('\\',):
+                        if s[i+2] in ("'",):
+                            if s[i+3] in ("'",):
+                                i = i+5
+                                continue
                 quote_char = ''
                 append(j, i+1, T_WORD, E_NONE)
                 j = i+1
@@ -206,7 +211,8 @@ def split(line):
             if s[i+1] in ('&',):
                 i = i+1
                 if s[i+1] in DIGITS:
-                    i = i+1
+                    while s[i+1] in DIGITS:
+                        i = i+1
                     e = E_NONE # [sic]
                     if s[i+1] in ('-',):
                         i = i+1
@@ -223,7 +229,8 @@ def split(line):
                 i = i+1
                 e = E_NONE
                 if s[i+1] in DIGITS:
-                    i = i+1
+                    while s[i+1] in DIGITS:
+                        i = i+1
                     if s[i+1] in ('-',):
                         i = i+1
                 elif s[i+1] in ('-',):
@@ -239,9 +246,11 @@ def split(line):
             j = i+1
         elif c in DIGITS:
             # Digits are not word break characters; they must
-            # be preceded by a word break character to trigger.
+            # be preceded by word break characters to trigger.
             if i == 0 or (s[i-1] in WORDBREAKCHARS and s[i-2] != '\\'):
                 j = i
+                while s[i+1] in DIGITS:
+                    i = i+1
                 if s[i+1] in ('>',):
                     i = i+1
                     e = E_FILENAME
@@ -249,7 +258,8 @@ def split(line):
                         i = i+1
                         e = E_NONE
                         if s[i+1] in DIGITS:
-                            i = i+1
+                            while s[i+1] in DIGITS:
+                                i = i+1
                             if s[i+1] in ('-',):
                                 i = i+1
                     elif s[i+1] in ('>', '|'):
@@ -263,7 +273,8 @@ def split(line):
                         i = i+1
                         e = E_NONE
                         if s[i+1] in DIGITS:
-                            i = i+1
+                            while s[i+1] in DIGITS:
+                                i = i+1
                             if s[i+1] in ('-',):
                                 i = i+1
                         elif s[i+1] in ('-',):
