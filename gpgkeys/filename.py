@@ -128,17 +128,6 @@ class FilenameCompletionStrategy(Logging):
         return text
 
     @print_exc
-    def dequote_dirname(self, text):
-        # XXX By using this hook we lose the ability to switch off
-        #     tilde expansion. Bug or feature?
-        self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
-        saved, self.do_log = self.do_log, False
-        text = self.dequote_filename(text, completion.quote_character)
-        self.do_log = saved
-        self.log('dequote_dirname\t\t%r', text)
-        return text
-
-    @print_exc
     def quote_filename(self, text, single_match, quote_char):
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
         if text:
@@ -163,11 +152,22 @@ class FilenameCompletionStrategy(Logging):
                         check = ''
             # Add leading and trailing quote characters
             if check:
-                if (single_match and not completion.suppress_quote # XXX Really?
+                if (single_match and not completion.suppress_quote
                     and not os.path.isdir(os.path.expanduser(text))):
                     text = text + qc
                 text = qc + text
         self.log('quote_filename\t\t%r', text)
+        return text
+
+    @print_exc
+    def dequote_dirname(self, text):
+        # XXX By using this hook we lose the ability to switch off
+        #     tilde expansion. Bug or feature?
+        self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
+        saved, self.do_log = self.do_log, False
+        text = self.dequote_filename(text, completion.quote_character)
+        self.do_log = saved
+        self.log('dequote_dirname\t\t%r', text)
         return text
 
 
