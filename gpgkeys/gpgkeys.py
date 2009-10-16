@@ -364,7 +364,7 @@ class GPGKeys(cmd.Cmd):
         if idx >= 0:
             delta = line[idx+1:begidx]
             if delta.strip() in ('"', "'", ''):
-                # >| is not a pipe but an output redirect
+                # '>|' is not a pipe but an output redirect
                 if idx > 0 and line[idx] == '|':
                     if rscan_unquoted(line, begidx, ('>',)) == idx-1:
                         return False

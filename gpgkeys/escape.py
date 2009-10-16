@@ -147,6 +147,9 @@ class Token(str):
 def split(line):
     """Return a tuple of tokens found in line.
     """
+    # FIXME
+    # * Multi-digit numbers
+    # * Rips apart 'Al'\''Hambra.txt'
     skip_next = False
     quote_char = ''
     tokens = []
