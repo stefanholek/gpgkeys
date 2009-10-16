@@ -12,10 +12,10 @@ from rl import completion
 from rl import history
 from rl import print_exc
 
-from escape import scan_unquoted
-from escape import rscan_unquoted
-from escape import split
-from escape import splitpipe
+from quoting import scan_unquoted
+from quoting import rscan_unquoted
+from quoting import split
+from quoting import splitpipe
 
 from filename import Logging
 from filename import FilenameCompletion
