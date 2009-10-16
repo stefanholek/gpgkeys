@@ -54,10 +54,12 @@ class CharIsQuotedTests(unittest.TestCase):
     )
 
     def test_true(self):
+        # Expect the last character in s to be quoted
         for s in self.TRUE:
             self.assertEqual(char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
 
     def test_false(self):
+        # Expect the last character in s to be unquoted
         for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
