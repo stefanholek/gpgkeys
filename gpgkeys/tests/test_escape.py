@@ -6,32 +6,7 @@ from gpgkeys.escape import split
 
 class CharIsQuotedTests(unittest.TestCase):
 
-    TRUE_END = (
-        '"',
-        '"foo',
-        'f"oo',
-        'fo"o',
-        'foo"',
-        '\'',
-        '\'foo',
-        'f\'oo',
-        'fo\'o',
-        'foo\'',
-        '\\',
-        'foo\\',
-        '"foo\\',
-        '"foo\\"',
-        '"foo\\"\\',
-        '"foo"\\',
-        '"foo\'',
-        '"foo\\\'',
-        '\'foo\\',
-        '\'foo\\\'\\',
-        '\'foo"',
-        '\'foo\\"',
-    )
-
-    TRUE_LASTCHAR = (
+    TRUE = (
         '" ',
         '"foo ',
         'f"oo ',
@@ -62,24 +37,7 @@ class CharIsQuotedTests(unittest.TestCase):
         '\'foo "bar""',
     )
 
-    FALSE_END = (
-        'foo',
-        'foo ',
-        'fo\\o',
-        'foo\\ ',
-        'foo\\\\',
-        '""',
-        '"foo"',
-        '"foo\'"',
-        '\'\'',
-        '\'foo\'',
-        '\'foo\\\'',
-        '\'foo"\'',
-        '"foo \'bar\'"',
-        '\'foo "bar"\'',
-    )
-
-    FALSE_LASTCHAR = (
+    FALSE = (
         'foo ',
         'fo\\o ',
         'foo\\\\ ',
@@ -95,20 +53,12 @@ class CharIsQuotedTests(unittest.TestCase):
         '\'foo "bar"\'',
     )
 
-    def test_true_end(self):
-        for s in self.TRUE_END:
-            self.assertEqual(char_is_quoted(s, len(s)), True, 'not True: %r' % s)
-
-    def test_true_lastchar(self):
-        for s in self.TRUE_LASTCHAR:
+    def test_true(self):
+        for s in self.TRUE:
             self.assertEqual(char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
 
-    def test_false_end(self):
-        for s in self.FALSE_END:
-            self.assertEqual(char_is_quoted(s, len(s)), False, 'not False: %r' % s)
-
-    def test_false_lastchar(self):
-        for s in self.FALSE_LASTCHAR:
+    def test_false(self):
+        for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
@@ -260,5 +210,5 @@ class SingleQuoteSplitTests(unittest.TestCase):
 
     def test_evil_quoting(self):
         self.assertEqual(split("'foo bar'\\''baz ' peng"),
-                              ("'foo bar'", "\\'", "'baz '", 'peng'))
+                              ("'foo bar'\\''baz '", 'peng'))
 
