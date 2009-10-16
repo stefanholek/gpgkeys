@@ -6,17 +6,15 @@ from rl import completer
 from rl import completion
 from rl import print_exc
 
-from escape import scan_open_quote
-
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
 BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><;|&=(:"
 BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><;|&=()#$`?*[!:{~"
 BASH_COMMAND_SEPARATORS = ";|&{(`"
 
-QUOTE_CHARACTERS = "\"'"
-WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
-FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
+MY_QUOTE_CHARACTERS = "\"'"
+MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
+MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
 
 class Logging(object):
@@ -60,9 +58,9 @@ class FilenameCompletionStrategy(Logging):
 
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
-        completer.quote_characters = QUOTE_CHARACTERS
-        completer.word_break_characters = WORD_BREAK_CHARACTERS
-        completer.filename_quote_characters = FILENAME_QUOTE_CHARACTERS
+        completer.quote_characters = MY_QUOTE_CHARACTERS
+        completer.word_break_characters = MY_WORD_BREAK_CHARACTERS
+        completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
@@ -84,27 +82,34 @@ class FilenameCompletionStrategy(Logging):
 
     @print_exc
     def char_is_quoted(self, text, index):
-        qc = scan_open_quote(text, index)
-        self.log('char_is_quoted\t\t%r %d %r', text, index, qc, ruler=True)
-        if index > 0:
-            # If a character is preceded by a backslash, we consider
-            # it quoted. FIXME
-            if qc != "'" and text[index-1] == '\\':
-                self.log('char_is_quoted\t\tTrue1')
-                return True
-            # If we have an unquoted quote character, check whether
-            # it is quoted by the other quote character.
-            if text[index] in completer.quote_characters:
-                if qc and qc in completer.quote_characters and qc != text[index]:
-                    self.log('char_is_quoted\t\tTrue2')
+        self.log('char_is_quoted\t\t%r %d', text, index, ruler=True)
+        skip_next = False
+        quote_char = ''
+        for i in range(index):
+            c = text[i]
+            if skip_next:
+                skip_next = False
+            elif quote_char != "'" and c == '\\':
+                skip_next = True
+                if i == index-1:
+                    # The last character before index is an
+                    # unquoted backslash.
+                    self.log('char_is_quoted\t\tTrue1')
                     return True
-            else:
-                # If we have an unquoted character, check whether
-                # there is an open quote character.
-                if qc and qc in completer.quote_characters:
-                    self.log('char_is_quoted\t\tTrue3')
-                    return True
-        self.log('char_is_quoted\t\tFalse')
+            elif quote_char != '':
+                if c == quote_char:
+                    quote_char = ''
+            elif c in completer.quote_characters:
+                quote_char = c
+        # A closing quote character is never `quoted`
+        if index < len(text) and text[index] == quote_char:
+            self.log('char_is_quoted\t\tFalse1')
+            return False
+        # Return true if we have an open quote character
+        if quote_char:
+            self.log('char_is_quoted\t\tTrue2')
+            return True
+        self.log('char_is_quoted\t\tFalse2')
         return False
 
     @print_exc
@@ -158,7 +163,7 @@ class FilenameCompletionStrategy(Logging):
                         check = ''
             # Add leading and trailing quote characters
             if check:
-                if (single_match and not completion.suppress_quote
+                if (single_match and not completion.suppress_quote # XXX Really?
                     and not os.path.isdir(os.path.expanduser(text))):
                     text = text + qc
                 text = qc + text

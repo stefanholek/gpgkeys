@@ -91,20 +91,20 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 12), True)
 
     def test_backslash_quoted_double_quote_preceeded_by_1_backslash(self):
-        self.assertEqual(self.is_quoted('\\\\"', 2), True)
+        self.assertEqual(self.is_quoted('\\\\"', 2), False)
         self.assertEqual(self.is_quoted('\\\\"', 1), True)
         self.assertEqual(self.is_quoted('\\\\"', 0), False)
 
     def test_backslash_quoted_double_quote_preceeded_by_2_backslashes(self):
         self.assertEqual(self.is_quoted('\\\\\\"', 3), True)
-        self.assertEqual(self.is_quoted('\\\\\\"', 2), True)
+        self.assertEqual(self.is_quoted('\\\\\\"', 2), False)
         self.assertEqual(self.is_quoted('\\\\\\"', 1), True)
         self.assertEqual(self.is_quoted('\\\\\\"', 0), False)
 
     def test_backslash_quoted_double_quote_preceeded_by_3_backslashes(self):
-        self.assertEqual(self.is_quoted('\\\\\\\\"', 4), True)
+        self.assertEqual(self.is_quoted('\\\\\\\\"', 4), False)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 3), True)
-        self.assertEqual(self.is_quoted('\\\\\\\\"', 2), True)
+        self.assertEqual(self.is_quoted('\\\\\\\\"', 2), False)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 1), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 0), False)
 
