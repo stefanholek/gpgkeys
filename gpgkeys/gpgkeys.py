@@ -37,6 +37,9 @@ INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
+PUBLIC = ['--public']
+SECRET = ['--secret']
+ALL =    ['--all']
 
 
 class GPGKeys(cmd.Cmd):
@@ -206,19 +209,30 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--sign-key', *args)
 
     def do_del(self, args):
-        """Delete a public key (Usage: del <keyspec>)"""
-        args = split(args)
-        self.gnupg('--delete-key', *args)
+        """Delete a public or secret key (Usage: del <keyspec>)"""
+        mine, rest = splitpipe(split(args))
+        args = ('--delete-key',)
+        if '--all' in mine:
+            args = ('--delete-secret-and-public-key',)
+            mine = tuple(x for x in mine if x != '--all')
+        if '--secret' in mine:
+            args = ('--delete-secret-key',)
+            mine = tuple(x for x in mine if x != '--secret')
+        if '--public' in mine:
+            args = ('--delete-key',)
+            mine = tuple(x for x in mine if x != '--public')
+        args = args + mine + rest
+        self.gnupg(*args)
 
-    def do_delsec(self, args):
-        """Delete a secret key (Usage: delsec <keyspec>)"""
-        args = split(args)
-        self.gnupg('--delete-secret-key', *args)
+    #def do_delsec(self, args):
+    #    """Delete a secret key (Usage: delsec <keyspec>)"""
+    #    args = split(args)
+    #    self.gnupg('--delete-secret-key', *args)
 
-    def do_delsecpub(self, args):
-        """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
-        args = split(args)
-        self.gnupg('--delete-secret-and-public-key', *args)
+    #def do_delsecpub(self, args):
+    #    """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
+    #    args = split(args)
+    #    self.gnupg('--delete-secret-and-public-key', *args)
 
     def do_search(self, args):
         """Search for keys on the keyserver (Usage: search <keyspec>)"""
@@ -246,16 +260,23 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--fetch-keys', *args)
 
     def do_dump(self, args):
-        """Dump packet sequence of a public key (Usage: dump <keyspec>)"""
-        args, pipe = splitpipe(split(args))
-        args = ('--export',) + args + ('|', gnupg_exe, '--list-packets') + pipe
+        """Dump packet sequence of a public or secret key (Usage: dump <keyspec>)"""
+        mine, rest = splitpipe(split(args))
+        args = ('--export',)
+        if '--secret' in mine:
+            args = ('--export-secret-keys',)
+            mine = tuple(x for x in mine if x != '--secret')
+        if '--public' in mine:
+            args = ('--export',)
+            mine = tuple(x for x in mine if x != '--public')
+        args = args + mine + ('|', gnupg_exe, '--list-packets') + rest
         self.gnupg(*args)
 
-    def do_dumpsec(self, args):
-        """Dump packet sequence of a secret key (Usage: dumpsec <keyspec>)"""
-        args, pipe = splitpipe(split(args))
-        args = ('--export-secret-keys',) + args + ('|', gnupg_exe, '--list-packets') + pipe
-        self.gnupg(*args)
+    #def do_dumpsec(self, args):
+    #    """Dump packet sequence of a secret key (Usage: dumpsec <keyspec>)"""
+    #    args, pipe = splitpipe(split(args))
+    #    args = ('--export-secret-keys',) + args + ('|', gnupg_exe, '--list-packets') + pipe
+    #    self.gnupg(*args)
 
     def do_fdump(self, args):
         """Dump packet sequence stored in a file (Usage: fdump <filename>)"""
@@ -495,22 +516,22 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_del(self, text, line, begidx, endidx):
-        options = GLOBAL
+        options = GLOBAL + PUBLIC + SECRET + ALL
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
-    def complete_delsec(self, text, line, begidx, endidx):
-        options = GLOBAL
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+    #def complete_delsec(self, text, line, begidx, endidx):
+    #    options = GLOBAL
+    #    if self.isoption(text):
+    #        return self.completeoptions(text, options)
+    #    return self.completekeys_(text, line, begidx)
 
-    def complete_delsecpub(self, text, line, begidx, endidx):
-        options = GLOBAL
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+    #def complete_delsecpub(self, text, line, begidx, endidx):
+    #    options = GLOBAL
+    #    if self.isoption(text):
+    #        return self.completeoptions(text, options)
+    #    return self.completekeys_(text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
@@ -551,16 +572,16 @@ class GPGKeys(cmd.Cmd):
         return self.completedefault_(text, line, begidx)
 
     def complete_dump(self, text, line, begidx, endidx):
-        options = GLOBAL
+        options = GLOBAL + PUBLIC + SECRET
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
-    def complete_dumpsec(self, text, line, begidx, endidx):
-        options = GLOBAL
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+    #def complete_dumpsec(self, text, line, begidx, endidx):
+    #    options = GLOBAL
+    #    if self.isoption(text):
+    #        return self.completeoptions(text, options)
+    #    return self.completekeys_(text, line, begidx)
 
     def complete_fdump(self, text, line, begidx, endidx):
         options = GLOBAL
