@@ -61,22 +61,6 @@ class GPGKeys(cmd.Cmd):
         self.init_completer(LOGGING)
         self.init_history()
 
-    def system(self, *args):
-        command = ' '.join(args)
-        if self.verbose:
-            self.stdout.write('>>> %s\n' % command)
-        try:
-            process = subprocess.Popen(command, shell=True)
-            process.communicate()
-            return process.returncode
-        except KeyboardInterrupt:
-            return 1
-
-    def gnupg(self, *args):
-        return self.system(gnupg_exe, *args)
-
-    # Overrides
-
     def parseline(self, line):
         # Make '.' work as shell escape character.
         # Make '#' work as comment character.
@@ -106,12 +90,29 @@ class GPGKeys(cmd.Cmd):
                 return getattr(self, matches.pop())
         raise AttributeError(name)
 
+    # GnuPG runner
+
+    def system(self, *args):
+        command = ' '.join(args)
+        if self.verbose:
+            self.stdout.write('>>> %s\n' % command)
+        try:
+            process = subprocess.Popen(command, shell=True)
+            process.communicate()
+            return process.returncode
+        except KeyboardInterrupt:
+            return 1
+
+    def gnupg(self, *args):
+        return self.system(gnupg_exe, *args)
+
     # Commands
 
     def emptyline(self):
         pass
 
     def default(self, args):
+        """Unknown command"""
         args = split(args)
         self.stdout.write('gpgkeys: unknown command: %s\n' % args[0])
 
