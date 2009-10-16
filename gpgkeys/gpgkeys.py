@@ -61,6 +61,8 @@ class GPGKeys(cmd.Cmd):
         self.init_completer(LOGGING)
         self.init_history()
 
+    # Overrides
+
     def parseline(self, line):
         # Make '.' work as shell escape character.
         # Make '#' work as comment character.
@@ -256,7 +258,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg(*args)
 
     def do_fdump(self, args):
-        """Dump packet sequence stored in file (Usage: fdump <filename>)"""
+        """Dump packet sequence stored in a file (Usage: fdump <filename>)"""
         args = split(args)
         self.gnupg('--list-packets', *args)
 
