@@ -37,7 +37,6 @@ INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
-PUBLIC = ['--public']
 SECRET = ['--secret']
 ALL =    ['--all']
 
@@ -145,37 +144,37 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--gen-revoke', *args)
 
     def do_import(self, args):
-        """Import public keys from a file (Usage: import <filename>)"""
-        args = fixmergeonly(split(args))
-        self.gnupg('--import', *args)
-
-    def do_importsec(self, args):
-        """Import secret and public keys from a file (Usage: importsec <filename>)"""
-        args = fixmergeonly(split(args))
-        self.gnupg('--import --allow-secret-key', *args)
+        """Import keys from a file (Usage: import <filename>)"""
+        mine, rest = splitpipe(split(args))
+        args = ('--import',)
+        if '--secret' in mine:
+            args = ('--import', '--allow-secret-key')
+            mine = tuple(x for x in mine if x != '--secret')
+        args = args + fixmergeonly(mine) + rest
+        self.gnupg(*args)
 
     def do_export(self, args):
-        """Export public keys to stdout or to a file (Usage: export <keyspec>)"""
-        args = split(args)
-        self.gnupg('--export', *args)
-
-    def do_exportsec(self, args):
-        """Export secret keys to stdout or to a file (Usage: exportsec <keyspec>)"""
-        args = split(args)
-        self.gnupg('--export-secret-keys', *args)
+        """Export keys to stdout or to a file (Usage: export <keyspec>)"""
+        mine, rest = splitpipe(split(args))
+        args = ('--export',)
+        if '--secret' in mine:
+            args = ('--export-secret-keys',)
+            mine = tuple(x for x in mine if x != '--secret')
+        args = args + mine + rest
+        self.gnupg(*args)
 
     def do_list(self, args):
-        """List public keys (Usage: list <keyspec>)"""
-        args = split(args)
-        self.gnupg('--list-keys', *args)
+        """List keys (Usage: list <keyspec>)"""
+        mine, rest = splitpipe(split(args))
+        args = ('--list-keys',)
+        if '--secret' in mine:
+            args = ('--list-secret-keys',)
+            mine = tuple(x for x in mine if x != '--secret')
+        args = args + mine + rest
+        self.gnupg(*args)
 
     def do_ls(self, args):
         self.do_list(args)
-
-    def do_listsec(self, args):
-        """List secret keys (Usage: listsec <keyspec>)"""
-        args = split(args)
-        self.gnupg('--list-secret-keys', *args)
 
     def do_listsig(self, args):
         """List public keys including signatures (Usage: listsig <keyspec>)"""
@@ -209,7 +208,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--sign-key', *args)
 
     def do_del(self, args):
-        """Delete a public or secret key (Usage: del <keyspec>)"""
+        """Delete a key from the keyring (Usage: del <keyspec>)"""
         mine, rest = splitpipe(split(args))
         args = ('--delete-key',)
         if '--all' in mine:
@@ -218,21 +217,8 @@ class GPGKeys(cmd.Cmd):
         if '--secret' in mine:
             args = ('--delete-secret-key',)
             mine = tuple(x for x in mine if x != '--secret')
-        if '--public' in mine:
-            args = ('--delete-key',)
-            mine = tuple(x for x in mine if x != '--public')
         args = args + mine + rest
         self.gnupg(*args)
-
-    #def do_delsec(self, args):
-    #    """Delete a secret key (Usage: delsec <keyspec>)"""
-    #    args = split(args)
-    #    self.gnupg('--delete-secret-key', *args)
-
-    #def do_delsecpub(self, args):
-    #    """Delete both secret and public keys (Usage: delsecpub <keyspec>)"""
-    #    args = split(args)
-    #    self.gnupg('--delete-secret-and-public-key', *args)
 
     def do_search(self, args):
         """Search for keys on the keyserver (Usage: search <keyspec>)"""
@@ -260,23 +246,14 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--fetch-keys', *args)
 
     def do_dump(self, args):
-        """Dump packet sequence of a public or secret key (Usage: dump <keyspec>)"""
+        """Dump packet sequence of a key (Usage: dump <keyspec>)"""
         mine, rest = splitpipe(split(args))
         args = ('--export',)
         if '--secret' in mine:
             args = ('--export-secret-keys',)
             mine = tuple(x for x in mine if x != '--secret')
-        if '--public' in mine:
-            args = ('--export',)
-            mine = tuple(x for x in mine if x != '--public')
         args = args + mine + ('|', gnupg_exe, '--list-packets') + rest
         self.gnupg(*args)
-
-    #def do_dumpsec(self, args):
-    #    """Dump packet sequence of a secret key (Usage: dumpsec <keyspec>)"""
-    #    args, pipe = splitpipe(split(args))
-    #    args = ('--export-secret-keys',) + args + ('|', gnupg_exe, '--list-packets') + pipe
-    #    self.gnupg(*args)
 
     def do_fdump(self, args):
         """Dump packet sequence stored in a file (Usage: fdump <filename>)"""
@@ -437,27 +414,13 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completefilenames_(text, line, begidx)
-
-    def complete_importsec(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT
+        options = GLOBAL + INPUT + SECRET
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completefilenames_(text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
-        options = GLOBAL + OUTPUT
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        if self.follows('--output', line, begidx):
-            return self.completefilenames(text)
-        return self.completekeys_(text, line, begidx)
-
-    def complete_exportsec(self, text, line, begidx, endidx):
-        options = GLOBAL + OUTPUT
+        options = GLOBAL + OUTPUT + SECRET
         if self.isoption(text):
             return self.completeoptions(text, options)
         if self.follows('--output', line, begidx):
@@ -465,19 +428,13 @@ class GPGKeys(cmd.Cmd):
         return self.completekeys_(text, line, begidx)
 
     def complete_list(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST
+        options = GLOBAL + LIST + SECRET
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
 
     def complete_ls(self, text, line, begidx, endidx):
         return self.complete_list(text, line, begidx, endidx)
-
-    def complete_listsec(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST
-        if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
 
     def complete_listsig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
@@ -498,6 +455,8 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN + EXPERT
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--local-user', line, begidx):
+            return self.completekeys(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_e(self, text, line, begidx, endidx):
@@ -507,31 +466,23 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + KEY + SIGN
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--local-user', line, begidx):
+            return self.completekeys(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_sign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
         if self.isoption(text):
             return self.completeoptions(text, options)
+        if self.follows('--local-user', line, begidx):
+            return self.completekeys(text)
         return self.completekeys_(text, line, begidx)
 
     def complete_del(self, text, line, begidx, endidx):
-        options = GLOBAL + PUBLIC + SECRET + ALL
+        options = GLOBAL + SECRET + ALL
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
-
-    #def complete_delsec(self, text, line, begidx, endidx):
-    #    options = GLOBAL
-    #    if self.isoption(text):
-    #        return self.completeoptions(text, options)
-    #    return self.completekeys_(text, line, begidx)
-
-    #def complete_delsecpub(self, text, line, begidx, endidx):
-    #    options = GLOBAL
-    #    if self.isoption(text):
-    #        return self.completeoptions(text, options)
-    #    return self.completekeys_(text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
@@ -572,16 +523,10 @@ class GPGKeys(cmd.Cmd):
         return self.completedefault_(text, line, begidx)
 
     def complete_dump(self, text, line, begidx, endidx):
-        options = GLOBAL + PUBLIC + SECRET
+        options = GLOBAL + SECRET
         if self.isoption(text):
             return self.completeoptions(text, options)
         return self.completekeys_(text, line, begidx)
-
-    #def complete_dumpsec(self, text, line, begidx, endidx):
-    #    options = GLOBAL
-    #    if self.isoption(text):
-    #        return self.completeoptions(text, options)
-    #    return self.completekeys_(text, line, begidx)
 
     def complete_fdump(self, text, line, begidx, endidx):
         options = GLOBAL
