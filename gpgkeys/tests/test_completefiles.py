@@ -5,10 +5,11 @@ from os.path import dirname
 
 from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import TreeSetup
+from gpgkeys.filename import FilenameCompletion
 
-from completion import completer
-from completion import completion
-from completion import readline
+from rl import completer
+from rl import completion
+from rl import readline
 
 
 class CompleterTests(TreeSetup):
@@ -17,6 +18,7 @@ class CompleterTests(TreeSetup):
         TreeSetup.setUp(self)
         self.cmd = GPGKeys()
         self.cmd.init_completer()
+        self.completefilenames = FilenameCompletion()
         completer.completer = self.cmd.complete
         os.chdir('normaldir')
 
@@ -63,15 +65,15 @@ class CharIsQuotedTests(unittest.TestCase):
 
     def test_backslash_quoted_double_quote(self):
         self.assertEqual(self.is_quoted('\\"', 1), True)
-        self.assertEqual(self.is_quoted('\\"', 0), True)
+        self.assertEqual(self.is_quoted('\\"', 0), False)
         self.assertEqual(self.is_quoted('\\ \\"', 3), True)
-        self.assertEqual(self.is_quoted('\\ \\"', 2), True)
+        self.assertEqual(self.is_quoted('\\ \\"', 2), False)
         self.assertEqual(self.is_quoted('\\ \\"', 1), True)
-        self.assertEqual(self.is_quoted('\\ \\"', 0), True)
+        self.assertEqual(self.is_quoted('\\ \\"', 0), False)
 
     def test_backslash_quoted_single_quote(self):
         self.assertEqual(self.is_quoted("\\'", 1), True)
-        self.assertEqual(self.is_quoted("\\'", 0), True)
+        self.assertEqual(self.is_quoted("\\'", 0), False)
 
     def test_quoted_by_other_quote_character(self):
         self.assertEqual(self.is_quoted("""'foo "bar"'""", 0), False)
@@ -80,41 +82,41 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted("""'foo "bar"'""", 10), False)
 
     def test_quoted_by_quoted_other_quote_character(self):
-        self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 0), True)
+        self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 0), False)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 1), True)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 5), False)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 6), False)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 10), False)
-        self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 11), True)
+        self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 11), False)
         self.assertEqual(self.is_quoted("""\\'foo "bar"\\'""", 12), True)
 
     def test_backslash_quoted_double_quote_preceeded_by_1_backslash(self):
         self.assertEqual(self.is_quoted('\\\\"', 2), True)
         self.assertEqual(self.is_quoted('\\\\"', 1), True)
-        self.assertEqual(self.is_quoted('\\\\"', 0), True)
+        self.assertEqual(self.is_quoted('\\\\"', 0), False)
 
     def test_backslash_quoted_double_quote_preceeded_by_2_backslashes(self):
         self.assertEqual(self.is_quoted('\\\\\\"', 3), True)
         self.assertEqual(self.is_quoted('\\\\\\"', 2), True)
         self.assertEqual(self.is_quoted('\\\\\\"', 1), True)
-        self.assertEqual(self.is_quoted('\\\\\\"', 0), True)
+        self.assertEqual(self.is_quoted('\\\\\\"', 0), False)
 
     def test_backslash_quoted_double_quote_preceeded_by_3_backslashes(self):
         self.assertEqual(self.is_quoted('\\\\\\\\"', 4), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 3), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 2), True)
         self.assertEqual(self.is_quoted('\\\\\\\\"', 1), True)
-        self.assertEqual(self.is_quoted('\\\\\\\\"', 0), True)
+        self.assertEqual(self.is_quoted('\\\\\\\\"', 0), False)
 
     def test_normaldir(self):
         self.assertEqual(self.is_quoted('normaldir/\\"', 11), True)
-        self.assertEqual(self.is_quoted('normaldir/\\"', 10), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"', 10), False)
         self.assertEqual(self.is_quoted('normaldir/\\"', 9), False)
 
     def test_normaldir_hello(self):
         self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 17), False)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 11), True)
-        self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 10), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello ', 10), False)
 
     def test_normaldir_hello_quoted(self):
         self.assertEqual(self.is_quoted('"normaldir/\\"Hello ', 18), True)
@@ -123,7 +125,7 @@ class CharIsQuotedTests(unittest.TestCase):
 
     def test_normaldir_hello_quoted_space(self):
         self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 18), True)
-        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 17), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 17), False)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 11), True)
-        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 10), True)
+        self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 10), False)
 
