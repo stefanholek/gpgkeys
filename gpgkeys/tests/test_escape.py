@@ -48,6 +48,11 @@ class CharIsQuotedTests(unittest.TestCase):
         '\'foo\' ',
         '\'foo\\\' ',
         '\'foo"\' ',
+        '\'foo\'\'',
+        '\'foo\\\'\'',
+        '\'foo"\'\'',
+        '\'foo\\\'\'\'',
+        '\'foo"\'\'\'',
         # The closing quote character is NOT quoted
         '"foo \'bar\'"',
         '\'foo "bar"\'',
