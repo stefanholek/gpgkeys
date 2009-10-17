@@ -1,7 +1,7 @@
 import unittest
 
-from gpgkeys.quoting import char_is_quoted
-from gpgkeys.quoting import split
+from gpgkeys.splitter import char_is_quoted
+from gpgkeys.splitter import split
 
 
 class CharIsQuotedTests(unittest.TestCase):
