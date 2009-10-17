@@ -35,6 +35,8 @@ class CharIsQuotedTests(unittest.TestCase):
         '\'foo "bar"',
         '"foo \'bar\'\'',
         '\'foo "bar""',
+        '\'foo\\\'"\'',
+        '\'foo"\'"\'',
     )
 
     FALSE = (
@@ -52,8 +54,8 @@ class CharIsQuotedTests(unittest.TestCase):
         '\'foo\\\'\'',
         '\'foo"\'\'',
         '\'foo\\\'\'\'',
-        '\'foo"\'\'\'',
         # The closing quote character is NOT quoted
+        '\'foo"\'\'\'',
         '"foo \'bar\'"',
         '\'foo "bar"\'',
     )
