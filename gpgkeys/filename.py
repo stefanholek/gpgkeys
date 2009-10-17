@@ -92,8 +92,6 @@ class FilenameCompletionStrategy(Logging):
             elif quote_char != "'" and c == '\\':
                 skip_next = True
                 if i == index-1:
-                    # The last character before index is an
-                    # unquoted backslash.
                     self.log('char_is_quoted\t\tTrue1')
                     return True
             elif quote_char != '':
@@ -101,7 +99,7 @@ class FilenameCompletionStrategy(Logging):
                     quote_char = ''
             elif c in completer.quote_characters:
                 quote_char = c
-        # A closing quote character is never `quoted`
+        # A closing quote character is never quoted
         if index < len(text) and text[index] == quote_char:
             self.log('char_is_quoted\t\tFalse1')
             return False
