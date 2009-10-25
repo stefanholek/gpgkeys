@@ -112,6 +112,7 @@ class FilenameCompletionStrategy(Logging):
 
     @print_exc
     def dequote_filename(self, text, quote_char):
+        # FIXME: Dequote backslash-quoted tilde
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
             qc = quote_char or completer.quote_characters[0]
