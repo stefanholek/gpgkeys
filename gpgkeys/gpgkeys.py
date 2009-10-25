@@ -211,12 +211,12 @@ class GPGKeys(cmd.Cmd):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
         mine, rest = splitpipe(split(args))
         args = ('--delete-key',)
-        if '--all' in mine:
-            args = ('--delete-secret-and-public-key',)
-            mine = tuple(x for x in mine if x != '--all')
         if '--secret' in mine:
             args = ('--delete-secret-key',)
             mine = tuple(x for x in mine if x != '--secret')
+        if '--all' in mine:
+            args = ('--delete-secret-and-public-key',)
+            mine = tuple(x for x in mine if x != '--all')
         args = args + mine + rest
         self.gnupg(*args)
 
