@@ -67,7 +67,7 @@ class FilenameCompletionStrategy(Logging):
         completer.directory_completion_hook = self.dequote_dirname
         completer.match_hidden_files = False
         completer.tilde_expansion = True
-        self.quoted = dict((x, '\\'+x) for x in completer.filename_quote_characters)
+        self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
         self.log('-----')
 
     @print_exc
@@ -112,7 +112,6 @@ class FilenameCompletionStrategy(Logging):
 
     @print_exc
     def dequote_filename(self, text, quote_char):
-        # FIXME: Dequote backslash-quoted tilde
         self.log('dequote_filename\t%r %r', text, quote_char)
         if len(text) > 1:
             qc = quote_char or completer.quote_characters[0]
@@ -121,7 +120,7 @@ class FilenameCompletionStrategy(Logging):
             if qc == "'":
                 text = text.replace("'\\''", "'")
             else:
-                for c in completer.filename_quote_characters:
+                for c in BASH_FILENAME_QUOTE_CHARACTERS:
                     text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
         return text
