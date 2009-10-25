@@ -16,6 +16,8 @@ MY_QUOTE_CHARACTERS = "\"'"
 MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
 MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
+# FIXME: Filenames starting with tilde
+
 
 class Logging(object):
     """Simple logging for filename completion
