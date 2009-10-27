@@ -171,6 +171,17 @@ class FilenameCompletionStrategy(Logging):
         return text
 
 
+class ReadlineCompletionStrategy(FilenameCompletionStrategy):
+    """Perform filename completion
+
+    Prefers single-quote quoting which is the readline default.
+    """
+
+    def __init__(self, do_log=False):
+        FilenameCompletionStrategy.__init__(self, do_log)
+        self.quote_characters = BASH_QUOTE_CHARACTERS
+
+
 class BashCompletionStrategy(FilenameCompletionStrategy):
     """Perform filename completion
 
@@ -195,11 +206,13 @@ class FilenameCompletion(object):
     """Encapsulate filename completion strategies
     """
 
-    def __init__(self, do_log=False, bash=False):
-        if bash:
-            self._strategy = BashCompletionStrategy(do_log)
-        else:
+    def __init__(self, do_log=False, quote_char='\\'):
+        if quote_char == '"':
             self._strategy = FilenameCompletionStrategy(do_log)
+        elif quote_char == "'":
+            self._strategy = ReadlineCompletionStrategy(do_log)
+        else:
+            self._strategy = BashCompletionStrategy(do_log)
 
     def __call__(self, text):
         return self._strategy(text)

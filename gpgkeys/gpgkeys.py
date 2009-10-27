@@ -331,7 +331,7 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefilenames = FilenameCompletion(do_log, bash=True)
+        self.completefilenames = FilenameCompletion(do_log)
         self.completecommands = CommandCompletion(do_log)
         self.completekeys = KeyCompletion()
         self.completekeyservers = KeyserverCompletion()

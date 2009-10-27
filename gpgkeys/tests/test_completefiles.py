@@ -18,7 +18,7 @@ class CompleterTests(TreeSetup):
         TreeSetup.setUp(self)
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        self.completefilenames = FilenameCompletion()
+        self.completefilenames = FilenameCompletion(quote_char='"')
         completer.completer = self.cmd.complete
         os.chdir('normaldir')
 
