@@ -18,21 +18,6 @@ E_COMMAND = 11
 E_FILENAME = 12
 
 
-def scan_first_quote(s, lx):
-    """Find the first quote character in s.
-    """
-    skip_next = False
-    for i in range(lx):
-        c = s[i]
-        if skip_next:
-            skip_next = False
-        elif c == '\\':
-            skip_next = True
-        elif c in QUOTECHARS:
-            return c
-    return ''
-
-
 def scan_open_quote(s, lx):
     """Find an open quote character before lx.
     """
