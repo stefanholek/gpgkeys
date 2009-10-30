@@ -67,8 +67,6 @@ class FilenameCompletionStrategy(Logging):
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
         completer.directory_completion_hook = self.dequote_dirname
-        completer.match_hidden_files = False
-        completer.tilde_expansion = True
         self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
         self.log('-----')
 
