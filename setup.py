@@ -6,8 +6,8 @@ version = '1.0'
 setup(name='gpgkeys',
       version=version,
       description='Command line shell for GnuPG',
-      #long_description=open('README.txt').read() + '\n' +
-      #                 open('CHANGES.txt').read(),
+      long_description=open('README.txt').read() + '\n' +
+                       open('CHANGES.txt').read(),
       classifiers=[
           'Programming Language :: Python',
           'Development Status :: 5 - Production/Stable',
