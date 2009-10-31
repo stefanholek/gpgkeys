@@ -4,8 +4,8 @@ import unittest
 from os.path import dirname
 
 from gpgkeys.gpgkeys import GPGKeys
+from gpgkeys.completions.filename import FilenameCompletion
 from gpgkeys.testing import TreeSetup
-from gpgkeys.filename import FilenameCompletion
 
 from rl import completer
 from rl import completion

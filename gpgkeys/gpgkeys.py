@@ -17,16 +17,14 @@ from splitter import rscan_unquoted
 from splitter import split
 from splitter import splitpipe
 
-from filename import Logging
-from filename import FilenameCompletion
+from completions.filename import FilenameCompletion
+from completions.command import CommandCompletion
+from completions.key import KeyCompletion
+from completions.keyserver import KeyserverCompletion
 
-gnupg_exe = 'gpg'
-
-GNUPGHOME = os.environ.get('GNUPGHOME', '~/.gnupg')
-GNUPGHOME = os.path.abspath(os.path.expanduser(GNUPGHOME))
-
-UMASK = 0077
-LOGGING = False
+from config import GNUPGEXE
+from config import UMASK
+from config import LOGGING
 
 GLOBAL = []
 KEY    = ['--openpgp']
@@ -38,7 +36,7 @@ OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
-ALL =    ['--all']
+ALL    = ['--all']
 
 
 class GPGKeys(cmd.Cmd):
@@ -108,7 +106,7 @@ class GPGKeys(cmd.Cmd):
             return 1
 
     def gnupg(self, *args):
-        return self.system(gnupg_exe, *args)
+        return self.system(GNUPGEXE, *args)
 
     # Commands
 
@@ -252,7 +250,7 @@ class GPGKeys(cmd.Cmd):
         if '--secret' in mine:
             args = ('--export-secret-keys',)
             mine = tuple(x for x in mine if x != '--secret')
-        args = args + mine + ('|', gnupg_exe, '--list-packets') + rest
+        args = args + mine + ('|', GNUPGEXE, '--list-packets') + rest
         self.gnupg(*args)
 
     def do_fdump(self, args):
@@ -640,114 +638,6 @@ def fixmergeonly(args):
             args = args[:i] + ('--import-options', 'merge-only') + args[i+1:]
             break
     return args
-
-
-class CommandCompletion(Logging):
-    """Perform system command completion
-    """
-
-    @print_exc
-    def __call__(self, text):
-        self.log('complete_command\t%r', text)
-        matches = []
-        for dir in os.environ.get('PATH').split(':'):
-            dir = os.path.expanduser(dir)
-            if os.path.isdir(dir):
-                for name in os.listdir(dir):
-                    if name.startswith(text):
-                        if os.access(os.path.join(dir, name), os.R_OK|os.X_OK):
-                            matches.append(name)
-        self.log('complete_command\t%r', matches[:20])
-        return matches
-
-
-class KeyCompletion(object):
-    """Perform key id completion
-
-    Watches the keyrings for changes and automatically refreshes
-    its completion cache.
-    """
-
-    def __init__(self):
-        self.pubring = os.path.join(GNUPGHOME, 'pubring.gpg')
-        self.secring = os.path.join(GNUPGHOME, 'secring.gpg')
-        self.mtimes = (0, 0)
-        self.keyspecs = {}
-
-    @print_exc
-    def __call__(self, text, keyids_only=True):
-        self.update_keys()
-        text = text.upper()
-        matches = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
-        if len(matches) == 1:
-            if keyids_only:
-                return [x[0] for x in self.keyspecs[matches[0]]]
-            else:
-                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
-        return matches
-
-    def update_keys(self):
-        mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
-        if self.mtimes != mtimes:
-            keyspecs = {}
-            def append(key, value):
-                keyspecs.setdefault(key, [])
-                keyspecs[key].append(value)
-
-            for keyid, userid in self.read_keys():
-                keyid = keyid[8:]
-                info = (keyid, userid)
-                append('%s %s' % info, info)
-            self.mtimes = mtimes
-            self.keyspecs = keyspecs
-
-    def read_keys(self):
-        process = subprocess.Popen(gnupg_exe+' --list-keys --with-colons',
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        for line in stdout.strip().split('\n'):
-            if line[:3] == 'pub':
-                fields = line.split(':')
-                keyid = fields[4]
-                userid = fields[9]
-                yield (keyid, userid)
-
-
-class KeyserverCompletion(object):
-    """Perform keyserver completion
-
-    To become available for completion, keyservers must be configured
-    in $GNUPGHOME/gpg.conf.
-    """
-
-    def __init__(self):
-        self.gpgconf = os.path.join(GNUPGHOME, 'gpg.conf')
-        self.mtime = 0
-        self.servers = []
-
-    @print_exc
-    def __call__(self, text):
-        self.update_servers()
-        return [x for x in self.servers if x.startswith(text)]
-
-    def update_servers(self):
-        mtime = os.stat(self.gpgconf).st_mtime
-        if self.mtime != mtime:
-            self.mtime = mtime
-            self.servers = list(self.read_servers())
-
-    def read_servers(self):
-        f = open(self.gpgconf, 'rt')
-        try:
-            config = f.read()
-        finally:
-            f.close()
-
-        for line in config.strip().split('\n'):
-            tokens = line.split()
-            if len(tokens) > 1:
-                if tokens[0] == 'keyserver':
-                    yield tokens[1]
 
 
 def main(args=None):
