@@ -1,6 +1,8 @@
 import os
+import sys
 
 from datetime import datetime
+from unicodedata import normalize
 
 from rl import completer
 from rl import completion
@@ -17,6 +19,16 @@ MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
 MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
 # FIXME: Filenames starting with tilde
+
+
+def compose(s):
+    """Return fully composed UTF-8."""
+    return normalize('NFC', s.decode('utf-8')).encode('utf-8')
+
+
+def decompose(s):
+    """Return fully decomposed UTF-8 for HFS Plus."""
+    return normalize('NFD', s.decode('utf-8')).encode('utf-8')
 
 
 class Logging(object):
@@ -77,6 +89,11 @@ class FilenameCompletionStrategy(Logging):
             matches = completion.complete_username(text)
         else:
             matches = completion.complete_filename(text)
+            # HFS Plus uses "decomposed" UTF-8
+            if sys.platform == 'darwin':
+                if not matches:
+                    matches = completion.complete_filename(decompose(text))
+                matches = [compose(x) for x in matches]
         self.log('complete_filename\t%r', matches[:20])
         return matches
 
