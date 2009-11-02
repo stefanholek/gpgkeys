@@ -80,7 +80,6 @@ class FilenameCompletionStrategy(Logging):
         completer.filename_dequoting_function = self.dequote_filename
         completer.directory_completion_hook = self.dequote_dirname
         self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
-        self.log('-----')
 
     @print_exc
     def __call__(self, text):
