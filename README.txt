@@ -20,13 +20,20 @@ package or rl_ add-on.
 
 .. _rl: http://pypi.python.org/pypi/rl
 
+Repository Access
+-----------------
+
+gpgkeys development is hosted on github_.
+
+.. _github: http://github.com/stefanholek/gpgkeys
+
 Installation
 ============
 
 gpgkeys depends on the rl_ library. Since rl_ contains a C extension, it
 is a good idea to install it independently first.
 
-Once rl_ is installed, type::
+Once rl is installed, type::
 
     /path/to/easy_install gpgkeys
 
