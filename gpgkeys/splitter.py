@@ -232,7 +232,7 @@ def split(line):
         elif c in DIGITS:
             # Digits are not word break characters; they must
             # be preceded by word break characters to trigger.
-            if i == 0 or (s[i-1] in WORDBREAKCHARS and s[i-2] != '\\'):
+            if i == 0 or (s[i-1] in WORDBREAKCHARS and not char_is_quoted(s, i-1)):
                 j = i
                 while s[i+1] in DIGITS:
                     i = i+1
