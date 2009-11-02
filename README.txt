@@ -20,3 +20,15 @@ package or rl_ add-on.
 
 .. _rl: http://pypi.python.org/pypi/rl
 
+Installation
+============
+
+gpgkeys depends on the rl_ library. Since rl_ contains a C extension, it
+is a good idea to install it independently first.
+
+Once rl_ is installed, type::
+
+    /path/to/easy_install gpgkeys
+
+and bask in the glow.
+
