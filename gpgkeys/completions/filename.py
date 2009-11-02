@@ -18,8 +18,6 @@ MY_QUOTE_CHARACTERS = "\"'"
 MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
 MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
-# FIXME: Filenames starting with tilde
-
 
 def compose(s):
     """Return fully composed UTF-8."""
@@ -84,9 +82,10 @@ class FilenameCompletionStrategy(Logging):
     @print_exc
     def __call__(self, text):
         self.log('complete_filename\t%r', text)
+        matches = []
         if text.startswith('~') and (os.sep not in text):
             matches = completion.complete_username(text)
-        else:
+        if not matches:
             matches = completion.complete_filename(text)
             # HFS Plus uses "decomposed" UTF-8
             if sys.platform == 'darwin':
