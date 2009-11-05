@@ -11,6 +11,7 @@ from rl import completer
 from rl import completion
 from rl import history
 from rl import print_exc
+from rl import readline
 
 from splitter import scan_unquoted
 from splitter import rscan_unquoted
@@ -562,7 +563,7 @@ class GPGKeys(cmd.Cmd):
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
             self.stdout.flush()
             while True:
-                c = completion.read_key()
+                c = readline.read_key()
                 if c in 'yY\x20': # SPACEBAR
                     break
                 if c in 'nN\x7f': # RUBOUT
