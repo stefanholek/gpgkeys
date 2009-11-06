@@ -70,6 +70,10 @@ class FilenameCompletionStrategy(Logging):
 
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
+        self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
+        self.configure()
+
+    def configure(self):
         completer.quote_characters = MY_QUOTE_CHARACTERS
         completer.word_break_characters = MY_WORD_BREAK_CHARACTERS
         completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
@@ -77,7 +81,6 @@ class FilenameCompletionStrategy(Logging):
         completer.filename_quoting_function = self.quote_filename
         completer.filename_dequoting_function = self.dequote_filename
         completer.directory_completion_hook = self.dequote_dirname
-        self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
     @print_exc
     def __call__(self, text):
@@ -190,9 +193,9 @@ class ReadlineCompletionStrategy(FilenameCompletionStrategy):
     Prefers single-quote quoting which is the readline default.
     """
 
-    def __init__(self, do_log=False):
-        FilenameCompletionStrategy.__init__(self, do_log)
-        self.quote_characters = BASH_QUOTE_CHARACTERS
+    def configure(self):
+        FilenameCompletionStrategy.configure(self)
+        completer.quote_characters = BASH_QUOTE_CHARACTERS
 
 
 class BashCompletionStrategy(FilenameCompletionStrategy):
