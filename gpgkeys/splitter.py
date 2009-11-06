@@ -286,3 +286,18 @@ def splitpipe(tokens):
             first, second = tokens[:i], tokens[i:]
     return first, second
 
+
+def closequote(tokens):
+    """If the last token ends with an open quote, close it.
+    """
+    if tokens:
+        last = tokens[-1]
+        if last and last.type == T_WORD:
+            if last[0] == '"' and last[-1] != '"':
+                last += '"'
+                tokens = tokens[:-1] + (last,)
+            elif last[0] == "'" and last[-1] != "'":
+                last += "'"
+                tokens = tokens[:-1] + (last,)
+    return tokens
+

@@ -6,6 +6,7 @@ import sys
 import cmd
 import atexit
 import subprocess
+import splitter
 
 from rl import completer
 from rl import completion
@@ -15,8 +16,8 @@ from rl import print_exc
 
 from splitter import scan_unquoted
 from splitter import rscan_unquoted
-from splitter import split
 from splitter import splitpipe
+from splitter import closequote
 
 from completions.filename import FilenameCompletion
 from completions.command import CommandCompletion
@@ -38,6 +39,11 @@ SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
 ALL    = ['--all']
+
+
+def split(args):
+    # Always apply closequote transform
+    return closequote(splitter.split(args))
 
 
 class GPGKeys(cmd.Cmd):
