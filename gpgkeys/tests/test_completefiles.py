@@ -21,7 +21,7 @@ class CompleterTests(JailSetup):
         self.mkfiles()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        self.completefilenames = FilenameCompletion(quote_char='"')
+        self.cmd.completefilename = FilenameCompletion(quote_char='"')
         completer.completer = self.cmd.complete
 
     def mkfiles(self):
@@ -127,7 +127,8 @@ class CharIsQuotedTests(unittest.TestCase):
     def setUp(self):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        self.is_quoted = self.cmd.completefilenames.char_is_quoted
+        self.cmd.completefilename = FilenameCompletion(quote_char='"')
+        self.is_quoted = self.cmd.completefilename.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):
         self.assertEqual(self.is_quoted('\\"', 1), True)

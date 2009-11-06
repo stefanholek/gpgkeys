@@ -330,10 +330,10 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefilenames = FilenameCompletion(do_log)
-        self.completecommands = CommandCompletion(do_log)
-        self.completekeys = KeyCompletion()
-        self.completekeyservers = KeyserverCompletion()
+        self.completefilename = FilenameCompletion(do_log)
+        self.completecommand = CommandCompletion(do_log)
+        self.completekey = KeyCompletion()
+        self.completekeyserver = KeyserverCompletion()
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
@@ -378,20 +378,20 @@ class GPGKeys(cmd.Cmd):
     def basecomplete(self, text, line, begidx, default):
         if self.pipepos(line, begidx):
             if not self.isfilename(text):
-                return self.completecommands(text)
-            return self.completefilenames(text)
+                return self.completecommand(text)
+            return self.completefilename(text)
         if self.postredir(line, begidx):
-            return self.completefilenames(text)
+            return self.completefilename(text)
         return default(text)
 
-    def completeoptions(self, text, options):
+    def completeoption(self, text, options):
         return [x for x in options if x.startswith(text)]
 
-    def completefilenames_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completefilenames)
+    def completefilename_(self, text, line, begidx):
+        return self.basecomplete(text, line, begidx, self.completefilename)
 
-    def completekeys_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completekeys)
+    def completekey_(self, text, line, begidx):
+        return self.basecomplete(text, line, begidx, self.completekey)
 
     def completedefault_(self, text, line, begidx):
         return self.basecomplete(text, line, begidx, self.completedefault)
@@ -401,36 +401,36 @@ class GPGKeys(cmd.Cmd):
     def complete_genkey(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + EXPERT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         return self.completedefault_(text, line, begidx)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + OUTPUT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
-            return self.completefilenames(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completefilename(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT + SECRET
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completefilenames_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completefilename_(text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
         options = GLOBAL + OUTPUT + SECRET
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
-            return self.completefilenames(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completefilename(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_list(self, text, line, begidx, endidx):
         options = GLOBAL + LIST + SECRET
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completekey_(text, line, begidx)
 
     def complete_ls(self, text, line, begidx, endidx):
         return self.complete_list(text, line, begidx, endidx)
@@ -438,8 +438,8 @@ class GPGKeys(cmd.Cmd):
     def complete_listsig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completekey_(text, line, begidx)
 
     def complete_ll(self, text, line, begidx, endidx):
         return self.complete_listsig(text, line, begidx, endidx)
@@ -447,16 +447,16 @@ class GPGKeys(cmd.Cmd):
     def complete_checksig(self, text, line, begidx, endidx):
         options = GLOBAL + LIST + CHECK
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completekey_(text, line, begidx)
 
     def complete_edit(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN + EXPERT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
-            return self.completekeys(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekey(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_e(self, text, line, begidx, endidx):
         return self.complete_edit(text, line, begidx, endidx)
@@ -464,83 +464,83 @@ class GPGKeys(cmd.Cmd):
     def complete_lsign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
-            return self.completekeys(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekey(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_sign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
-            return self.completekeys(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekey(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_del(self, text, line, begidx, endidx):
         options = GLOBAL + SECRET + ALL
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completekey_(text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
-            return self.completekeyservers(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekeyserver(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_recv(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
-            return self.completekeyservers(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekeyserver(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_send(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
-            return self.completekeyservers(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekeyserver(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_refresh(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
-            return self.completekeyservers(text)
-        return self.completekeys_(text, line, begidx)
+            return self.completekeyserver(text)
+        return self.completekey_(text, line, begidx)
 
     def complete_fetch(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         return self.completedefault_(text, line, begidx)
 
     def complete_dump(self, text, line, begidx, endidx):
         options = GLOBAL + SECRET
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completekeys_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completekey_(text, line, begidx)
 
     def complete_fdump(self, text, line, begidx, endidx):
         options = GLOBAL
         if self.isoption(text):
-            return self.completeoptions(text, options)
-        return self.completefilenames_(text, line, begidx)
+            return self.completeoption(text, options)
+        return self.completefilename_(text, line, begidx)
 
     def complete_shell(self, text, line, begidx, endidx):
         options = GLOBAL
         if self.isoption(text):
-            return self.completeoptions(text, options)
+            return self.completeoption(text, options)
         if self.commandpos(line, begidx):
             if not self.isfilename(text):
-                return self.completecommands(text)
-        return self.completefilenames_(text, line, begidx)
+                return self.completecommand(text)
+        return self.completefilename_(text, line, begidx)
 
     # Completion hooks
 
