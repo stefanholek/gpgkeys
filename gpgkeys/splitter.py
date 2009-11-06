@@ -279,12 +279,10 @@ def splitpipe(tokens):
     """Return two tuples: The first tuple contains tokens found before
     the first shell redirect, the second contains the remaining tokens.
     """
-    first = tokens
-    second = ()
     for i in range(len(tokens)):
         if tokens[i].type == T_SHELL:
-            first, second = tokens[:i], tokens[i:]
-    return first, second
+            return tokens[:i], tokens[i:]
+    return tokens, ()
 
 
 def closequote(tokens):
