@@ -15,10 +15,11 @@ While probably not very interesting in itself, it serves as example
 application and testbed for the development of the rl_ library.
 
 In particular, gpgkeys contains a sophisticated implementation of
-**filename completion**, which may one day find its way into a standalone
+`filename completion`_, which may one day find its way into a standalone
 package or rl_ add-on.
 
 .. _rl: http://pypi.python.org/pypi/rl
+.. _`filename completion`: http://github.com/stefanholek/gpgkeys/tree/master/gpgkeys/completions
 
 Repository Access
 -----------------
