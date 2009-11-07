@@ -222,7 +222,7 @@ class FilenameCompletion(object):
     """Encapsulate filename completion strategies
     """
 
-    def __init__(self, do_log=False, quote_char='\\'):
+    def __init__(self, quote_char='\\', do_log=False):
         if quote_char == '"':
             self._strategy = FilenameCompletionStrategy(do_log)
         elif quote_char == "'":

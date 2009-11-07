@@ -336,8 +336,8 @@ class GPGKeys(cmd.Cmd):
     # Completions
 
     def init_completer(self, do_log=False):
-        self.completefilename = FilenameCompletion(do_log)
-        self.completecommand = CommandCompletion(do_log)
+        self.completefilename = FilenameCompletion(do_log=do_log)
+        self.completecommand = CommandCompletion(do_log=do_log)
         self.completekeyid = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
         completer.word_break_hook = self.word_break_hook
