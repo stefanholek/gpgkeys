@@ -231,7 +231,7 @@ def split(line):
             j = i+1
         elif c in DIGITS:
             # Digits are not word break characters; they must
-            # be preceded by word break characters to trigger.
+            # be preceded by a word break character to trigger.
             if i == 0 or (s[i-1] in WORDBREAKCHARS and not char_is_quoted(s, i-1)):
                 j = i
                 while s[i+1] in DIGITS:
