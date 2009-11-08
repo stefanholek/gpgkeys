@@ -290,12 +290,6 @@ class GPGKeys(cmd.Cmd):
 
     # Shell commands
 
-    def shell_ls(self, *args):
-        self.system('ls', '-F', *args)
-
-    def shell_ll(self, *args):
-        self.system('ls', '-lF', *args)
-
     def shell_getdir(self, dir):
         process = subprocess.Popen('cd %s; pwd' % dir,
             shell=True, stdout=subprocess.PIPE)
@@ -303,6 +297,12 @@ class GPGKeys(cmd.Cmd):
         if process.returncode == 0:
             for line in stdout.strip().split('\n'):
                 return line
+
+    def shell_ls(self, *args):
+        self.system('ls', '-F', *args)
+
+    def shell_ll(self, *args):
+        self.system('ls', '-lF', *args)
 
     def shell_chdir(self, *args):
         if args:
@@ -382,7 +382,7 @@ class GPGKeys(cmd.Cmd):
         # True if the completion is anywhere after a shell redirect
         return scan_unquoted(line, begidx, ('|', '>', '<')) >= 0
 
-    def basecomplete(self, text, line, begidx, default):
+    def basecomplete(self, default, text, line, begidx):
         if self.pipepos(line, begidx):
             if not self.isfilename(text):
                 return self.completecommand(text)
@@ -394,22 +394,13 @@ class GPGKeys(cmd.Cmd):
     def completeoption(self, text, options):
         return [x for x in options if x.startswith(text)]
 
-    def completefilename_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completefilename)
-
-    def completekeyid_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completekeyid)
-
-    def completedefault_(self, text, line, begidx):
-        return self.basecomplete(text, line, begidx, self.completedefault)
-
     # Completion grid
 
     def complete_genkey(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + EXPERT
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completedefault_(text, line, begidx)
+        return self.basecomplete(self.completedefault, text, line, begidx)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + OUTPUT
@@ -417,13 +408,13 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
             return self.completefilename(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT + SECRET
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completefilename_(text, line, begidx)
+        return self.basecomplete(self.completefilename, text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
         options = GLOBAL + OUTPUT + SECRET
@@ -431,13 +422,13 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
             return self.completefilename(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_list(self, text, line, begidx, endidx):
         options = GLOBAL + LIST + SECRET
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_ls(self, text, line, begidx, endidx):
         return self.complete_list(text, line, begidx, endidx)
@@ -446,7 +437,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + LIST
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_ll(self, text, line, begidx, endidx):
         return self.complete_listsig(text, line, begidx, endidx)
@@ -455,7 +446,7 @@ class GPGKeys(cmd.Cmd):
         options = GLOBAL + LIST + CHECK
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_edit(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN + EXPERT
@@ -463,7 +454,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
             return self.completekeyid(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_e(self, text, line, begidx, endidx):
         return self.complete_edit(text, line, begidx, endidx)
@@ -474,7 +465,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
             return self.completekeyid(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_sign(self, text, line, begidx, endidx):
         options = GLOBAL + KEY + SIGN
@@ -482,13 +473,13 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--local-user', line, begidx):
             return self.completekeyid(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_del(self, text, line, begidx, endidx):
         options = GLOBAL + SECRET + ALL
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
@@ -496,7 +487,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
             return self.completekeyserver(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_recv(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
@@ -504,7 +495,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
             return self.completekeyserver(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_send(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER
@@ -512,7 +503,7 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
             return self.completekeyserver(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_refresh(self, text, line, begidx, endidx):
         options = GLOBAL + SERVER + INPUT
@@ -520,25 +511,25 @@ class GPGKeys(cmd.Cmd):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
             return self.completekeyserver(text)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_fetch(self, text, line, begidx, endidx):
         options = GLOBAL + INPUT
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completedefault_(text, line, begidx)
+        return self.basecomplete(self.completedefault, text, line, begidx)
 
     def complete_dump(self, text, line, begidx, endidx):
         options = GLOBAL + SECRET
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completekeyid_(text, line, begidx)
+        return self.basecomplete(self.completekeyid, text, line, begidx)
 
     def complete_fdump(self, text, line, begidx, endidx):
         options = GLOBAL
         if self.isoption(text):
             return self.completeoption(text, options)
-        return self.completefilename_(text, line, begidx)
+        return self.basecomplete(self.completefilename, text, line, begidx)
 
     def complete_shell(self, text, line, begidx, endidx):
         options = GLOBAL
@@ -547,14 +538,14 @@ class GPGKeys(cmd.Cmd):
         if self.commandpos(line, begidx):
             if not self.isfilename(text):
                 return self.completecommand(text)
-        return self.completefilename_(text, line, begidx)
+        return self.basecomplete(self.completefilename, text, line, begidx)
 
     # Completion hooks
 
     @print_exc
     def word_break_hook(self, begidx, endidx):
-        # If we are completing '.<command>' make '.' a word break
-        # character. Same for '!'.
+        # When completing '.<command>' make '.' a word break character.
+        # Ditto for '!'.
         origline = completion.line_buffer
         line = origline.lstrip()
         if line[0] in ('!', '.') and line[0] not in completer.word_break_characters:
@@ -586,45 +577,40 @@ class GPGKeys(cmd.Cmd):
                  'e':  'edit'}
 
     def expandshortcut(self, arg):
-        if self.shortcuts.has_key(arg):
-            arg = self.shortcuts.get(arg)
-        return arg
+        return self.shortcuts.get(arg, arg)
 
     def do_help(self, arg):
         """Interactive help (Usage: help <topic>)"""
         if arg:
             arg = self.expandshortcut(arg)
             try:
-                func = getattr(self, 'help_' + arg)
+                helpfunc = getattr(self, 'help_' + arg)
             except AttributeError:
                 try:
-                    doc=getattr(self, 'do_' + arg).__doc__
-                    if doc:
-                        doc = str(doc)
-                        lparen = doc.rfind('(')
-                        rparen = doc.rfind(')')
-                        usage = doc[lparen+1:rparen]
-                        doc = doc[:lparen-1]
-
-                        self.stdout.write("%s\n" % usage)
-
-                        opts = []
-                        func = getattr(self, 'complete_' + arg, None)
-                        if func is not None:
-                            opts = func('-', '', 0, 0)
-                            if opts:
-                                opts.sort()
-                                self.stdout.write("Options: %s\n" % ' '.join(opts))
-
-                        self.stdout.write("\n")
-                        self.stdout.write("%s\n" % doc)
-                        self.stdout.write("\n")
-                        return
+                    dofunc = getattr(self, 'do_' + arg)
                 except AttributeError:
                     pass
-                self.stdout.write("%s\n" % str(self.nohelp % (arg,)))
+                else:
+                    doc = dofunc.__doc__.strip()
+                    if doc:
+                        lparen = doc.rfind('(')
+                        rparen = doc.rfind(')')
+                        help = doc[:lparen-1]
+                        usage = doc[lparen+1:rparen]
+
+                        options = []
+                        compfunc = getattr(self, 'complete_' + arg, None)
+                        if compfunc is not None:
+                            options = compfunc('-', '', 0, 0)
+
+                        self.stdout.write("%s\n" % usage)
+                        if options:
+                            self.stdout.write("Options: %s\n" % ' '.join(sorted(options)))
+                        self.stdout.write("\n%s\n\n" % help)
+                        return
+                self.stdout.write("%s\n" % (self.nohelp % (arg,)))
             else:
-                func()
+                helpfunc()
         else:
             cmd.Cmd.do_help(self, '')
 
@@ -657,7 +643,7 @@ def main(args=None):
     try:
         options, args = getopt.getopt(args, 'hv', ('help', 'verbose'))
     except getopt.GetoptError, e:
-        print >>sys.stderr, 'gpgkeys:', e.msg
+        print >>sys.stderr, 'gpgkeys:', e
         return 1
 
     for name, value in options:
