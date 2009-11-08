@@ -5,6 +5,7 @@ import os
 import sys
 import cmd
 import atexit
+import getopt
 import subprocess
 import splitter
 
@@ -649,18 +650,29 @@ def fixmergeonly(args):
 
 def main(args=None):
     verbose = False
+
     if args is None:
         args = sys.argv[1:]
-    if args and args[0] == '-v':
-        verbose = True
-        args = args[1:]
 
-    c = GPGKeys(verbose=verbose)
+    try:
+        options, args = getopt.getopt(args, 'hv', ('help', 'verbose'))
+    except getopt.GetoptError, e:
+        print >>sys.stderr, 'gpgkeys:', e.msg
+        return 1
+
+    for name, value in options:
+        if name in ('-v', '--verbose'):
+            verbose = True
+        if name in ('-h', '--help'):
+            print "Type 'gpgkeys' to start the gpgkeys shell"
+            return 0
+
+    shell = GPGKeys(verbose=verbose)
     if args:
-        c.onecmd(' '.join(args))
+        shell.onecmd(' '.join(args))
     else:
         try:
-            c.cmdloop()
+            shell.cmdloop()
         except KeyboardInterrupt:
             print
             return 1
