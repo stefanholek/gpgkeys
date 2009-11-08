@@ -227,22 +227,22 @@ class GPGKeys(cmd.Cmd):
         self.gnupg(*args)
 
     def do_search(self, args):
-        """Search for keys on the keyserver (Usage: search <keyspec>)"""
+        """Search for keys on a keyserver (Usage: search <keyspec>)"""
         args = split(args)
         self.gnupg('--search-keys', *args)
 
     def do_recv(self, args):
-        """Fetch keys from the keyserver (Usage: recv <keyids>)"""
+        """Fetch keys from a keyserver (Usage: recv <keyids>)"""
         args = fixmergeonly(split(args))
         self.gnupg('--recv-keys', *args)
 
     def do_send(self, args):
-        """Send keys to the keyserver (Usage: send <keyspec>)"""
+        """Send keys to a keyserver (Usage: send <keyspec>)"""
         args = split(args)
         self.gnupg('--send-keys', *args)
 
     def do_refresh(self, args):
-        """Refresh keys from the keyserver (Usage: refresh <keyspec>)"""
+        """Refresh keys from a keyserver (Usage: refresh <keyspec>)"""
         args = fixmergeonly(split(args))
         self.gnupg('--refresh-keys', *args)
 
@@ -252,7 +252,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg('--fetch-keys', *args)
 
     def do_dump(self, args):
-        """Dump packet sequence of a key (Usage: dump <keyspec>)"""
+        """List the packet sequence of a key (Usage: dump <keyspec>)"""
         mine, rest = splitpipe(split(args))
         args = ('--export',)
         if '--secret' in mine:
@@ -262,7 +262,7 @@ class GPGKeys(cmd.Cmd):
         self.gnupg(*args)
 
     def do_fdump(self, args):
-        """Dump packet sequence stored in a file (Usage: fdump <filename>)"""
+        """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
         args = split(args)
         self.gnupg('--list-packets', *args)
 
