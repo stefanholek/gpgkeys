@@ -38,5 +38,6 @@ Once rl is installed, type::
 
     /path/to/easy_install gpgkeys
 
-and bask in the glow.
+to install the gpgkeys script. Then put it on your system PATH by e.g.
+symlinking it to ``/usr/local/bin``.
 
