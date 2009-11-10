@@ -272,6 +272,8 @@ def split(line):
 
     if end > j:
         append(j, end, T_WORD, E_NONE)
+        if quote_char:
+            tokens[-1] += quote_char
     return tuple(tokens)
 
 
@@ -283,19 +285,4 @@ def splitpipe(tokens):
         if tokens[i].type == T_SHELL:
             return tokens[:i], tokens[i:]
     return tokens, ()
-
-
-def closequote(tokens):
-    """If the last token ends with an open quote, close it.
-    """
-    if tokens:
-        last = tokens[-1]
-        if last and last.type == T_WORD:
-            if last[0] == '"' and last[-1] != '"':
-                last += '"'
-                tokens = tokens[:-1] + (last,)
-            elif last[0] == "'" and last[-1] != "'":
-                last += "'"
-                tokens = tokens[:-1] + (last,)
-    return tokens
 
