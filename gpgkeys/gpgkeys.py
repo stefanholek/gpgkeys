@@ -34,7 +34,6 @@ from .config import LOGGING
 GLOBAL = []
 KEY    = ['--openpgp']
 SIGN   = ['--local-user']
-CHECK  = [] #['--trusted-key']
 LIST   = ['--fingerprint', '--with-colons']
 INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
@@ -445,7 +444,7 @@ class GPGKeys(cmd.Cmd):
         return self.complete_listsig(text, line, begidx, endidx)
 
     def complete_checksig(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST + CHECK
+        options = GLOBAL + LIST
         if self.isoption(text):
             return self.completeoption(text, options)
         return self.basecomplete(self.completekeyid, text, line, begidx)
