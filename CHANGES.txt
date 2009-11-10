@@ -4,6 +4,9 @@ Changelog
 1.0.1 - Unreleased
 ------------------
 
+- Use absolute_import from the __future__.
+  [stefan]
+
 
 1.0 - 2009-11-08
 ----------------

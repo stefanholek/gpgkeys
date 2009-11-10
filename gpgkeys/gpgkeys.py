@@ -1,13 +1,14 @@
 # gpgkeys
 #
 
+from __future__ import absolute_import
+
 import os
 import sys
 import cmd
 import atexit
 import getopt
 import subprocess
-import splitter
 
 from rl import completer
 from rl import completion
@@ -15,19 +16,20 @@ from rl import history
 from rl import readline
 from rl import print_exc
 
-from splitter import scan_unquoted
-from splitter import rscan_unquoted
-from splitter import splitpipe
-from splitter import closequote
+from .splitter import scan_unquoted
+from .splitter import rscan_unquoted
+from .splitter import split as _split
+from .splitter import splitpipe
+from .splitter import closequote
 
-from completions.filename import FilenameCompletion
-from completions.command import CommandCompletion
-from completions.key import KeyCompletion
-from completions.keyserver import KeyserverCompletion
+from .completions.filename import FilenameCompletion
+from .completions.command import CommandCompletion
+from .completions.key import KeyCompletion
+from .completions.keyserver import KeyserverCompletion
 
-from config import GNUPGEXE
-from config import UMASK
-from config import LOGGING
+from .config import GNUPGEXE
+from .config import UMASK
+from .config import LOGGING
 
 GLOBAL = []
 KEY    = ['--openpgp']
@@ -44,7 +46,7 @@ ALL    = ['--all']
 
 def split(args):
     # Always apply closequote transform
-    return closequote(splitter.split(args))
+    return closequote(_split(args))
 
 
 class GPGKeys(cmd.Cmd):
