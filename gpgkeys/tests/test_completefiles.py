@@ -122,6 +122,41 @@ class CompleterTests(JailSetup):
                                        'fdump Mädchen.txt ')
 
 
+class DirectoryCompletionTests(JailSetup):
+
+    def setUp(self):
+        JailSetup.setUp(self)
+        self.mkfiles()
+        self.cmd = GPGKeys()
+        self.cmd.init_completer()
+        self.cmd.completefilename = FilenameCompletion(quote_char='\\')
+        completer.completer = self.cmd.complete
+
+    def mkfiles(self):
+        self.mkdir('funny dir')
+        self.mkfile('funny dir/foo.txt')
+        self.mkfile('funny dir/foo.gif')
+
+    def complete(self, text):
+        completion.line_buffer = text
+        readline.complete_internal(TAB)
+        return completion.line_buffer
+
+    def test_dir_completion(self):
+        self.assertEqual(self.complete('fdump fun'),
+                                       'fdump funny\\ dir/')
+
+    def test_dir_completion_hook(self):
+        self.assertEqual(self.complete('fdump funny\\ dir/f'),
+                                       'fdump funny\\ dir/foo.')
+
+    def test_no_dir_completion_hook(self):
+        # This is why we must have a directory_completion_hook
+        completer.directory_completion_hook = None
+        self.assertEqual(self.complete('fdump funny\\ dir/f'),
+                                       'fdump funny\\ dir/f')
+
+
 class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
