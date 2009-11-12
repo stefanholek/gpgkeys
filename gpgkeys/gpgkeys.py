@@ -16,8 +16,9 @@ from rl import history
 from rl import readline
 from rl import print_exc
 
-from .splitter import scan_unquoted
-from .splitter import rscan_unquoted
+from .scanner import scan_unquoted
+from .scanner import rscan_unquoted
+
 from .splitter import split as _split
 from .splitter import splitpipe
 from .splitter import closequote
