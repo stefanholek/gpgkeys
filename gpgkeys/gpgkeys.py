@@ -570,6 +570,7 @@ class GPGKeys(cmd.Cmd):
                     completion.redisplay(force=True)
                     return
         completion.display_match_list(substitution, matches, max_length)
+        completion.redisplay(force=True)
 
     # Help
 
