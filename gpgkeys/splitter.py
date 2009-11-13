@@ -1,8 +1,6 @@
-from __future__ import absolute_import
-
-from gpgkeys.scanner import WHITESPACE
-from gpgkeys.scanner import QUOTECHARS
-from gpgkeys.scanner import char_is_quoted
+from scanner import WHITESPACE
+from scanner import QUOTECHARS
+from scanner import char_is_quoted
 
 DIGITS = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 SHELL1 = ('>', '<', '|', '&', ';')

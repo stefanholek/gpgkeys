@@ -1,8 +1,6 @@
 # gpgkeys
 #
 
-from __future__ import absolute_import
-
 import os
 import sys
 import cmd
@@ -16,21 +14,21 @@ from rl import history
 from rl import readline
 from rl import print_exc
 
-from .scanner import scan_unquoted
-from .scanner import rscan_unquoted
+from scanner import scan_unquoted
+from scanner import rscan_unquoted
 
-from .splitter import split as _split
-from .splitter import splitpipe
-from .splitter import closequote
+from splitter import split as _split
+from splitter import splitpipe
+from splitter import closequote
 
-from .completions.filename import FilenameCompletion
-from .completions.command import CommandCompletion
-from .completions.key import KeyCompletion
-from .completions.keyserver import KeyserverCompletion
+from completions.filename import FilenameCompletion
+from completions.command import CommandCompletion
+from completions.key import KeyCompletion
+from completions.keyserver import KeyserverCompletion
 
-from .config import GNUPGEXE
-from .config import UMASK
-from .config import LOGGING
+from config import GNUPGEXE
+from config import UMASK
+from config import LOGGING
 
 GLOBAL = []
 KEY    = ['--openpgp']
