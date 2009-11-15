@@ -48,7 +48,13 @@ class Logging(object):
         try:
             f.write(now)
             if kw.get('ruler', False):
-                f.write('\t\t\t 0123456789012345678901234567890123456789012345678901234567890\n')
+                ruler = '0123456789' * 6
+                mark = kw.get('mark')
+                if mark is not None and mark < len(ruler):
+                    ruler = list(ruler)
+                    ruler[mark] = '*'
+                    ruler = ''.join(ruler)
+                f.write('--------\t\t %s\n' % ruler)
                 f.write(now)
             f.write(format % args)
             f.write('\n')
@@ -100,7 +106,7 @@ class FilenameCompletionStrategy(Logging):
 
     @print_exc
     def char_is_quoted(self, text, index):
-        self.log('char_is_quoted\t\t%r %d', text, index, ruler=True)
+        self.log('char_is_quoted\t\t%r %d', text, index, ruler=True, mark=index)
         skip_next = False
         quote_char = ''
         for i in range(index):
