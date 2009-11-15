@@ -59,14 +59,15 @@ class GPGKeys(cmd.Cmd):
 
     nohelp = "gpgkeys: no help on '%s'"
 
-    def __init__(self, completekey='tab', stdin=None, stdout=None, verbose=False):
+    def __init__(self, completekey='tab', stdin=None, stdout=None, quote_char='\\', verbose=False):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
+        self.quote_char = quote_char
         self.verbose = verbose
         os.umask(UMASK)
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer(LOGGING)
+        self.init_completer(self.quote_char, LOGGING)
         self.init_history()
 
     # Overrides
@@ -336,9 +337,9 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
-    def init_completer(self, do_log=False):
-        self.completefilename = FilenameCompletion(do_log=do_log)
-        self.completecommand = CommandCompletion(do_log=do_log)
+    def init_completer(self, quote_char='\\', do_log=False):
+        self.completefilename = FilenameCompletion(quote_char, do_log)
+        self.completecommand = CommandCompletion(do_log)
         self.completekeyid = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
         completer.word_break_hook = self.word_break_hook
@@ -637,24 +638,27 @@ def fixmergeonly(args):
 
 def main(args=None):
     verbose = False
+    quote_char = '\\'
 
     if args is None:
         args = sys.argv[1:]
 
     try:
-        options, args = getopt.getopt(args, 'hv', ('help', 'verbose'))
+        options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose'))
     except getopt.GetoptError, e:
         print >>sys.stderr, 'gpgkeys:', e
         return 1
 
     for name, value in options:
-        if name in ('-v', '--verbose'):
+        if name in ('-q', '--quote-char'):
+            quote_char = value
+        elif name in ('-v', '--verbose'):
             verbose = True
-        if name in ('-h', '--help'):
+        elif name in ('-h', '--help'):
             print "Type 'gpgkeys' to start the gpgkeys shell"
             return 0
 
-    shell = GPGKeys(verbose=verbose)
+    shell = GPGKeys(quote_char=quote_char, verbose=verbose)
     if args:
         shell.onecmd(' '.join(args))
     else:

@@ -7,6 +7,10 @@ Changelog
 - Use absolute_import from the __future__.
   [stefan]
 
+- Allow to specify the filename quoting style on the command line
+  to ease experimentation.
+  [stefan]
+
 
 1.0 - 2009-11-08
 ----------------
