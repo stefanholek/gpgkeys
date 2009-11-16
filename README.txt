@@ -13,7 +13,6 @@ manage GnuPG keys and keyrings.
 
 While probably not very interesting in itself, it serves as example
 application and testbed for the development of the rl_ library.
-
 In particular, gpgkeys contains a sophisticated implementation of
 `filename completion`_, which may one day find its way into a standalone
 package or rl_ add-on.
@@ -31,13 +30,13 @@ gpgkeys development is hosted on github_.
 Installation
 ============
 
-gpgkeys depends on the rl_ library. Since rl_ contains a C extension, it
+gpgkeys depends on the rl_ library. Since rl contains a C extension, it
 is a good idea to install it independently first.
 
 Once rl is installed, type::
 
     /path/to/easy_install gpgkeys
 
-to install the gpgkeys script. Then put it on your system PATH by e.g.
+to install the ``gpgkeys`` script. Then put it on your system PATH by e.g.
 symlinking it to ``/usr/local/bin``.
 
