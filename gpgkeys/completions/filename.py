@@ -85,13 +85,14 @@ class FilenameCompletionStrategy(Logging):
         completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
-        completer.filename_dequoting_function = self.dequote_filename
-        completer.directory_completion_hook = self.dequote_dirname
 
     @print_exc
     def __call__(self, text):
         self.log('complete_filename\t%r', text)
         matches = []
+        # Dequoting early allows us to skip some hooks
+        if completion.found_quote:
+            text = self.dequote_filename(text, completion.quote_character)
         if text.startswith('~') and (os.sep not in text):
             matches = completion.complete_username(text)
         if not matches:
@@ -143,7 +144,7 @@ class FilenameCompletionStrategy(Logging):
             # except single quotes.
             if qc == "'":
                 text = text.replace("'\\''", "'")
-            else:
+            elif '\\' in text:
                 for c in BASH_FILENAME_QUOTE_CHARACTERS:
                     text = text.replace(self.quoted[c], c)
         self.log('dequote_filename\t%r', text)
@@ -160,37 +161,35 @@ class FilenameCompletionStrategy(Logging):
             else:
                 text = text.replace('\\', self.quoted['\\'])
                 text = text.replace(qc, self.quoted[qc])
-            # Don't quote strings if all characters are already
-            # backslash-quoted.
-            check = text
-            if qc != "'" and check and not quote_char:
-                for c in completer.filename_quote_characters:
-                    check = check.replace(self.quoted[c], '')
-                if check:
-                    for c in completer.filename_quote_characters:
-                        if c in check:
-                            break
-                    else:
-                        check = ''
-            # Add leading and trailing quote characters
-            if check:
-                if (single_match and not completion.suppress_quote
-                    and not os.path.isdir(os.path.expanduser(text))):
-                    text = text + qc
+            # Don't add quotes if the filename already is fully quoted
+            if qc == "'" or quote_char or not self.is_fully_quoted(text):
+                if text.startswith('~') and not quote_char:
+                    text = completion.expand_tilde(text)
+                if single_match:
+                    if os.path.isdir(text):
+                        completion.suppress_quote = True
+                    if not completion.suppress_quote:
+                        text = text + qc
                 text = qc + text
         self.log('quote_filename\t\t%r', text)
         return text
 
-    @print_exc
-    def dequote_dirname(self, text):
-        # XXX By using this hook we lose the ability to switch off
-        #     tilde expansion. Bug or feature?
-        self.log("dequote_dirname\t\t%r %r", text, completion.quote_character)
-        saved, self.do_log = self.do_log, False
-        text = self.dequote_filename(text, completion.quote_character)
-        self.do_log = saved
-        self.log('dequote_dirname\t\t%r', text)
-        return text
+    def is_fully_quoted(self, text):
+        # Return true if all filename_quote_characters in text
+        # are backslash-quoted.
+        skip_next = False
+        size = len(text)
+        for i in range(size):
+            c = text[i]
+            if skip_next:
+                skip_next = False
+            elif c == '\\':
+                skip_next = True
+                if i == size-1:
+                    return False
+            elif c in completer.filename_quote_characters:
+                return False
+        return True
 
 
 class ReadlineCompletionStrategy(FilenameCompletionStrategy):

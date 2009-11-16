@@ -8,6 +8,11 @@ Changelog
   to ease experimentation.
   [stefan]
 
+- Filename completion: By dequoting early on we can skip a problematic
+  hook and regain control over tilde expansion. Also see rl `issue/3`_.
+  [stefan]
+
+.. _`issue/3`: http://github.com/stefanholek/rl/issues#issue/3
 
 1.0 - 2009-11-08
 ----------------

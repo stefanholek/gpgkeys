@@ -146,15 +146,46 @@ class DirectoryCompletionTests(JailSetup):
         self.assertEqual(self.complete('fdump fun'),
                                        'fdump funny\\ dir/')
 
-    def test_dir_completion_hook(self):
+    def test_no_dir_completion_hook(self):
+        # The current implementation works without a
+        # directory_completion_hook.
+        completer.directory_completion_hook = None
         self.assertEqual(self.complete('fdump funny\\ dir/f'),
                                        'fdump funny\\ dir/foo.')
 
-    def test_no_dir_completion_hook(self):
-        # This is why we must have a directory_completion_hook
-        completer.directory_completion_hook = None
+    def test_dir_completion_hook(self):
+        # Even if a hook is installed, it never receives a
+        # quoted directory name.
+        called = []
+        def hook(text):
+            called.append((text,))
+            return text
+
+        completer.directory_completion_hook = hook
         self.assertEqual(self.complete('fdump funny\\ dir/f'),
-                                       'fdump funny\\ dir/f')
+                                       'fdump funny\\ dir/foo.')
+        self.assertEqual(called, [('funny dir/',)])
+
+
+class IsFullyQuotedTests(unittest.TestCase):
+
+    def setUp(self):
+        self.cmd = GPGKeys()
+        self.cmd.init_completer()
+        self.cmd.completefilename = FilenameCompletion()
+        self.is_quoted = self.cmd.completefilename.is_fully_quoted
+
+    def test_fully_quoted(self):
+        self.assertEqual(self.is_quoted('foo\\ bar\\"abc\\&'), True)
+
+    def test_fully_quoted_endswith_backslash(self):
+        self.assertEqual(self.is_quoted('foo\\ bar\\"abc\\\\'), True)
+
+    def test_not_fully_quoted(self):
+        self.assertEqual(self.is_quoted('foo&bar'), False)
+
+    def test_not_fully_quoted_endswith_backslash(self):
+        self.assertEqual(self.is_quoted('foo\\&bar\\'), False)
 
 
 class CharIsQuotedTests(unittest.TestCase):
