@@ -573,13 +573,10 @@ class GPGKeys(cmd.Cmd):
                  'll': 'listsig',
                  'e':  'edit'}
 
-    def expandshortcut(self, arg):
-        return self.shortcuts.get(arg, arg)
-
     def do_help(self, arg):
         """Interactive help (Usage: help <topic>)"""
         if arg:
-            arg = self.expandshortcut(arg)
+            arg = self.shortcuts.get(arg, arg)
             try:
                 helpfunc = getattr(self, 'help_' + arg)
             except AttributeError:
