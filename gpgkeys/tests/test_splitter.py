@@ -1,6 +1,6 @@
 import unittest
 
-from gpgkeys.splitter import char_is_quoted
+from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import split
 
 
