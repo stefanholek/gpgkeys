@@ -17,7 +17,7 @@ from rl import print_exc
 from scanner import scan_unquoted
 from scanner import rscan_unquoted
 
-from splitter import split as _split
+from splitter import split as basesplit
 from splitter import splitpipe
 from splitter import closequote
 
@@ -40,11 +40,6 @@ SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
 ALL    = ['--all']
-
-
-def split(args):
-    # Always apply closequote transform
-    return closequote(_split(args))
 
 
 class GPGKeys(cmd.Cmd):
@@ -623,6 +618,11 @@ class GPGKeys(cmd.Cmd):
         history.read_file(histfile)
         history.length = 100
         atexit.register(history.write_file, histfile)
+
+
+def split(args):
+    # Always apply the closequote transform
+    return closequote(basesplit(args))
 
 
 def fixmergeonly(args):
