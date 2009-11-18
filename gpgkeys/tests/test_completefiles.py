@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import os
 import unittest
 
 from rl import completer
 from rl import completion
 from rl import readline
 
-from gpgkeys.gpgkeys import GPGKeys
-from gpgkeys.completions.filename import FilenameCompletion
 from rl.testing import JailSetup
 from rl.testing import reset
+
+from gpgkeys.gpgkeys import GPGKeys
 
 TAB = '\t'
 
@@ -18,12 +17,11 @@ TAB = '\t'
 class CompleterTests(JailSetup):
 
     def setUp(self):
-        reset()
         JailSetup.setUp(self)
         self.mkfiles()
+        reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        self.cmd.completefilename = FilenameCompletion(quote_char='"')
+        self.cmd.init_completer(quote_char='"')
         completer.completer = self.cmd.complete
 
     def mkfiles(self):
@@ -127,12 +125,11 @@ class CompleterTests(JailSetup):
 class DirectoryCompletionTests(JailSetup):
 
     def setUp(self):
-        reset()
         JailSetup.setUp(self)
         self.mkfiles()
+        reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        self.cmd.completefilename = FilenameCompletion(quote_char='\\')
+        self.cmd.init_completer(quote_char='\\')
         completer.completer = self.cmd.complete
 
     def mkfiles(self):
@@ -175,8 +172,7 @@ class IsFullyQuotedTests(unittest.TestCase):
     def setUp(self):
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        self.cmd.completefilename = FilenameCompletion()
+        self.cmd.init_completer(quote_char='\\')
         self.is_quoted = self.cmd.completefilename.is_fully_quoted
 
     def test_fully_quoted(self):
@@ -197,8 +193,7 @@ class CharIsQuotedTests(unittest.TestCase):
     def setUp(self):
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        self.cmd.completefilename = FilenameCompletion(quote_char='"')
+        self.cmd.init_completer(quote_char='"')
         self.is_quoted = self.cmd.completefilename.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):
