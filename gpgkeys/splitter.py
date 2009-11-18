@@ -186,16 +186,6 @@ def split(line):
     return tuple(tokens)
 
 
-def splitpipe(tokens):
-    """Return two tuples: The first tuple contains tokens found before
-    the first shell redirect, the second contains the remaining tokens.
-    """
-    for i in range(len(tokens)):
-        if tokens[i].type == T_SHELL:
-            return tokens[:i], tokens[i:]
-    return tokens, ()
-
-
 def closequote(tokens):
     """If the last token ends with an open quote, close it.
     """
@@ -209,4 +199,13 @@ def closequote(tokens):
                 last += "'"
                 tokens = tokens[:-1] + (last,)
     return tokens
+
+
+def splitpipe(tokens):
+    """Split tokens at the first shell redirect.
+    """
+    for i in range(len(tokens)):
+        if tokens[i].type == T_SHELL:
+            return tokens[:i], tokens[i:]
+    return tokens, ()
 
