@@ -10,6 +10,7 @@ from rl import readline
 from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.completions.filename import FilenameCompletion
 from rl.testing import JailSetup
+from rl.testing import reset
 
 TAB = '\t'
 
@@ -17,6 +18,7 @@ TAB = '\t'
 class CompleterTests(JailSetup):
 
     def setUp(self):
+        reset()
         JailSetup.setUp(self)
         self.mkfiles()
         self.cmd = GPGKeys()
@@ -125,6 +127,7 @@ class CompleterTests(JailSetup):
 class DirectoryCompletionTests(JailSetup):
 
     def setUp(self):
+        reset()
         JailSetup.setUp(self)
         self.mkfiles()
         self.cmd = GPGKeys()
@@ -170,6 +173,7 @@ class DirectoryCompletionTests(JailSetup):
 class IsFullyQuotedTests(unittest.TestCase):
 
     def setUp(self):
+        reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         self.cmd.completefilename = FilenameCompletion()
@@ -191,6 +195,7 @@ class IsFullyQuotedTests(unittest.TestCase):
 class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
+        reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         self.cmd.completefilename = FilenameCompletion(quote_char='"')
