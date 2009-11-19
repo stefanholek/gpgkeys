@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+from rl import completion
 from rl import print_exc
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
@@ -20,29 +21,21 @@ class KeyCompletion(object):
         self.keyspecs = {}
 
     @print_exc
-    def __call__(self, text, keyids_only=True):
+    def __call__(self, text):
         self.update_keys()
         text = text.upper()
         matches = [x for x in self.keyspecs.iterkeys() if x.startswith(text)]
-        if len(matches) == 1:
-            if keyids_only:
-                return [x[0] for x in self.keyspecs[matches[0]]]
-            else:
-                return ['%s "%s"' % x for x in self.keyspecs[matches[0]]]
+        if completion.completion_type == '?':
+            return ['%s %s' % self.keyspecs[x] for x in matches]
         return matches
 
     def update_keys(self):
         mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
         if self.mtimes != mtimes:
             keyspecs = {}
-            def append(key, value):
-                keyspecs.setdefault(key, [])
-                keyspecs[key].append(value)
-
             for keyid, userid in self.read_keys():
                 keyid = keyid[8:]
-                info = (keyid, userid)
-                append('%s %s' % info, info)
+                keyspecs[keyid] = (keyid, userid)
             self.mtimes = mtimes
             self.keyspecs = keyspecs
 
