@@ -212,7 +212,7 @@ class BashCompletionStrategy(FilenameCompletionStrategy):
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
         # If the user has typed a quote character, use it.
-        if quote_char and quote_char in completer.quote_characters:
+        if quote_char:
             return FilenameCompletionStrategy.quote_filename(self, text, single_match, quote_char)
         # If not, default to backslash quoting.
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
