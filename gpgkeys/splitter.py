@@ -39,6 +39,10 @@ class Token(str):
         ob.expect = expect
         return ob
 
+    def __add__(self, string):
+        s = str.__add__(self, string)
+        return Token(s, self.start, self.end, self.type, self.expect)
+
 
 def split(line):
     """Return a tuple of tokens found in line.
@@ -193,11 +197,9 @@ def closequote(tokens):
         last = tokens[-1]
         if last and last.type == T_WORD:
             if last[0] == '"' and last[-1] != '"':
-                last += '"'
-                tokens = tokens[:-1] + (last,)
+                tokens = tokens[:-1] + (last+'"',)
             elif last[0] == "'" and last[-1] != "'":
-                last += "'"
-                tokens = tokens[:-1] + (last,)
+                tokens = tokens[:-1] + (last+"'",)
     return tokens
 
 
