@@ -18,15 +18,109 @@ MY_QUOTE_CHARACTERS = "\"'"
 MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
 MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
 
+QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
-def compose(s):
+
+def compose(text):
     """Return fully composed UTF-8."""
-    return normalize('NFC', s.decode('utf-8')).encode('utf-8')
+    return normalize('NFC', text.decode('utf-8')).encode('utf-8')
 
 
-def decompose(s):
+def decompose(text):
     """Return fully decomposed UTF-8 for HFS Plus."""
-    return normalize('NFD', s.decode('utf-8')).encode('utf-8')
+    return normalize('NFD', text.decode('utf-8')).encode('utf-8')
+
+
+def char_is_quoted(text, index):
+    """Return true if the character at index is quoted."""
+    skip_next = False
+    quote_char = ''
+    for i in range(index):
+        c = text[i]
+        if skip_next:
+            skip_next = False
+        elif quote_char != "'" and c == '\\':
+            skip_next = True
+            if i == index-1:
+                return True
+        elif quote_char != '':
+            if c == quote_char:
+                quote_char = ''
+        elif c in completer.quote_characters:
+            quote_char = c
+    # A closing quote character is never quoted
+    if index < len(text) and text[index] == quote_char:
+        return False
+    if quote_char:
+        return True
+    return False
+
+
+def is_fully_quoted(text):
+    """Return true if all filename_quote_characters in text
+    are backslash-quoted."""
+    skip_next = False
+    size = len(text)
+    for i in range(size):
+        c = text[i]
+        if skip_next:
+            skip_next = False
+        elif c == '\\':
+            skip_next = True
+            if i == size-1:
+                return False
+        elif c in completer.filename_quote_characters:
+            return False
+    return True
+
+
+def dequote_filename(text, quote_char):
+    """Return a dequoted version of text."""
+    if len(text) > 1:
+        qc = quote_char or completer.quote_characters[0]
+        # Don't backslash-dequote characters between single quotes,
+        # except single quotes.
+        if qc == "'":
+            text = text.replace("'\\''", "'")
+        elif '\\' in text:
+            for c in BASH_FILENAME_QUOTE_CHARACTERS:
+                text = text.replace(QUOTED[c], c)
+    return text
+
+
+def quote_filename(text, single_match, quote_char):
+    """Return a quoted version of text."""
+    if text:
+        qc = quote_char or completer.quote_characters[0]
+        # Don't backslash-quote backslashes between single quotes
+        if qc == "'":
+            text = text.replace("'", "'\\''")
+        else:
+            text = text.replace('\\', QUOTED['\\'])
+            text = text.replace(qc, QUOTED[qc])
+        # Don't add quotes if the filename already is fully quoted
+        if qc == "'" or quote_char or not is_fully_quoted(text):
+            if text.startswith('~') and not quote_char:
+                text = completion.expand_tilde(text)
+            if single_match:
+                if os.path.isdir(text):
+                    completion.suppress_quote = True
+                if not completion.suppress_quote:
+                    text = text + qc
+            text = qc + text
+    return text
+
+
+def backslash_quote_filename(text, single_match, quote_char):
+    """Return a (backslash) quoted version of text."""
+    if text:
+        # If the user has typed a quote character, use it.
+        if quote_char:
+            text = quote_filename(text, single_match, quote_char)
+        else:
+            for c in completer.filename_quote_characters:
+                text = text.replace(c, QUOTED[c])
+    return text
 
 
 class Logging(object):
@@ -76,7 +170,6 @@ class FilenameCompletionStrategy(Logging):
 
     def __init__(self, do_log=False):
         Logging.__init__(self, do_log)
-        self.quoted = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
         self.configure()
 
     def configure(self):
@@ -108,88 +201,23 @@ class FilenameCompletionStrategy(Logging):
     @print_exc
     def char_is_quoted(self, text, index):
         self.log('char_is_quoted\t\t%r %d', text, index, ruler=True, mark=index)
-        skip_next = False
-        quote_char = ''
-        for i in range(index):
-            c = text[i]
-            if skip_next:
-                skip_next = False
-            elif quote_char != "'" and c == '\\':
-                skip_next = True
-                if i == index-1:
-                    self.log('char_is_quoted\t\tTrue1')
-                    return True
-            elif quote_char != '':
-                if c == quote_char:
-                    quote_char = ''
-            elif c in completer.quote_characters:
-                quote_char = c
-        # A closing quote character is never quoted
-        if index < len(text) and text[index] == quote_char:
-            self.log('char_is_quoted\t\tFalse1')
-            return False
-        # Return true if we have an open quote character
-        if quote_char:
-            self.log('char_is_quoted\t\tTrue2')
-            return True
-        self.log('char_is_quoted\t\tFalse2')
-        return False
+        quoted = char_is_quoted(text, index)
+        self.log('char_is_quoted\t\t%s', quoted)
+        return quoted
 
     @print_exc
     def dequote_filename(self, text, quote_char):
         self.log('dequote_filename\t%r %r', text, quote_char)
-        if len(text) > 1:
-            qc = quote_char or completer.quote_characters[0]
-            # Don't backslash-dequote characters between single quotes,
-            # except single quotes.
-            if qc == "'":
-                text = text.replace("'\\''", "'")
-            elif '\\' in text:
-                for c in BASH_FILENAME_QUOTE_CHARACTERS:
-                    text = text.replace(self.quoted[c], c)
+        text = dequote_filename(text, quote_char)
         self.log('dequote_filename\t%r', text)
         return text
 
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
-        if text:
-            qc = quote_char or completer.quote_characters[0]
-            # Don't backslash-quote backslashes between single quotes
-            if qc == "'":
-                text = text.replace("'", "'\\''")
-            else:
-                text = text.replace('\\', self.quoted['\\'])
-                text = text.replace(qc, self.quoted[qc])
-            # Don't add quotes if the filename already is fully quoted
-            if qc == "'" or quote_char or not self.is_fully_quoted(text):
-                if text.startswith('~') and not quote_char:
-                    text = completion.expand_tilde(text)
-                if single_match:
-                    if os.path.isdir(text):
-                        completion.suppress_quote = True
-                    if not completion.suppress_quote:
-                        text = text + qc
-                text = qc + text
+        text = quote_filename(text, single_match, quote_char)
         self.log('quote_filename\t\t%r', text)
         return text
-
-    def is_fully_quoted(self, text):
-        # Return true if all filename_quote_characters in text
-        # are backslash-quoted.
-        skip_next = False
-        size = len(text)
-        for i in range(size):
-            c = text[i]
-            if skip_next:
-                skip_next = False
-            elif c == '\\':
-                skip_next = True
-                if i == size-1:
-                    return False
-            elif c in completer.filename_quote_characters:
-                return False
-        return True
 
 
 class ReadlineCompletionStrategy(FilenameCompletionStrategy):
@@ -211,14 +239,8 @@ class BashCompletionStrategy(FilenameCompletionStrategy):
 
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
-        # If the user has typed a quote character, use it.
-        if quote_char:
-            return FilenameCompletionStrategy.quote_filename(self, text, single_match, quote_char)
-        # If not, default to backslash quoting.
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
-        if text:
-            for c in completer.filename_quote_characters:
-                text = text.replace(c, self.quoted[c])
+        text = backslash_quote_filename(text, single_match, quote_char)
         self.log('quote_filename\t\t%r', text)
         return text
 

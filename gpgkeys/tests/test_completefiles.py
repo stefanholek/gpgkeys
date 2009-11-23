@@ -10,6 +10,7 @@ from rl.testing import JailSetup
 from rl.testing import reset
 
 from gpgkeys.gpgkeys import GPGKeys
+from gpgkeys.completions.filename import is_fully_quoted
 
 TAB = '\t'
 
@@ -169,23 +170,17 @@ class DirectoryCompletionTests(JailSetup):
 
 class IsFullyQuotedTests(unittest.TestCase):
 
-    def setUp(self):
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer(quote_char='\\')
-        self.is_quoted = self.cmd.completefilename.is_fully_quoted
-
     def test_fully_quoted(self):
-        self.assertEqual(self.is_quoted('foo\\ bar\\"abc\\&'), True)
+        self.assertEqual(is_fully_quoted('foo\\ bar\\"abc\\&'), True)
 
     def test_fully_quoted_endswith_backslash(self):
-        self.assertEqual(self.is_quoted('foo\\ bar\\"abc\\\\'), True)
+        self.assertEqual(is_fully_quoted('foo\\ bar\\"abc\\\\'), True)
 
     def test_not_fully_quoted(self):
-        self.assertEqual(self.is_quoted('foo&bar'), False)
+        self.assertEqual(is_fully_quoted('foo&bar'), False)
 
     def test_not_fully_quoted_endswith_backslash(self):
-        self.assertEqual(self.is_quoted('foo\\&bar\\'), False)
+        self.assertEqual(is_fully_quoted('foo\\&bar\\'), False)
 
 
 class CharIsQuotedTests(unittest.TestCase):
