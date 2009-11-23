@@ -6,6 +6,7 @@ import sys
 import cmd
 import atexit
 import getopt
+import locale
 import subprocess
 
 from rl import completer
@@ -29,6 +30,8 @@ from completions.keyserver import KeyserverCompletion
 from config import GNUPGEXE
 from config import UMASK
 from config import LOGGING
+
+locale.setlocale(locale.LC_ALL, '')
 
 GLOBAL = []
 KEY    = ['--openpgp']
