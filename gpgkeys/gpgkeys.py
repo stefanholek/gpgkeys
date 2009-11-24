@@ -19,8 +19,8 @@ from scanner import scan_unquoted
 from scanner import rscan_unquoted
 
 from splitter import split as basesplit
-from splitter import splitpipe
 from splitter import closequote
+from splitter import splitpipe
 
 from completions.filename import FilenameCompletion
 from completions.command import CommandCompletion
@@ -629,8 +629,7 @@ def fixmergeonly(args):
     # gpg: WARNING: "--merge-only" is a deprecated option
     # gpg: please use "--import-options merge-only" instead
     for i in range(len(args)):
-        a = args[i]
-        if a == '--merge-only':
+        if args[i] == '--merge-only':
             args = args[:i] + ('--import-options', 'merge-only') + args[i+1:]
             break
     return args
