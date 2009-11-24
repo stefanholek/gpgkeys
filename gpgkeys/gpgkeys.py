@@ -8,6 +8,7 @@ import atexit
 import getopt
 import locale
 import subprocess
+import pkg_resources
 
 from rl import completer
 from rl import completion
@@ -31,6 +32,7 @@ from config import GNUPGEXE
 from config import UMASK
 
 locale.setlocale(locale.LC_ALL, '')
+__version__ = pkg_resources.get_distribution('gpgkeys').version
 
 GLOBAL = []
 KEY    = ['--openpgp']
@@ -48,7 +50,7 @@ class GPGKeys(cmd.Cmd):
     """Cmd interface for GnuPG with advanced completion capabilities.
     """
 
-    intro = 'gpgkeys 1.0 (type help for help)\n'
+    intro = 'gpgkeys %s (type help for help)\n' % __version__
     prompt = 'gpgkeys> '
 
     doc_header = 'Available commands (type help <topic>):'
