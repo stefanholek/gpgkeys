@@ -1,7 +1,7 @@
 import os
 
 from rl import print_exc
-from gpgkeys.completions.filename import Logging
+from gpgkeys.completions.logging import Logging
 
 
 class CommandCompletion(Logging):

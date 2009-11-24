@@ -1,12 +1,13 @@
 import os
 import sys
 
-from datetime import datetime
 from unicodedata import normalize
 
 from rl import completer
 from rl import completion
 from rl import print_exc
+
+from gpgkeys.completions.logging import Logging
 
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
@@ -121,39 +122,6 @@ def backslash_quote_filename(text, single_match, quote_char):
             for c in completer.filename_quote_characters:
                 text = text.replace(c, QUOTED[c])
     return text
-
-
-class Logging(object):
-    """Simple logging for filename completion
-    """
-
-    def __init__(self, do_log=False):
-        self.do_log = do_log
-        self.log_file = os.path.abspath('gpgkeys.log')
-
-    def log(self, format, *args, **kw):
-        if not self.do_log:
-            return
-
-        now = datetime.now().isoformat()[:19]
-        now = '%s %s\t' % (now[:10], now[11:])
-
-        f = open(self.log_file, 'at')
-        try:
-            f.write(now)
-            if kw.get('ruler', False):
-                ruler = '0123456789' * 6
-                mark = kw.get('mark')
-                if mark is not None and mark < len(ruler):
-                    ruler = list(ruler)
-                    ruler[mark] = '*'
-                    ruler = ''.join(ruler)
-                f.write('--------\t\t %s\n' % ruler)
-                f.write(now)
-            f.write(format % args)
-            f.write('\n')
-        finally:
-            f.close()
 
 
 class FilenameCompletionStrategy(Logging):
