@@ -29,7 +29,6 @@ from completions.keyserver import KeyserverCompletion
 
 from config import GNUPGEXE
 from config import UMASK
-from config import LOGGING
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -57,15 +56,17 @@ class GPGKeys(cmd.Cmd):
 
     nohelp = "gpgkeys: no help on '%s'"
 
-    def __init__(self, completekey='tab', stdin=None, stdout=None, quote_char='\\', verbose=False):
+    def __init__(self, completekey='tab', stdin=None, stdout=None,
+                 quote_char='\\', verbose=False, logging=False):
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         self.quote_char = quote_char
         self.verbose = verbose
+        self.logging = logging
         os.umask(UMASK)
 
     def preloop(self):
         cmd.Cmd.preloop(self)
-        self.init_completer(self.quote_char, LOGGING)
+        self.init_completer(self.quote_char, self.logging)
         self.init_history()
 
     # Overrides
@@ -335,9 +336,9 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
-    def init_completer(self, quote_char='\\', do_log=False):
-        self.completefilename = FilenameCompletion(quote_char, do_log)
-        self.completecommand = CommandCompletion(do_log)
+    def init_completer(self, quote_char='\\', logging=False):
+        self.completefilename = FilenameCompletion(quote_char, logging)
+        self.completecommand = CommandCompletion(logging)
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
         completer.word_break_hook = self.word_break_hook
@@ -636,14 +637,15 @@ def fixmergeonly(args):
 
 
 def main(args=None):
-    verbose = False
     quote_char = '\\'
+    verbose = False
+    logging = False
 
     if args is None:
         args = sys.argv[1:]
 
     try:
-        options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose'))
+        options, args = getopt.getopt(args, 'hlq:v', ('help', 'logging', 'quote-char=', 'verbose'))
     except getopt.GetoptError, e:
         print >>sys.stderr, 'gpgkeys:', e
         return 1
@@ -653,11 +655,13 @@ def main(args=None):
             quote_char = value
         elif name in ('-v', '--verbose'):
             verbose = True
+        elif name in ('-l', '--logging'):
+            logging = True
         elif name in ('-h', '--help'):
             print "Type 'gpgkeys' to start the gpgkeys shell"
             return 0
 
-    shell = GPGKeys(quote_char=quote_char, verbose=verbose)
+    shell = GPGKeys(quote_char=quote_char, verbose=verbose, logging=logging)
     if args:
         shell.onecmd(' '.join(args))
     else:
