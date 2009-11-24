@@ -4,6 +4,13 @@ Changelog
 1.2 - Unreleased
 ----------------
 
+- Extend keyid completion to also complete userids and names.
+  [stefan]
+
+- Extract filename completion functionality into functions,
+  as it is useful in other places as well.
+  [stefan]
+
 
 1.1 - 2009-11-16
 ----------------
