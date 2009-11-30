@@ -218,12 +218,16 @@ class FilenameCompletion(object):
     """
 
     def __init__(self, quote_char='\\', do_log=False):
+        self.do_log = do_log
+        self.configure(quote_char)
+
+    def configure(self, quote_char):
         if quote_char == '"':
-            self._strategy = FilenameCompletionStrategy(do_log)
+            self._strategy = FilenameCompletionStrategy(self.do_log)
         elif quote_char == "'":
-            self._strategy = ReadlineCompletionStrategy(do_log)
+            self._strategy = ReadlineCompletionStrategy(self.do_log)
         else:
-            self._strategy = BashCompletionStrategy(do_log)
+            self._strategy = BashCompletionStrategy(self.do_log)
 
     def __call__(self, text):
         return self._strategy(text)
