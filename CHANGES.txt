@@ -4,6 +4,10 @@ Changelog
 1.3 - Unreleased
 ----------------
 
+- Cut down on infrastructure slack in filename completion. The
+  individual strategies are very small.
+  [stefan]
+
 
 1.2 - 2009-11-24
 ----------------

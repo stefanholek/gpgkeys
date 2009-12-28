@@ -124,28 +124,28 @@ def backslash_quote_filename(text, single_match, quote_char):
     return text
 
 
-class FilenameCompletionStrategy(Logging):
+class FilenameCompletion(Logging):
     """Perform filename completion
 
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
-
-    Quote characters are double quote and single quote.
-    Prefers double-quote quoting over backslash quoting.
-    Word break characters are quoted with backslashes when needed.
-    Backslash quoting is disabled between single quotes.
     """
 
-    def __init__(self, do_log=False):
+    def __init__(self, quote_char='\\', do_log=False):
         Logging.__init__(self, do_log)
-        self.configure()
+        self.configure(quote_char)
 
-    def configure(self):
+    def configure(self, quote_char):
         completer.quote_characters = MY_QUOTE_CHARACTERS
         completer.word_break_characters = MY_WORD_BREAK_CHARACTERS
         completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
+
+        if quote_char == "'":
+            completer.quote_characters = BASH_QUOTE_CHARACTERS
+        elif quote_char == '\\':
+            completer.filename_quoting_function = self.backslash_quote_filename
 
     @print_exc
     def __call__(self, text):
@@ -187,51 +187,10 @@ class FilenameCompletionStrategy(Logging):
         self.log('quote_filename\t\t%r', text)
         return text
 
-
-class ReadlineCompletionStrategy(FilenameCompletionStrategy):
-    """Perform filename completion
-
-    Prefers single-quote quoting which is the readline default.
-    """
-
-    def configure(self):
-        FilenameCompletionStrategy.configure(self)
-        completer.quote_characters = BASH_QUOTE_CHARACTERS
-
-
-class BashCompletionStrategy(FilenameCompletionStrategy):
-    """Perform filename completion
-
-    Prefers backslash quoting a la bash.
-    """
-
     @print_exc
-    def quote_filename(self, text, single_match, quote_char):
+    def backslash_quote_filename(self, text, single_match, quote_char):
         self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
         text = backslash_quote_filename(text, single_match, quote_char)
         self.log('quote_filename\t\t%r', text)
         return text
-
-
-class FilenameCompletion(object):
-    """Encapsulate filename completion strategies
-    """
-
-    def __init__(self, quote_char='\\', do_log=False):
-        self.do_log = do_log
-        self.configure(quote_char)
-
-    def configure(self, quote_char):
-        if quote_char == '"':
-            self._strategy = FilenameCompletionStrategy(self.do_log)
-        elif quote_char == "'":
-            self._strategy = ReadlineCompletionStrategy(self.do_log)
-        else:
-            self._strategy = BashCompletionStrategy(self.do_log)
-
-    def __call__(self, text):
-        return self._strategy(text)
-
-    def __getattr__(self, name):
-        return getattr(self._strategy, name)
 
