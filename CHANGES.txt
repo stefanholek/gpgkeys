@@ -8,6 +8,9 @@ Changelog
   individual strategies are very small.
   [stefan]
 
+- Add example session to README.
+  [stefan]
+
 
 1.2 - 2009-11-24
 ----------------
