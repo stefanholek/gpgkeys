@@ -7,8 +7,6 @@ from rl import completer
 from rl import completion
 from rl import print_exc
 
-from gpgkeys.completions.logging import Logging
-
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
 BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><;|&=(:"
@@ -124,15 +122,14 @@ def backslash_quote_filename(text, single_match, quote_char):
     return text
 
 
-class FilenameCompletion(Logging):
+class FilenameCompletion(object):
     """Perform filename completion
 
     Extends readline's default filename quoting by taking
     care of backslash-quoted characters.
     """
 
-    def __init__(self, quote_char='\\', do_log=False):
-        Logging.__init__(self, do_log)
+    def __init__(self, quote_char='\\'):
         self.configure(quote_char)
 
     def configure(self, quote_char):
@@ -149,7 +146,6 @@ class FilenameCompletion(Logging):
 
     @print_exc
     def __call__(self, text):
-        self.log('complete_filename\t%r', text)
         matches = []
         # Dequoting early allows us to skip some hooks
         if completion.found_quote:
@@ -163,34 +159,21 @@ class FilenameCompletion(Logging):
                 if not matches:
                     matches = completion.complete_filename(decompose(text))
                 matches = [compose(x) for x in matches]
-        self.log('complete_filename\t%r', matches[:20])
         return matches
 
     @print_exc
     def char_is_quoted(self, text, index):
-        self.log('char_is_quoted\t\t%r %d', text, index, ruler=True, mark=index)
-        quoted = char_is_quoted(text, index)
-        self.log('char_is_quoted\t\t%s', quoted)
-        return quoted
+        return char_is_quoted(text, index)
 
     @print_exc
     def dequote_filename(self, text, quote_char):
-        self.log('dequote_filename\t%r %r', text, quote_char)
-        text = dequote_filename(text, quote_char)
-        self.log('dequote_filename\t%r', text)
-        return text
+        return dequote_filename(text, quote_char)
 
     @print_exc
     def quote_filename(self, text, single_match, quote_char):
-        self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
-        text = quote_filename(text, single_match, quote_char)
-        self.log('quote_filename\t\t%r', text)
-        return text
+        return quote_filename(text, single_match, quote_char)
 
     @print_exc
     def backslash_quote_filename(self, text, single_match, quote_char):
-        self.log('quote_filename\t\t%r %s %r', text, single_match, quote_char)
-        text = backslash_quote_filename(text, single_match, quote_char)
-        self.log('quote_filename\t\t%r', text)
-        return text
+        return backslash_quote_filename(text, single_match, quote_char)
 

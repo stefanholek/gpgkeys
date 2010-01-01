@@ -11,6 +11,9 @@ Changelog
 - Add example session to README.
   [stefan]
 
+- Remove logging as it clutters up the code.
+  [stefan]
+
 
 1.2 - 2009-11-24
 ----------------
