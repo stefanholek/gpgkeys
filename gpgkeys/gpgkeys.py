@@ -1,14 +1,18 @@
 # gpgkeys
 #
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
+import pkg_resources
+__version__ = pkg_resources.get_distribution('gpgkeys').version
+
 import os
 import sys
 import cmd
 import atexit
 import getopt
-import locale
 import subprocess
-import pkg_resources
 
 from rl import completer
 from rl import completion
@@ -30,9 +34,6 @@ from completions.keyserver import KeyserverCompletion
 
 from config import GNUPGEXE
 from config import UMASK
-
-locale.setlocale(locale.LC_ALL, '')
-__version__ = pkg_resources.get_distribution('gpgkeys').version
 
 GLOBAL = []
 KEY    = ['--openpgp']
