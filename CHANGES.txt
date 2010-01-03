@@ -1,17 +1,17 @@
 Changelog
 =========
 
-1.3 - Unreleased
+1.3 - 2010-01-03
 ----------------
 
 - Cut down on infrastructure slack in filename completion. The
   individual strategies are very small.
   [stefan]
 
-- Add example session to README.
+- Remove logging as it clutters up the code.
   [stefan]
 
-- Remove logging as it clutters up the code.
+- Add an example session to the README.
   [stefan]
 
 
