@@ -102,7 +102,7 @@ def quote_filename(text, single_match, quote_char):
             if text.startswith('~') and not quote_char:
                 text = completion.expand_tilde(text)
             if single_match:
-                if os.path.isdir(text):
+                if os.path.isdir(os.path.expanduser(text)):
                     completion.suppress_quote = True
                 if not completion.suppress_quote:
                     text = text + qc
