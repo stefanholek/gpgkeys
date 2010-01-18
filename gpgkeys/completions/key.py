@@ -8,8 +8,9 @@ from rl import print_exc
 
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
-from gpgkeys.completions.filename import dequote_filename
-from gpgkeys.completions.filename import quote_filename
+
+from gpgkeys.completions.filename import quote_string
+from gpgkeys.completions.filename import dequote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
@@ -43,7 +44,7 @@ class KeyCompletion(object):
 
         if not matches:
             if completion.found_quote:
-                text = dequote_filename(text, completion.quote_character)
+                text = dequote_string(text, completion.quote_character)
             if completion.quote_character:
                 matches = self.complete(self.by_userid, text.lower())
             if not matches:
@@ -51,7 +52,7 @@ class KeyCompletion(object):
 
         if self.quote_results:
             single_match = len(matches) == 1
-            matches = [quote_filename(x, single_match, completion.quote_character)
+            matches = [quote_string(x, single_match, completion.quote_character)
                        for x in matches]
         return matches
 
