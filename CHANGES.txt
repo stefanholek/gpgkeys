@@ -4,6 +4,17 @@ Changelog
 1.4 - Unreleased
 ----------------
 
+- Extend the quoting and dequoting API to make it more (re)usable.
+  [stefan]
+
+- Dequoting didn't work right when the default quoting character
+  was single quote.
+  [stefan]
+
+- Tildes in quoted filenames could cause quotes to be closed even
+  if the tilde-expanded name matched a directory.
+  [stefan]
+
 
 1.3 - 2010-01-03
 ----------------
