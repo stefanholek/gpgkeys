@@ -127,6 +127,16 @@ class DequoteStringTests(FileSetup):
         self.assertEqual(self.complete('Tilde.tx\\~'), 'Tilde.tx~ ')
         self.assertEqual(self.complete('\\~'), '~StartsWithTilde.txt ')
 
+    def test_dequote_if_single_quote_default(self):
+        completer.quote_characters = "'\""
+        self.assertEqual(self.complete(''), '')
+        self.assertEqual(self.complete('Hello'), 'Hello World.txt ')
+        self.assertEqual(self.complete('Hello\\ '), 'Hello World.txt ')
+        self.assertEqual(self.complete("Al\\'"), "Al'Hambra.txt ")
+        self.assertEqual(self.complete('Foo\\\\\\"'), 'Foo\\"Peng\\".txt ')
+        self.assertEqual(self.complete('Tilde.tx\\~'), 'Tilde.tx~ ')
+        self.assertEqual(self.complete('\\~'), '~StartsWithTilde.txt ')
+
 
 class QuoteStringTests(FileSetup):
 
@@ -216,6 +226,16 @@ class DequoteFilenameTests(FileSetup):
         completer.filename_quoting_function = lambda x,y,z: x
 
     def test_dequote_filename(self):
+        self.assertEqual(self.complete(''), '')
+        self.assertEqual(self.complete('Hello'), 'Hello World.txt ')
+        self.assertEqual(self.complete('Hello\\ '), 'Hello World.txt ')
+        self.assertEqual(self.complete("Al\\'"), "Al'Hambra.txt ")
+        self.assertEqual(self.complete('Foo\\\\\\"'), 'Foo\\"Peng\\".txt ')
+        self.assertEqual(self.complete('Tilde.tx\\~'), 'Tilde.tx~ ')
+        self.assertEqual(self.complete('\\~'), '~StartsWithTilde.txt ')
+
+    def test_dequote_if_single_quote_default(self):
+        completer.quote_characters = "'\""
         self.assertEqual(self.complete(''), '')
         self.assertEqual(self.complete('Hello'), 'Hello World.txt ')
         self.assertEqual(self.complete('Hello\\ '), 'Hello World.txt ')

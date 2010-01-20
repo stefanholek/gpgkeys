@@ -90,7 +90,7 @@ def char_is_quoted(text, index):
 def dequote_string(text, quote_char):
     """Return a dequoted version of text."""
     if len(text) > 1:
-        qc = quote_char or completer.quote_characters[0]
+        qc = quote_char
         # Don't backslash-dequote characters between single quotes,
         # except single quotes.
         if qc == "'":
