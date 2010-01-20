@@ -10,7 +10,6 @@ from rl.testing import JailSetup
 from rl.testing import reset
 
 from gpgkeys.gpgkeys import GPGKeys
-from gpgkeys.completions.filename import is_fully_quoted
 
 TAB = '\t'
 
@@ -19,11 +18,16 @@ class CompleterTests(JailSetup):
 
     def setUp(self):
         JailSetup.setUp(self)
-        self.mkfiles()
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer(quote_char='"')
         completer.completer = self.cmd.complete
+        self.mkfiles()
+
+    def complete(self, text):
+        completion.line_buffer = text
+        readline.complete_internal(TAB)
+        return completion.line_buffer
 
     def mkfiles(self):
         self.mkfile("Al'Hambra.txt")
@@ -36,11 +40,6 @@ class CompleterTests(JailSetup):
         self.mkfile('Simple.txt')
         self.mkfile('Tilde.tx~')
         self.mkfile('~StartsWithTilde.txt')
-
-    def complete(self, text):
-        completion.line_buffer = text
-        readline.complete_internal(TAB)
-        return completion.line_buffer
 
     def test_simple(self):
         self.assertEqual(self.complete('fdump Simple'),
@@ -123,66 +122,6 @@ class CompleterTests(JailSetup):
                                        'fdump Mädchen.txt ')
 
 
-class DirectoryCompletionTests(JailSetup):
-
-    def setUp(self):
-        JailSetup.setUp(self)
-        self.mkfiles()
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer(quote_char='\\')
-        completer.completer = self.cmd.complete
-
-    def mkfiles(self):
-        self.mkdir('funny dir')
-        self.mkfile('funny dir/foo.txt')
-        self.mkfile('funny dir/foo.gif')
-
-    def complete(self, text):
-        completion.line_buffer = text
-        readline.complete_internal(TAB)
-        return completion.line_buffer
-
-    def test_dir_completion(self):
-        self.assertEqual(self.complete('fdump fun'),
-                                       'fdump funny\\ dir/')
-
-    def test_no_dir_completion_hook(self):
-        # The current implementation works without a
-        # directory_completion_hook.
-        completer.directory_completion_hook = None
-        self.assertEqual(self.complete('fdump funny\\ dir/f'),
-                                       'fdump funny\\ dir/foo.')
-
-    def test_dir_completion_hook(self):
-        # Even if a hook is installed, it never receives a
-        # quoted directory name.
-        called = []
-        def hook(text):
-            called.append((text,))
-            return text
-
-        completer.directory_completion_hook = hook
-        self.assertEqual(self.complete('fdump funny\\ dir/f'),
-                                       'fdump funny\\ dir/foo.')
-        self.assertEqual(called, [('funny dir/',)])
-
-
-class IsFullyQuotedTests(unittest.TestCase):
-
-    def test_fully_quoted(self):
-        self.assertEqual(is_fully_quoted('foo\\ bar\\"abc\\&'), True)
-
-    def test_fully_quoted_endswith_backslash(self):
-        self.assertEqual(is_fully_quoted('foo\\ bar\\"abc\\\\'), True)
-
-    def test_not_fully_quoted(self):
-        self.assertEqual(is_fully_quoted('foo&bar'), False)
-
-    def test_not_fully_quoted_endswith_backslash(self):
-        self.assertEqual(is_fully_quoted('foo\\&bar\\'), False)
-
-
 class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
@@ -256,4 +195,49 @@ class CharIsQuotedTests(unittest.TestCase):
         self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 17), False)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 11), True)
         self.assertEqual(self.is_quoted('normaldir/\\"Hello\\ ', 10), False)
+
+
+class DirectoryCompletionHookTests(JailSetup):
+
+    def setUp(self):
+        JailSetup.setUp(self)
+        reset()
+        self.cmd = GPGKeys()
+        self.cmd.init_completer(quote_char='\\')
+        completer.completer = self.cmd.complete
+        self.mkfiles()
+
+    def complete(self, text):
+        completion.line_buffer = text
+        readline.complete_internal(TAB)
+        return completion.line_buffer
+
+    def mkfiles(self):
+        self.mkdir('funny dir')
+        self.mkfile('funny dir/foo.txt')
+        self.mkfile('funny dir/foo.gif')
+
+    def test_dir_completion(self):
+        self.assertEqual(self.complete('fdump fun'),
+                                       'fdump funny\\ dir/')
+
+    def test_no_dir_completion_hook(self):
+        # The current implementation works without a
+        # directory_completion_hook.
+        completer.directory_completion_hook = None
+        self.assertEqual(self.complete('fdump funny\\ dir/f'),
+                                       'fdump funny\\ dir/foo.')
+
+    def test_dir_completion_hook(self):
+        # Even if a hook is installed, it never receives a
+        # quoted directory name.
+        called = []
+        def hook(text):
+            called.append((text,))
+            return text
+
+        completer.directory_completion_hook = hook
+        self.assertEqual(self.complete('fdump funny\\ dir/f'),
+                                       'fdump funny\\ dir/foo.')
+        self.assertEqual(called, [('funny dir/',)])
 

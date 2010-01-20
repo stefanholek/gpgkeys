@@ -2,6 +2,7 @@ import unittest
 
 from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import split
+from gpgkeys.completions import filename
 
 
 class CharIsQuotedTests(unittest.TestCase):
@@ -69,6 +70,16 @@ class CharIsQuotedTests(unittest.TestCase):
         # Expect the last character in s to be unquoted
         for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
+
+    def test_true_filename(self):
+        # Expect the last character in s to be quoted
+        for s in self.TRUE:
+            self.assertEqual(filename.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
+
+    def test_false_filename(self):
+        # Expect the last character in s to be unquoted
+        for s in self.FALSE:
+            self.assertEqual(filename.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
 class SplitTests(unittest.TestCase):
