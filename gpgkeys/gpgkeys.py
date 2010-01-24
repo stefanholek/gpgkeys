@@ -287,7 +287,7 @@ class GPGKeys(cmd.Cmd):
 
     # Shell commands
 
-    def shell_getdir(self, dir):
+    def getdirectory(self, dir):
         process = subprocess.Popen('cd %s; pwd' % dir,
             shell=True, stdout=subprocess.PIPE)
         stdout, stderr = process.communicate()
@@ -303,7 +303,7 @@ class GPGKeys(cmd.Cmd):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.shell_getdir(args[0])
+            dir = self.getdirectory(args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
