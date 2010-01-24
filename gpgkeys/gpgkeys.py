@@ -153,13 +153,8 @@ class GPGKeys(cmd.Cmd):
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
-        mine, rest = splitpipe(split(args))
-        args = ('--import',)
-        if '--secret' in mine:
-            args = ('--import', '--allow-secret-key')
-            mine = tuple(x for x in mine if x != '--secret')
-        args = args + fixmergeonly(mine) + rest
-        self.gnupg(*args)
+        args = fixmergeonly(split(args))
+        self.gnupg('--import', *args)
 
     def do_export(self, args):
         """Export keys to stdout or to a file (Usage: export <keyspec>)"""
@@ -413,7 +408,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT + SECRET
+        options = GLOBAL + INPUT
         if self.isoption(text):
             return self.completeoption(text, options)
         return self.basecomplete(self.completefilename, text, line, begidx)
