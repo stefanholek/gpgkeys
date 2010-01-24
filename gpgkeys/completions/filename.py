@@ -82,9 +82,7 @@ def char_is_quoted(text, index):
     # A closing quote character is never quoted
     if index < len(text) and text[index] == quote_char:
         return False
-    if quote_char:
-        return True
-    return False
+    return bool(quote_char)
 
 
 def dequote_string(text, quote_char):
