@@ -38,10 +38,8 @@ class KeyCompletion(object):
         self.update_keys()
         self.quote_results = False
         matches = []
-
         if not text or keyid_re.match(text):
             matches = self.complete(self.by_keyid, text.upper())
-
         if not matches:
             if completion.found_quote:
                 text = dequote_string(text, completion.quote_character)
@@ -49,7 +47,8 @@ class KeyCompletion(object):
                 matches = self.complete(self.by_userid, text.lower())
             if not matches:
                 matches = self.complete(self.by_name, text.lower())
-
+            if not matches and not completion.quote_character and completion.found_quote:
+                matches = self.complete(self.by_userid, text.lower())
         if self.quote_results:
             single_match = len(matches) == 1
             matches = [quote_string(x, single_match, completion.quote_character)

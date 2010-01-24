@@ -7,6 +7,10 @@ Changelog
 - Remove obsolete --secret option from the import command.
   [stefan]
 
+- Userid completion is now triggered by any kind of quoting.
+  [stefan]
+
+
 1.4 - 2010-01-20
 ----------------
 
