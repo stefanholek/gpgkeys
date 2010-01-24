@@ -4,6 +4,8 @@ Changelog
 1.5 - Unreleased
 ----------------
 
+- Remove obsolete --secret option from the import command.
+  [stefan]
 
 1.4 - 2010-01-20
 ----------------
