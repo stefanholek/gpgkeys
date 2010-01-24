@@ -32,16 +32,27 @@ class Token(str):
     """A string with some additional attributes."""
 
     def __new__(cls, string, start, end, type, expect):
-        ob = str.__new__(cls, string)
-        ob.start = start
-        ob.end = end
-        ob.type = type
-        ob.expect = expect
-        return ob
+        s = str.__new__(cls, string)
+        s.start = start
+        s.end = end
+        s.type = type
+        s.expect = expect
+        return s
 
     def __add__(self, string):
         s = str.__add__(self, string)
         return Token(s, self.start, self.end, self.type, self.expect)
+
+
+class Tokens(list):
+    """A list of tokens."""
+
+    def __init__(self, line):
+        list.__init__(self)
+        self.line = line
+
+    def append(self, start, end, type, expect):
+        list.append(self, Token(self.line[start:end], start, end, type, expect))
 
 
 def split(line):
@@ -49,13 +60,11 @@ def split(line):
     """
     skip_next = False
     quote_char = ''
-    tokens = []
+    tokens = Tokens(line)
+    append = tokens.append
     end = len(line)
     s = InfiniteString(line)
     i = j = 0
-
-    def append(start, end, type, expect):
-        tokens.append(Token(line[start:end], start, end, type, expect))
 
     while i < end:
         c = s[i]
