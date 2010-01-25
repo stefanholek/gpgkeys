@@ -37,14 +37,14 @@ from config import UMASK
 
 GLOBAL = []
 KEY    = ['--openpgp']
-SIGN   = ['--local-user']
+SIGN   = ['--local-user', '--yes']
 LIST   = ['--fingerprint', '--with-colons']
 INPUT  = ['--merge-only']
-OUTPUT = ['--armor', '--output']
+OUTPUT = ['--armor', '--output', '--yes']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
-ALL    = ['--all']
+ALL    = ['--all', '--yes']
 
 
 class GPGKeys(cmd.Cmd):
@@ -143,22 +143,22 @@ class GPGKeys(cmd.Cmd):
 
     def do_genkey(self, args):
         """Generate a new key pair (Usage: genkey)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--gen-key', *args)
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--gen-revoke', *args)
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
-        args = fixmergeonly(split(args))
+        args = fixmergeonly(sort(split(args)))
         self.gnupg('--import', *args)
 
     def do_export(self, args):
         """Export keys to stdout or to a file (Usage: export <keyspec>)"""
-        mine, rest = splitpipe(split(args))
+        mine, rest = splitpipe(sort(split(args)))
         args = ('--export',)
         if '--secret' in mine:
             args = ('--export-secret-keys',)
@@ -168,7 +168,7 @@ class GPGKeys(cmd.Cmd):
 
     def do_list(self, args):
         """List keys (Usage: list <keyspec>)"""
-        mine, rest = splitpipe(split(args))
+        mine, rest = splitpipe(sort(split(args)))
         args = ('--list-keys',)
         if '--secret' in mine:
             args = ('--list-secret-keys',)
@@ -181,7 +181,7 @@ class GPGKeys(cmd.Cmd):
 
     def do_listsig(self, args):
         """List public keys including signatures (Usage: listsig <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--list-sigs', *args)
 
     def do_ll(self, args):
@@ -189,12 +189,12 @@ class GPGKeys(cmd.Cmd):
 
     def do_checksig(self, args):
         """Like listsig, but also verify the signatures (Usage: checksig <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--check-sigs', *args)
 
     def do_edit(self, args):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--edit-key', *args)
 
     def do_e(self, args):
@@ -202,17 +202,17 @@ class GPGKeys(cmd.Cmd):
 
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--lsign-key', *args)
 
     def do_sign(self, args):
         """Sign a key with an exportable signature (Usage: sign <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--sign-key', *args)
 
     def do_del(self, args):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
-        mine, rest = splitpipe(split(args))
+        mine, rest = splitpipe(sort(split(args)))
         args = ('--delete-key',)
         if '--secret' in mine:
             args = ('--delete-secret-key',)
@@ -225,32 +225,32 @@ class GPGKeys(cmd.Cmd):
 
     def do_search(self, args):
         """Search for keys on a keyserver (Usage: search <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--search-keys', *args)
 
     def do_recv(self, args):
         """Fetch keys from a keyserver (Usage: recv <keyids>)"""
-        args = fixmergeonly(split(args))
+        args = fixmergeonly(sort(split(args)))
         self.gnupg('--recv-keys', *args)
 
     def do_send(self, args):
         """Send keys to a keyserver (Usage: send <keyspec>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--send-keys', *args)
 
     def do_refresh(self, args):
         """Refresh keys from a keyserver (Usage: refresh <keyspec>)"""
-        args = fixmergeonly(split(args))
+        args = fixmergeonly(sort(split(args)))
         self.gnupg('--refresh-keys', *args)
 
     def do_fetch(self, args):
         """Fetch keys from a URL (Usage: fetch <url>)"""
-        args = fixmergeonly(split(args))
+        args = fixmergeonly(sort(split(args)))
         self.gnupg('--fetch-keys', *args)
 
     def do_dump(self, args):
         """List the packet sequence of a key (Usage: dump <keyspec>)"""
-        mine, rest = splitpipe(split(args))
+        mine, rest = splitpipe(sort(split(args)))
         args = ('--export',)
         if '--secret' in mine:
             args = ('--export-secret-keys',)
@@ -260,7 +260,7 @@ class GPGKeys(cmd.Cmd):
 
     def do_fdump(self, args):
         """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
-        args = split(args)
+        args = sort(split(args))
         self.gnupg('--list-packets', *args)
 
     def do_shell(self, args):
@@ -619,18 +619,34 @@ class GPGKeys(cmd.Cmd):
 
 
 def split(args):
-    # Always apply the closequote transform
+    # Split the command line into tokens
     return closequote(basesplit(args))
 
 
-def fixmergeonly(args):
-    # gpg: WARNING: "--merge-only" is a deprecated option
-    # gpg: please use "--import-options merge-only" instead
-    for i in range(len(args)):
-        if args[i] == '--merge-only':
-            args = args[:i] + ('--import-options', 'merge-only') + args[i+1:]
-            break
-    return args
+def sort(tokens):
+    # Reorder the command line so options come before arguments
+    options = []
+    arguments = []
+    mine, rest = splitpipe(tokens)
+    use_next = False
+    for token in mine:
+        if token.startswith('-'):
+            use_next = token in ('--output', '--local-user', '--keyserver')
+            options.append(token)
+        elif use_next:
+            use_next = False
+            options.append(token)
+        else:
+            arguments.append(token)
+    return tuple(options + arguments) + rest
+
+
+def fixmergeonly(tokens):
+    # Replace --merge-only with --import-options merge-only
+    for i, token in enumerate(tokens):
+        if token == '--merge-only':
+            return tokens[:i] + ('--import-options', 'merge-only') + tokens[i+1:]
+    return tokens
 
 
 def main(args=None):

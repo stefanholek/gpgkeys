@@ -215,8 +215,8 @@ def closequote(tokens):
 def splitpipe(tokens):
     """Split tokens at the first shell redirect.
     """
-    for i in range(len(tokens)):
-        if tokens[i].type == T_SHELL:
+    for i, token in enumerate(tokens):
+        if token.type == T_SHELL:
             return tokens[:i], tokens[i:]
     return tokens, ()
 
