@@ -37,14 +37,14 @@ from config import UMASK
 
 GLOBAL = []
 KEY    = ['--openpgp']
-SIGN   = ['--local-user', '--yes']
+SIGN   = ['--local-user']
 LIST   = ['--fingerprint', '--with-colons']
 INPUT  = ['--merge-only']
-OUTPUT = ['--armor', '--output', '--yes']
+OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
-ALL    = ['--all', '--yes']
+ALL    = ['--all']
 
 
 class GPGKeys(cmd.Cmd):
