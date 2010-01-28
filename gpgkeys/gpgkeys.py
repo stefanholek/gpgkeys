@@ -502,7 +502,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER
+        options = GLOBAL + SERVER + INPUT
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
