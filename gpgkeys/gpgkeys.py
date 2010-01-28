@@ -39,7 +39,7 @@ GLOBAL = []
 KEY    = ['--openpgp']
 SIGN   = ['--local-user']
 LIST   = ['--fingerprint', '--with-colons']
-INPUT  = ['--merge-only']
+INPUT  = ['--merge-only', '--clean']
 OUTPUT = ['--armor', '--output']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
@@ -647,6 +647,7 @@ class Args(object):
                     'local-user=',
                     'fingerprint',
                     'with-colons',
+                    'clean',
                     'merge-only',
                     'armor',
                     'output=',
@@ -661,6 +662,7 @@ class Args(object):
         self.fingerprint = False
         self.with_colons = False
         self.merge_only = False
+        self.clean = False
         self.armor = False
         self.output = None
         self.keyserver = None
@@ -690,6 +692,8 @@ class Args(object):
                     self.with_colons = True
                 elif name == '--merge-only':
                     self.merge_only = True
+                elif name == '--clean':
+                    self.clean = True
                 elif name == '--armor':
                     self.armor = True
                 elif name == '--output':
@@ -716,6 +720,8 @@ class Args(object):
             options.append('--with-colons')
         if self.merge_only:
             options.append('--import-options merge-only')
+        if self.clean:
+            options.append('--import-options import-clean')
         if self.armor:
             options.append('--armor')
         if self.output:
