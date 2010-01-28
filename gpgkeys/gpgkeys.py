@@ -719,9 +719,9 @@ class Args(object):
         if self.with_colons:
             options.append('--with-colons')
         if self.merge_only:
-            options.append('--import-options merge-only')
+            options.append('--import-options merge-only --keyserver-options merge-only')
         if self.clean:
-            options.append('--import-options import-clean')
+            options.append('--import-options import-clean --keyserver-options import-clean')
         if self.armor:
             options.append('--armor')
         if self.output:
