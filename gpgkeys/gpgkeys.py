@@ -23,7 +23,7 @@ from rl import print_exc
 from scanner import scan_unquoted
 from scanner import rscan_unquoted
 
-from splitter import split as basesplit
+from splitter import split
 from splitter import closequote
 from splitter import splitpipe
 
@@ -120,12 +120,25 @@ class GPGKeys(cmd.Cmd):
 
     # Commands
 
+    def split(self, args):
+        # Split the command line into tokens
+        return closequote(split(args))
+
+    def parse(self, args):
+        # Parse the command line
+        mine, pipe = splitpipe(self.split(args))
+        args = Args()
+        args.parse(mine)
+        args.pipe = pipe
+        return args
+
     def emptyline(self):
+        """Empty line"""
         pass
 
     def default(self, args):
         """Unknown command"""
-        args = split(args)
+        args = self.split(args)
         self.stdout.write('gpgkeys: unknown command: %s\n' % args[0])
 
     def do_EOF(self, args):
@@ -143,129 +156,139 @@ class GPGKeys(cmd.Cmd):
 
     def do_genkey(self, args):
         """Generate a new key pair (Usage: genkey)"""
-        args = sort(split(args))
-        self.gnupg('--gen-key', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--gen-key', *args.tuple)
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--gen-revoke', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--gen-revoke', *args.tuple)
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
-        args = fixmergeonly(sort(split(args)))
-        self.gnupg('--import', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--import', *args.tuple)
 
     def do_export(self, args):
         """Export keys to stdout or to a file (Usage: export <keyspec>)"""
-        mine, rest = splitpipe(sort(split(args)))
-        args = ('--export',)
-        if '--secret' in mine:
-            args = ('--export-secret-keys',)
-            mine = tuple(x for x in mine if x != '--secret')
-        args = args + mine + rest
-        self.gnupg(*args)
+        args = self.parse(args)
+        if args.ok:
+            command = '--export'
+            if args.secret:
+                command = '--export-secret-keys'
+            self.gnupg(command, *args.tuple)
 
     def do_list(self, args):
         """List keys (Usage: list <keyspec>)"""
-        mine, rest = splitpipe(sort(split(args)))
-        args = ('--list-keys',)
-        if '--secret' in mine:
-            args = ('--list-secret-keys',)
-            mine = tuple(x for x in mine if x != '--secret')
-        args = args + mine + rest
-        self.gnupg(*args)
+        args = self.parse(args)
+        if args.ok:
+            command = '--list-keys'
+            if args.secret:
+                command = '--list-secret-keys'
+            self.gnupg(command, *args.tuple)
 
     def do_ls(self, args):
         self.do_list(args)
 
     def do_listsig(self, args):
         """List public keys including signatures (Usage: listsig <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--list-sigs', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--list-sigs', *args.tuple)
 
     def do_ll(self, args):
         self.do_listsig(args)
 
     def do_checksig(self, args):
         """Like listsig, but also verify the signatures (Usage: checksig <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--check-sigs', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--check-sigs', *args.tuple)
 
     def do_edit(self, args):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--edit-key', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--edit-key', *args.tuple)
 
     def do_e(self, args):
         self.do_edit(args)
 
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--lsign-key', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--lsign-key', *args.tuple)
 
     def do_sign(self, args):
         """Sign a key with an exportable signature (Usage: sign <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--sign-key', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--sign-key', *args.tuple)
 
     def do_del(self, args):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
-        mine, rest = splitpipe(sort(split(args)))
-        args = ('--delete-key',)
-        if '--secret' in mine:
-            args = ('--delete-secret-key',)
-            mine = tuple(x for x in mine if x != '--secret')
-        if '--all' in mine:
-            args = ('--delete-secret-and-public-key',)
-            mine = tuple(x for x in mine if x != '--all')
-        args = args + mine + rest
-        self.gnupg(*args)
+        args = self.parse(args)
+        if args.ok:
+            command = '--delete-key'
+            if args.secret:
+                command = '--delete-secret-key'
+            if args.all:
+                command = '--delete-secret-and-public-key'
+            self.gnupg(command, *args.tuple)
 
     def do_search(self, args):
         """Search for keys on a keyserver (Usage: search <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--search-keys', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--search-keys', *args.tuple)
 
     def do_recv(self, args):
         """Fetch keys from a keyserver (Usage: recv <keyids>)"""
-        args = fixmergeonly(sort(split(args)))
-        self.gnupg('--recv-keys', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--recv-keys', *args.tuple)
 
     def do_send(self, args):
         """Send keys to a keyserver (Usage: send <keyspec>)"""
-        args = sort(split(args))
-        self.gnupg('--send-keys', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--send-keys', *args.tuple)
 
     def do_refresh(self, args):
         """Refresh keys from a keyserver (Usage: refresh <keyspec>)"""
-        args = fixmergeonly(sort(split(args)))
-        self.gnupg('--refresh-keys', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--refresh-keys', *args.tuple)
 
     def do_fetch(self, args):
         """Fetch keys from a URL (Usage: fetch <url>)"""
-        args = fixmergeonly(sort(split(args)))
-        self.gnupg('--fetch-keys', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--fetch-keys', *args.tuple)
 
     def do_dump(self, args):
         """List the packet sequence of a key (Usage: dump <keyspec>)"""
-        mine, rest = splitpipe(sort(split(args)))
-        args = ('--export',)
-        if '--secret' in mine:
-            args = ('--export-secret-keys',)
-            mine = tuple(x for x in mine if x != '--secret')
-        args = args + mine + ('|', GNUPGEXE, '--list-packets') + rest
-        self.gnupg(*args)
+        args = self.parse(args)
+        if args.ok:
+            command = '--export'
+            if args.secret:
+                command = '--export-secret-keys'
+            tuple = args.options + args.args + ('|', GNUPGEXE, '--list-packets') + args.pipe
+            self.gnupg(command, *tuple)
 
     def do_fdump(self, args):
         """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
-        args = sort(split(args))
-        self.gnupg('--list-packets', *args)
+        args = self.parse(args)
+        if args.ok:
+            self.gnupg('--list-packets', *args.tuple)
 
     def do_shell(self, args):
         """Execute a command or start an interactive shell (Usage: .<command> or .)"""
-        args = split(args)
+        args = self.split(args)
         if args:
             cmd = args[0]
             if cmd == 'ls':
@@ -618,35 +641,94 @@ class GPGKeys(cmd.Cmd):
         atexit.register(history.write_file, histfile)
 
 
-def split(args):
-    # Split the command line into tokens
-    return closequote(basesplit(args))
+class Args(object):
 
+    long_options = ('openpgp',
+                    'local-user=',
+                    'fingerprint',
+                    'with-colons',
+                    'merge-only',
+                    'armor',
+                    'output=',
+                    'keyserver=',
+                    'expert',
+                    'secret',
+                    'all')
 
-def sort(tokens):
-    # Reorder the command line so options come before arguments
-    options = []
-    arguments = []
-    mine, rest = splitpipe(tokens)
-    use_next = False
-    for token in mine:
-        if token.startswith('-'):
-            use_next = token in ('--output', '--local-user', '--keyserver')
-            options.append(token)
-        elif use_next:
-            use_next = False
-            options.append(token)
+    def __init__(self):
+        self.openpgp = False
+        self.local_user = None
+        self.fingerprint = False
+        self.with_colons = False
+        self.merge_only = False
+        self.armor = False
+        self.output = None
+        self.keyserver = None
+        self.expert = False
+        self.secret = False
+        self.all = False
+        self.args = ()
+        self.pipe = ()
+        self.ok = True
+
+    def parse(self, args):
+        try:
+            options, args = getopt.gnu_getopt(args, '', self.long_options)
+        except getopt.GetoptError, e:
+            print >>sys.stderr, 'gpgkeys:', e
+            self.ok = False
         else:
-            arguments.append(token)
-    return tuple(options + arguments) + rest
+            self.args = tuple(args)
+            for name, value in options:
+                if name == '--openpgp':
+                    self.openpgp = True
+                elif name == '--local-user':
+                    self.local_user = value
+                elif name == '--fingerprint':
+                    self.fingerprint = True
+                elif name == '--with-colons':
+                    self.with_colons = True
+                elif name == '--merge-only':
+                    self.merge_only = True
+                elif name == '--armor':
+                    self.armor = True
+                elif name == '--output':
+                    self.output = value
+                elif name == '--keyserver':
+                    self.keyserver = value
+                elif name == '--expert':
+                    self.expert = True
+                elif name == '--secret':
+                    self.secret = True
+                elif name == '--all':
+                    self.all = True
 
+    @property
+    def options(self):
+        options = []
+        if self.openpgp:
+            options.append('--openpgp')
+        if self.local_user:
+            options.append('--local-user %s' % self.local_user)
+        if self.fingerprint:
+            options.append('--fingerprint')
+        if self.with_colons:
+            options.append('--with-colons')
+        if self.merge_only:
+            options.append('--import-options merge-only')
+        if self.armor:
+            options.append('--armor')
+        if self.output:
+            options.append('--output %s' % self.output)
+        if self.keyserver:
+            options.append('--keyserver %s' % self.keyserver)
+        if self.expert:
+            options.append('--expert')
+        return tuple(options)
 
-def fixmergeonly(tokens):
-    # Replace --merge-only with --import-options merge-only
-    for i, token in enumerate(tokens):
-        if token == '--merge-only':
-            return tokens[:i] + ('--import-options', 'merge-only') + tokens[i+1:]
-    return tokens
+    @property
+    def tuple(self):
+        return self.options + self.args + self.pipe
 
 
 def main(args=None):
