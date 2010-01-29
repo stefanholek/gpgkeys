@@ -35,17 +35,18 @@ from completions.keyserver import KeyserverCompletion
 from config import GNUPGEXE
 from config import UMASK
 
-GLOBAL = []
-KEY    = ['--openpgp']
-SIGN   = ['--local-user']
-LIST   = ['--fingerprint', '--with-colons']
-INPUT  = ['--merge-only']
-OUTPUT = ['--armor', '--output']
-CLEAN  = ['--clean']
-SERVER = ['--keyserver']
-EXPERT = ['--expert']
-SECRET = ['--secret']
-ALL    = ['--all']
+GLOBAL  = []
+KEY     = ['--openpgp']
+SIGN    = ['--local-user']
+LIST    = ['--fingerprint', '--with-colons']
+INPUT   = ['--merge-only']
+OUTPUT  = ['--armor', '--output']
+CLEAN   = ['--clean']
+MINIMAL = ['--minimal']
+SERVER  = ['--keyserver']
+EXPERT  = ['--expert']
+SECRET  = ['--secret']
+ALL     = ['--all']
 
 
 class GPGKeys(cmd.Cmd):
@@ -432,13 +433,13 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT + CLEAN
+        options = GLOBAL + INPUT + CLEAN + MINIMAL
         if self.isoption(text):
             return self.completeoption(text, options)
         return self.basecomplete(self.completefilename, text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
-        options = GLOBAL + OUTPUT + SECRET + CLEAN
+        options = GLOBAL + OUTPUT + SECRET + CLEAN + MINIMAL
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
@@ -649,6 +650,7 @@ class Args(object):
                     'fingerprint',
                     'with-colons',
                     'clean',
+                    'minimal',
                     'merge-only',
                     'armor',
                     'output=',
@@ -664,6 +666,7 @@ class Args(object):
         self.with_colons = False
         self.merge_only = False
         self.clean = False
+        self.minimal = False
         self.armor = False
         self.output = None
         self.keyserver = None
@@ -695,6 +698,8 @@ class Args(object):
                     self.merge_only = True
                 elif name == '--clean':
                     self.clean = True
+                elif name == '--minimal':
+                    self.minimal = True
                 elif name == '--armor':
                     self.armor = True
                 elif name == '--output':
@@ -732,9 +737,12 @@ class Args(object):
             options.append('--keyserver-options merge-only')
         if self.clean:
             options.append('--import-options import-clean')
-            options.append('--keyserver-options import-clean')
             options.append('--export-options export-clean')
+            options.append('--keyserver-options import-clean')
             options.append('--keyserver-options export-clean')
+        if self.minimal:
+            options.append('--import-options import-minimal')
+            options.append('--export-options export-minimal')
         return tuple(options)
 
     @property
