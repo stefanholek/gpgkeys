@@ -39,8 +39,9 @@ GLOBAL = []
 KEY    = ['--openpgp']
 SIGN   = ['--local-user']
 LIST   = ['--fingerprint', '--with-colons']
-INPUT  = ['--merge-only', '--clean']
+INPUT  = ['--merge-only']
 OUTPUT = ['--armor', '--output']
+CLEAN  = ['--clean']
 SERVER = ['--keyserver']
 EXPERT = ['--expert']
 SECRET = ['--secret']
@@ -431,13 +432,13 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_import(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT
+        options = GLOBAL + INPUT + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         return self.basecomplete(self.completefilename, text, line, begidx)
 
     def complete_export(self, text, line, begidx, endidx):
-        options = GLOBAL + OUTPUT + SECRET
+        options = GLOBAL + OUTPUT + SECRET + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--output', line, begidx):
@@ -502,7 +503,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_search(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + INPUT
+        options = GLOBAL + SERVER + INPUT + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
@@ -510,7 +511,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_recv(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + INPUT
+        options = GLOBAL + SERVER + INPUT + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
@@ -518,7 +519,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_send(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER
+        options = GLOBAL + SERVER + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
@@ -526,7 +527,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_refresh(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + INPUT
+        options = GLOBAL + SERVER + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         if self.follows('--keyserver', line, begidx):
@@ -534,7 +535,7 @@ class GPGKeys(cmd.Cmd):
         return self.basecomplete(self.completekeyspec, text, line, begidx)
 
     def complete_fetch(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT
+        options = GLOBAL + INPUT + CLEAN
         if self.isoption(text):
             return self.completeoption(text, options)
         return self.basecomplete(self.completedefault, text, line, begidx)
@@ -718,10 +719,6 @@ class Args(object):
             options.append('--fingerprint')
         if self.with_colons:
             options.append('--with-colons')
-        if self.merge_only:
-            options.append('--import-options merge-only --keyserver-options merge-only')
-        if self.clean:
-            options.append('--import-options import-clean --keyserver-options import-clean')
         if self.armor:
             options.append('--armor')
         if self.output:
@@ -730,6 +727,14 @@ class Args(object):
             options.append('--keyserver %s' % self.keyserver)
         if self.expert:
             options.append('--expert')
+        if self.merge_only:
+            options.append('--import-options merge-only')
+            options.append('--keyserver-options merge-only')
+        if self.clean:
+            options.append('--import-options import-clean')
+            options.append('--keyserver-options import-clean')
+            options.append('--export-options export-clean')
+            options.append('--keyserver-options export-clean')
         return tuple(options)
 
     @property
