@@ -50,7 +50,7 @@ def rscan_unquoted(s, lx, chars):
     # Doesn't find quote characters
     skip_next = False
     quote_char = ''
-    results = []
+    result = -1
     for i in range(lx):
         c = s[i]
         if skip_next:
@@ -63,10 +63,8 @@ def rscan_unquoted(s, lx, chars):
         elif c in QUOTECHARS:
             quote_char = c
         elif c in chars:
-            results.append(i)
-    if results:
-        return results[-1]
-    return -1
+            result = i
+    return result
 
 
 def char_is_quoted(s, x):
