@@ -366,201 +366,168 @@ class GPGKeys(cmd.Cmd):
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
-    def isoption(self, text):
-        # True if 'text' is an option flag
-        return text.startswith('-')
-
-    def isfilename(self, text):
-        # True if 'text' is a filename
-        return text.startswith('~') or (os.sep in text)
-
-    def follows(self, text, line, begidx):
-        # True if the completion follows 'text'
-        idx = line.rfind(text, 0, begidx)
-        if idx >= 0:
-            delta = line[idx+len(text):begidx]
-            return delta.strip() in ('"', "'", '')
-        return False
-
-    def commandpos(self, line, begidx):
-        # True if the completion is a shell command at position 0
-        delta = line[0:begidx]
-        return delta.strip() in ('!', '.', 'shell')
-
-    def pipepos(self, line, begidx):
-        # True if the completion follows a pipe or semicolon
-        idx = rscan_unquoted(line, begidx, ('|', ';'))
-        if idx >= 0:
-            delta = line[idx+1:begidx]
-            if delta.strip() in ('"', "'", ''):
-                # '>|' is not a pipe but an output redirect
-                if idx > 0 and line[idx] == '|':
-                    if rscan_unquoted(line, begidx, ('>',)) == idx-1:
-                        return False
-                return True
-        return False
-
-    def postredir(self, line, begidx):
-        # True if the completion is anywhere after a shell redirect
-        return scan_unquoted(line, begidx, ('|', '>', '<')) >= 0
-
-    def basecomplete(self, default, text, line, begidx):
-        if self.pipepos(line, begidx):
-            if not self.isfilename(text):
-                return self.completecommand(text)
-            return self.completefilename(text)
-        if self.postredir(line, begidx):
-            return self.completefilename(text)
-        return default(text)
-
     def completeoption(self, text, options):
         return [x for x in options if x.startswith(text)]
 
-    # Completion grid
+    def parseword(self, line, begidx, endidx):
+        # Parse the completion word
+        word = Word()
+        word.parse(line, begidx, endidx)
+        return word
+
+    def completebase(self, word, default):
+        # Perform completion after pipes and input/output redirects
+        if word.pipepos:
+            if not word.isfilename:
+                return self.completecommand(word.text)
+            return self.completefilename(word.text)
+        if word.postredir:
+            return self.completefilename(word.text)
+        return default(word.text)
 
     def complete_genkey(self, text, line, begidx, endidx):
-        options = GLOBAL + KEY + EXPERT
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completedefault, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + KEY + EXPERT)
+        return self.completebase(word, self.completedefault)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
-        options = GLOBAL + KEY + OUTPUT
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--output', line, begidx):
-            return self.completefilename(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + KEY + OUTPUT)
+        if word.follows('--output'):
+            return self.completefilename(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_import(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT + CLEAN + MINIMAL
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completefilename, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + INPUT + CLEAN + MINIMAL)
+        return self.completebase(word, self.completefilename)
 
     def complete_export(self, text, line, begidx, endidx):
-        options = GLOBAL + OUTPUT + SECRET + CLEAN + MINIMAL
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--output', line, begidx):
-            return self.completefilename(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + OUTPUT + SECRET + CLEAN + MINIMAL)
+        if word.follows('--output'):
+            return self.completefilename(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_list(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST + SECRET
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + LIST + SECRET)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_ls(self, text, line, begidx, endidx):
         return self.complete_list(text, line, begidx, endidx)
 
     def complete_listsig(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + LIST)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_ll(self, text, line, begidx, endidx):
         return self.complete_listsig(text, line, begidx, endidx)
 
     def complete_checksig(self, text, line, begidx, endidx):
-        options = GLOBAL + LIST
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + LIST)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_edit(self, text, line, begidx, endidx):
-        options = GLOBAL + KEY + SIGN + EXPERT
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--local-user', line, begidx):
-            return self.completekeyspec(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + KEY + SIGN + EXPERT)
+        if word.follows('--local-user'):
+            return self.completekeyspec(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_e(self, text, line, begidx, endidx):
         return self.complete_edit(text, line, begidx, endidx)
 
     def complete_lsign(self, text, line, begidx, endidx):
-        options = GLOBAL + KEY + SIGN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--local-user', line, begidx):
-            return self.completekeyspec(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + KEY + SIGN)
+        if word.follows('--local-user'):
+            return self.completekeyspec(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_sign(self, text, line, begidx, endidx):
-        options = GLOBAL + KEY + SIGN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--local-user', line, begidx):
-            return self.completekeyspec(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + KEY + SIGN)
+        if word.follows('--local-user'):
+            return self.completekeyspec(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_del(self, text, line, begidx, endidx):
-        options = GLOBAL + SECRET + ALL
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SECRET + ALL)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_search(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + INPUT + CLEAN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--keyserver', line, begidx):
-            return self.completekeyserver(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
+        if word.follows('--keyserver'):
+            return self.completekeyserver(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_recv(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + INPUT + CLEAN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--keyserver', line, begidx):
-            return self.completekeyserver(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
+        if word.follows('--keyserver'):
+            return self.completekeyserver(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_send(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + CLEAN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--keyserver', line, begidx):
-            return self.completekeyserver(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
+        if word.follows('--keyserver'):
+            return self.completekeyserver(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_refresh(self, text, line, begidx, endidx):
-        options = GLOBAL + SERVER + CLEAN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.follows('--keyserver', line, begidx):
-            return self.completekeyserver(text)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
+        if word.follows('--keyserver'):
+            return self.completekeyserver(word.text)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_fetch(self, text, line, begidx, endidx):
-        options = GLOBAL + INPUT + CLEAN
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completedefault, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + INPUT + CLEAN)
+        return self.completebase(word, self.completedefault)
 
     def complete_dump(self, text, line, begidx, endidx):
-        options = GLOBAL + SECRET
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completekeyspec, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL + SECRET)
+        return self.completebase(word, self.completekeyspec)
 
     def complete_fdump(self, text, line, begidx, endidx):
-        options = GLOBAL
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        return self.basecomplete(self.completefilename, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL)
+        return self.completebase(word, self.completefilename)
 
     def complete_shell(self, text, line, begidx, endidx):
-        options = GLOBAL
-        if self.isoption(text):
-            return self.completeoption(text, options)
-        if self.commandpos(line, begidx):
-            if not self.isfilename(text):
-                return self.completecommand(text)
-        return self.basecomplete(self.completefilename, text, line, begidx)
+        word = self.parseword(line, begidx, endidx)
+        if word.isoption:
+            return self.completeoption(word.text, GLOBAL)
+        if word.commandpos:
+            if not word.isfilename:
+                return self.completecommand(word.text)
+        return self.completebase(word, self.completefilename)
 
     # Completion hooks
 
@@ -621,7 +588,7 @@ class GPGKeys(cmd.Cmd):
                         options = []
                         compfunc = getattr(self, 'complete_' + arg, None)
                         if compfunc is not None:
-                            options = compfunc('-', '', 0, 0)
+                            options = compfunc('-', '-', 0, 1)
 
                         self.stdout.write("%s\n" % usage)
                         if options:
@@ -748,6 +715,55 @@ class Args(object):
     @property
     def tuple(self):
         return self.options + self.args + self.pipe
+
+
+class Word(object):
+
+    def parse(self, line, begidx, endidx):
+        self.line = line
+        self.text = line[begidx:endidx]
+        self.begidx = begidx
+        self.endidx = endidx
+
+    @property
+    def isoption(self):
+        return self.text.startswith('-')
+
+    @property
+    def isfilename(self):
+        return self.text.startswith('~') or (os.sep in self.text)
+
+    def follows(self, text):
+        idx = self.line.rfind(text, 0, self.begidx)
+        if idx >= 0:
+            delta = self.line[idx+len(text):self.begidx]
+            if delta.strip() in ('"', "'", ''):
+                return True
+        return False
+
+    @property
+    def commandpos(self):
+        delta = self.line[0:self.begidx]
+        if delta.strip() in ('!', '.', 'shell'):
+            return True
+        return False
+
+    @property
+    def pipepos(self):
+        idx = rscan_unquoted(self.line, self.begidx, ('|', ';'))
+        if idx >= 0:
+            delta = self.line[idx+1:self.begidx]
+            if delta.strip() in ('"', "'", ''):
+                # '>|' is not a pipe but an output redirect
+                if idx > 0 and self.line[idx] == '|':
+                    if rscan_unquoted(self.line, self.begidx, ('>',)) == idx-1:
+                        return False
+                return True
+        return False
+
+    @property
+    def postredir(self):
+        return scan_unquoted(self.line, self.begidx, ('|', '>', '<')) >= 0
 
 
 def main(args=None):
