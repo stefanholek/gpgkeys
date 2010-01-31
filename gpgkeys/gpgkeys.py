@@ -511,7 +511,7 @@ class GPGKeys(cmd.Cmd):
     def complete_dump(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
         if word.isoption:
-            return self.completeoption(word.text, GLOBAL + SECRET)
+            return self.completeoption(word.text, GLOBAL + SECRET + CLEAN + MINIMAL)
         return self.completebase(word, self.completekeyspec)
 
     def complete_fdump(self, text, line, begidx, endidx):
