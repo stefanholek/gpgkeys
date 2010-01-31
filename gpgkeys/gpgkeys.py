@@ -157,7 +157,7 @@ class GPGKeys(cmd.Cmd):
         self.system('clear')
 
     def do_genkey(self, args):
-        """Generate a new key pair (Usage: genkey)"""
+        """Generate a new key pair and certificate (Usage: genkey)"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--gen-key', *args.tuple)
@@ -196,7 +196,7 @@ class GPGKeys(cmd.Cmd):
         self.do_list(args)
 
     def do_listsig(self, args):
-        """List public keys including signatures (Usage: listsig <keyspec>)"""
+        """List keys including signatures (Usage: listsig <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--list-sigs', *args.tuple)
@@ -611,6 +611,8 @@ class GPGKeys(cmd.Cmd):
 
 
 class Args(object):
+    """Parse the command line with getopt.
+    """
 
     long_options = ('openpgp',
                     'local-user=',
@@ -651,7 +653,6 @@ class Args(object):
             print >>sys.stderr, 'gpgkeys:', e
             self.ok = False
         else:
-            self.args = tuple(args)
             for name, value in options:
                 if name == '--openpgp':
                     self.openpgp = True
@@ -679,6 +680,7 @@ class Args(object):
                     self.secret = True
                 elif name == '--all':
                     self.all = True
+            self.args = tuple(args)
 
     @property
     def options(self):
@@ -718,6 +720,8 @@ class Args(object):
 
 
 class Word(object):
+    """Parse the completion word.
+    """
 
     def parse(self, line, begidx, endidx):
         self.line = line
