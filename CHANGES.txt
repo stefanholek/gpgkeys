@@ -4,6 +4,15 @@ Changelog
 1.6 - Unreleased
 ----------------
 
+- Add --clean and --minimal import/export options to respective commands.
+  [stefan]
+
+- Fix --merge-only import option of keyserver commands.
+  [stefan]
+
+- Remove the --yes option again since it has no apparent effect.
+  [stefan]
+
 
 1.5 - 2010-01-26
 ----------------

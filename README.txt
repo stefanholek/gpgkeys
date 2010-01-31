@@ -14,7 +14,7 @@ manage GnuPG keys and keyrings.
 While probably not very interesting in itself, it serves as example
 application and testbed for the development of the rl_ library.
 In particular, gpgkeys contains a sophisticated implementation of
-`filename completion`_, which may one day find its way into a standalone
+`filename completion`_ which may one day find its way into a standalone
 package or rl_ add-on.
 
 .. _rl: http://pypi.python.org/pypi/rl
@@ -49,7 +49,7 @@ commands, and keyserver URLs (not shown).
 ::
 
     $ gpgkeys
-    gpgkeys 1.0 (type help for help)
+    gpgkeys 1.6 (type help for help)
 
     gpgkeys> help
 
@@ -65,7 +65,7 @@ commands, and keyserver URLs (not shown).
 
     gpgkeys> help export
     Usage: export <keyspec>
-    Options: --armor --output --secret
+    Options: --armor --clean --minimal --output --secret
 
     Export keys to stdout or to a file
 
@@ -79,6 +79,10 @@ commands, and keyserver URLs (not shown).
 
     gpgkeys> export --armor E1F438AD > stefan.asc
     gpgkeys> .ls
-    stefan.asc            gregor.asc
-    gpgkeys>
+    alice.asc             stefan.asc
+
+gpgkeys understands shell pipes and input/output redirects. This
+allows things like::
+
+    gpgkeys> export E1F438AD | pgpdump | less
 
