@@ -13,11 +13,6 @@ WORDBREAKCHARS = WHITESPACE + QUOTECHARS + SHELL1
 T_WORD = 1
 T_SHELL = 2
 
-# Expect types
-E_NONE = 10
-E_COMMAND = 11
-E_FILENAME = 12
-
 
 class InfiniteString(str):
     """A string without IndexErrors."""
@@ -31,17 +26,16 @@ class InfiniteString(str):
 class Token(str):
     """A string with some additional attributes."""
 
-    def __new__(cls, string, start, end, type, expect):
+    def __new__(cls, string, start, end, type):
         s = str.__new__(cls, string)
         s.start = start
         s.end = end
         s.type = type
-        s.expect = expect
         return s
 
     def __add__(self, string):
         s = str.__add__(self, string)
-        return Token(s, self.start, self.end, self.type, self.expect)
+        return Token(s, self.start, self.end, self.type)
 
 
 class Tokens(list):
@@ -51,8 +45,8 @@ class Tokens(list):
         list.__init__(self)
         self.line = line
 
-    def append(self, start, end, type, expect):
-        list.append(self, Token(self.line[start:end], start, end, type, expect))
+    def append(self, start, end, type):
+        list.append(self, Token(self.line[start:end], start, end, type))
 
 
 def split(line):
@@ -83,60 +77,54 @@ def split(line):
                                 i = i+5
                                 continue
                 quote_char = ''
-                append(j, i+1, T_WORD, E_NONE)
+                append(j, i+1, T_WORD)
                 j = i+1
         elif c in QUOTECHARS:
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
             j = i
             quote_char = c
         elif c in WHITESPACE:
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
                 j = i+1
             else:
                 j = j+1
         elif c in ('|', ';'):
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
             j = i
-            append(j, i+1, T_SHELL, E_COMMAND)
+            append(j, i+1, T_SHELL)
             j = i+1
         elif c in ('&',):
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
             j = i
-            e = E_NONE
             if s[i+1] in ('>',):
                 i = i+1
-                e = E_FILENAME
-            append(j, i+1, T_SHELL, e)
+            append(j, i+1, T_SHELL)
             j = i+1
         elif c in ('>',):
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
             j = i
-            e = E_FILENAME
             if s[i+1] in ('&',):
                 i = i+1
                 if s[i+1] in DIGITS:
                     while s[i+1] in DIGITS:
                         i = i+1
-                    e = E_NONE # [sic]
                     if s[i+1] in ('-',):
                         i = i+1
             elif s[i+1] in ('>', '|'):
                 i = i+1
-            append(j, i+1, T_SHELL, e)
+            append(j, i+1, T_SHELL)
             j = i+1
         elif c in ('<',):
             if i > j:
-                append(j, i, T_WORD, E_NONE)
+                append(j, i, T_WORD)
             j = i
-            e = E_FILENAME
             if s[i+1] in ('&',):
                 i = i+1
-                e = E_NONE
                 if s[i+1] in DIGITS:
                     while s[i+1] in DIGITS:
                         i = i+1
@@ -148,10 +136,9 @@ def split(line):
                 i = i+1
             elif s[i+1] in ('<',):
                 i = i+1
-                e = E_NONE
                 if s[i+1] in ('<', '-'):
                     i = i+1
-            append(j, i+1, T_SHELL, e)
+            append(j, i+1, T_SHELL)
             j = i+1
         elif c in DIGITS:
             # Digits are not word break characters; they must
@@ -162,10 +149,8 @@ def split(line):
                     i = i+1
                 if s[i+1] in ('>',):
                     i = i+1
-                    e = E_FILENAME
                     if s[i+1] in ('&',):
                         i = i+1
-                        e = E_NONE
                         if s[i+1] in DIGITS:
                             while s[i+1] in DIGITS:
                                 i = i+1
@@ -173,14 +158,12 @@ def split(line):
                                 i = i+1
                     elif s[i+1] in ('>', '|'):
                         i = i+1
-                    append(j, i+1, T_SHELL, e)
+                    append(j, i+1, T_SHELL)
                     j = i+1
                 elif s[i+1] in ('<',):
                     i = i+1
-                    e = E_FILENAME
                     if s[i+1] in ('&',):
                         i = i+1
-                        e = E_NONE
                         if s[i+1] in DIGITS:
                             while s[i+1] in DIGITS:
                                 i = i+1
@@ -190,12 +173,12 @@ def split(line):
                             i = i+1
                     elif s[i+1] in ('>',):
                         i = i+1
-                    append(j, i+1, T_SHELL, e)
+                    append(j, i+1, T_SHELL)
                     j = i+1
         i = i+1
 
     if end > j:
-        append(j, end, T_WORD, E_NONE)
+        append(j, end, T_WORD)
     return tuple(tokens)
 
 
