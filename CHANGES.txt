@@ -4,6 +4,9 @@ Changelog
 1.7 - Unreleased
 ----------------
 
+- Change license to GPL.
+  [stefan]
+
 
 1.6 - 2010-01-31
 ----------------
