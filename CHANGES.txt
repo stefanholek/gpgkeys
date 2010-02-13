@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.7.1 - Unreleased
+------------------
+
+- Depend on rl >= 1.4.1 explicitly so setuptools does not forget to upgrade
+  it as well.
+  [stefan]
+
 1.7 - 2010-02-13
 ----------------
 

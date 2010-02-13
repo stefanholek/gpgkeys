@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.7'
+version = '1.7.1'
 
 
 setup(name='gpgkeys',
@@ -26,7 +26,7 @@ setup(name='gpgkeys',
       test_suite='gpgkeys.tests',
       install_requires=[
           'setuptools',
-          'rl',
+          'rl >= 1.4.1',
       ],
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
