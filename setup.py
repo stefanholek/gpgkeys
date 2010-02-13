@@ -23,6 +23,7 @@ setup(name='gpgkeys',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
+      use_2to3=True,
       test_suite='gpgkeys.tests',
       install_requires=[
           'setuptools',

@@ -22,12 +22,18 @@ QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
 def compose(text):
     """Return fully composed UTF-8."""
-    return normalize('NFC', text.decode('utf-8')).encode('utf-8')
+    if sys.version_info[0] >= 3:
+        return normalize('NFC', text)
+    else:
+        return normalize('NFC', text.decode('utf-8')).encode('utf-8')
 
 
 def decompose(text):
     """Return fully decomposed UTF-8 for HFS Plus."""
-    return normalize('NFD', text.decode('utf-8')).encode('utf-8')
+    if sys.version_info[0] >= 3:
+        return normalize('NFD', text)
+    else:
+        return normalize('NFD', text.decode('utf-8')).encode('utf-8')
 
 
 def backslash_quote(text, chars=''):
