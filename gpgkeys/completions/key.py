@@ -1,6 +1,6 @@
 import os
 import re
-import locale
+import sys
 import subprocess
 
 from rl import completion
@@ -12,9 +12,56 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.completions.filename import quote_string
 from gpgkeys.completions.filename import dequote_string
 
+from gpgkeys.utils import encode
+
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-escaped_char_re = re.compile(r'([\\]x[0-9a-f]{2})')
+
+if sys.version_info[0] >= 3:
+    escaped_char_re = re.compile(br'([\\]x[0-9a-f]{2})')
+else:
+    escaped_char_re = re.compile(r'([\\]x[0-9a-f]{2})')
+
+
+def char(int):
+    """Return a one-character (byte) string corresponding to the
+    ordinal ``int``."""
+    if sys.version_info[0] >= 3:
+        return bytes((int,))
+    else:
+        return chr(int)
+
+
+def unescape(text):
+    """Create a (byte) string from hex-escaped GnuPG output."""
+    seen = {}
+    for m in escaped_char_re.finditer(text):
+        for g in m.groups():
+            if g not in seen:
+                text = text.replace(g, char(int(g[2:], 16)))
+                seen[g] = True
+    return text
+
+
+def decode(text):
+    """Return unicode from utf-8 or latin-1."""
+    try:
+        text = text.decode('utf-8')
+    except UnicodeDecodeError:
+        try:
+            text = text.decode('latin-1')
+        except UnicodeDecodeError:
+            text = text.decode('utf-8', 'replace')
+    return text
+
+
+def recode(text):
+    """Return text ready for display."""
+    if sys.version_info[0] >= 3:
+        return text
+    else:
+        return encode(decode(text))
+
 
 
 class KeyCompletion(object):
@@ -25,7 +72,6 @@ class KeyCompletion(object):
     """
 
     def __init__(self):
-        self.charset = locale.getlocale()[1]
         self.pubring = os.path.join(GNUPGHOME, 'pubring.gpg')
         self.secring = os.path.join(GNUPGHOME, 'secring.gpg')
         self.mtimes = (0, 0)
@@ -62,11 +108,11 @@ class KeyCompletion(object):
         if map is self.by_keyid:
             if completion.completion_type == '?':
                 text = '%s %s' % map[text]
-                text = self.recode(text)
+                text = recode(text)
         else:
             text = '%s' % map[text]
             if completion.completion_type == '?':
-                text = self.recode(text)
+                text = recode(text)
             else:
                 self.quote_results = True
         return text
@@ -89,12 +135,20 @@ class KeyCompletion(object):
         process = subprocess.Popen(GNUPGEXE+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        for line in stdout.strip().split('\n'):
-            if line[:3] == 'pub':
-                fields = line.split(':')
-                keyid = fields[4]
-                userid = self.unescape(fields[9])
-                yield (keyid, userid)
+        if sys.version_info[0] >= 3:
+            for line in stdout.strip().split(b'\n'):
+                if line[:3] == b'pub':
+                    fields = line.split(b':')
+                    keyid = decode(fields[4])
+                    userid = decode(unescape(fields[9]))
+                    yield (keyid, userid)
+        else:
+            for line in stdout.strip().split('\n'):
+                if line[:3] == 'pub':
+                    fields = line.split(':')
+                    keyid = fields[4]
+                    userid = unescape(fields[9])
+                    yield (keyid, userid)
 
     def parse_names(self, userid):
         m = userid_re.match(userid)
@@ -102,31 +156,4 @@ class KeyCompletion(object):
             for name in m.group(1).split():
                 if len(name) > 1 and not (len(name) == 2 and name[-1] == '.'):
                     yield name
-
-    def unescape(self, text):
-        # --with-colons prints some characters in hex
-        seen = {}
-        for m in escaped_char_re.finditer(text):
-            for g in m.groups():
-                if g not in seen:
-                    text = text.replace(g, chr(int(g[2:], 16)))
-                    seen[g] = True
-        return text
-
-    def decode(self, text):
-        # Userids may contain latin-1
-        try:
-            text = text.decode('utf-8')
-        except UnicodeDecodeError:
-            try:
-                text = text.decode('latin-1')
-            except UnicodeDecodeError:
-                text = text.decode('utf-8', 'replace')
-        return text
-
-    def encode(self, text):
-        return text.encode(self.charset)
-
-    def recode(self, text):
-        return self.encode(self.decode(text))
 
