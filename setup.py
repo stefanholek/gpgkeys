@@ -10,6 +10,7 @@ setup(name='gpgkeys',
                        open('CHANGES.txt').read(),
       classifiers=[
           'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 3',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: POSIX',
           'Development Status :: 5 - Production/Stable',
