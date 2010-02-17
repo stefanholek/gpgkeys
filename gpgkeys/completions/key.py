@@ -24,8 +24,7 @@ else:
 
 
 def char(int):
-    """Return a one-character (byte) string corresponding to the
-    ordinal ``int``."""
+    """Create a one-character byte string from the ordinal ``int``."""
     if sys.version_info[0] >= 3:
         return bytes((int,))
     else:
@@ -33,7 +32,7 @@ def char(int):
 
 
 def unescape(text):
-    """Create a (byte) string from hex-escaped GnuPG output."""
+    """Convert ``gpg --with-colons`` output to a byte string."""
     seen = {}
     for m in escaped_char_re.finditer(text):
         for g in m.groups():
@@ -44,7 +43,7 @@ def unescape(text):
 
 
 def decode(text):
-    """Return unicode from utf-8 or latin-1."""
+    """Decode from either UTF-8 or Latin-1."""
     try:
         text = text.decode('utf-8')
     except UnicodeDecodeError:
@@ -56,12 +55,11 @@ def decode(text):
 
 
 def recode(text):
-    """Return text ready for display."""
+    """Return text formatted for display."""
     if sys.version_info[0] >= 3:
         return text
     else:
         return encode(decode(text))
-
 
 
 class KeyCompletion(object):
