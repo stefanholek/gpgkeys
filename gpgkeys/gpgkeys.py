@@ -635,7 +635,7 @@ class Args(object):
     def __init__(self):
         self.openpgp = False
         self.local_user = None
-        self.fingerprint = False
+        self.fingerprint = 0
         self.with_colons = False
         self.merge_only = False
         self.clean = False
@@ -663,7 +663,7 @@ class Args(object):
                 elif name == '--local-user':
                     self.local_user = value
                 elif name == '--fingerprint':
-                    self.fingerprint = True
+                    self.fingerprint += 1
                 elif name == '--with-colons':
                     self.with_colons = True
                 elif name == '--merge-only':
@@ -693,8 +693,8 @@ class Args(object):
             options.append('--openpgp')
         if self.local_user:
             options.append('--local-user %s' % self.local_user)
-        if self.fingerprint:
-            options.append('--fingerprint')
+        for x in range(self.fingerprint):
+            options.append('--with-fingerprint')
         if self.with_colons:
             options.append('--with-colons')
         if self.armor:
