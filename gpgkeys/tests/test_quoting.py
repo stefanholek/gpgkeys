@@ -6,6 +6,7 @@ from rl import completer
 from rl import completion
 from rl import generator
 from rl import readline
+from rl import print_exc
 
 from rl.testing import JailSetup
 from rl.testing import reset
@@ -24,6 +25,12 @@ from gpgkeys.completions.filename import quote_filename
 from gpgkeys.completions.filename import backslash_quote_filename
 
 TAB = '\t'
+
+
+@print_exc
+@generator
+def filecomplete(text):
+    return completion.complete_filename(text)
 
 
 class BackslashQuoteTests(unittest.TestCase):
@@ -114,7 +121,7 @@ class DequoteStringTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_string
         completer.filename_quoting_function = lambda x,y,z: x
 
@@ -145,7 +152,7 @@ class QuoteStringTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_string
         completer.filename_quoting_function = quote_string
 
@@ -183,7 +190,7 @@ class BackslashQuoteStringTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_string
         completer.filename_quoting_function = backslash_quote_string
 
@@ -221,7 +228,7 @@ class DequoteFilenameTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_filename
         completer.filename_quoting_function = lambda x,y,z: x
 
@@ -252,7 +259,7 @@ class QuoteFilenameTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_filename
         completer.filename_quoting_function = quote_filename
 
@@ -290,7 +297,7 @@ class BackslashQuoteFilenameTests(FileSetup):
         reset()
         self.cmd = GPGKeys()
         self.cmd.init_completer()
-        completer.completer = generator(completion.complete_filename)
+        completer.completer = filecomplete
         completer.filename_dequoting_function = dequote_filename
         completer.filename_quoting_function = backslash_quote_filename
 
