@@ -12,6 +12,7 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.completions.filename import quote_string
 from gpgkeys.completions.filename import dequote_string
 
+from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
@@ -42,7 +43,7 @@ def unescape(text):
     return text
 
 
-def decode(text):
+def _decode(text):
     """Decode from either UTF-8 or Latin-1."""
     try:
         text = text.decode('utf-8')
@@ -50,7 +51,7 @@ def decode(text):
         try:
             text = text.decode('latin-1')
         except UnicodeDecodeError:
-            text = text.decode('utf-8', 'replace')
+            text = decode(text)
     return text
 
 
@@ -59,7 +60,7 @@ def recode(text):
     if sys.version_info[0] >= 3:
         return text
     else:
-        return encode(decode(text))
+        return encode(_decode(text))
 
 
 class KeyCompletion(object):
@@ -137,8 +138,8 @@ class KeyCompletion(object):
             for line in stdout.strip().split(b'\n'):
                 if line[:3] == b'pub':
                     fields = line.split(b':')
-                    keyid = decode(fields[4])
-                    userid = decode(unescape(fields[9]))
+                    keyid = _decode(fields[4])
+                    userid = _decode(unescape(fields[9]))
                     yield (keyid, userid)
         else:
             for line in stdout.strip().split('\n'):
