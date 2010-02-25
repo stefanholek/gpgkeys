@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.8.1 - Unreleased
+1.8.1 - 2010-02-25
 ------------------
 
 - Restore Python 2.5 compatibility. D'oh.
