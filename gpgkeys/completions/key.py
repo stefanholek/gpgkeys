@@ -15,11 +15,13 @@ from gpgkeys.completions.filename import dequote_string
 from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 
+b = encode # Python 2.5
+
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
 
 if sys.version_info[0] >= 3:
-    escaped_char_re = re.compile(br'([\\]x[0-9a-f]{2})')
+    escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
 else:
     escaped_char_re = re.compile(r'([\\]x[0-9a-f]{2})')
 
@@ -135,9 +137,9 @@ class KeyCompletion(object):
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         if sys.version_info[0] >= 3:
-            for line in stdout.strip().split(b'\n'):
-                if line[:3] == b'pub':
-                    fields = line.split(b':')
+            for line in stdout.strip().split(b('\n')):
+                if line[:3] == b('pub'):
+                    fields = line.split(b(':'))
                     keyid = _decode(fields[4])
                     userid = _decode(unescape(fields[9]))
                     yield (keyid, userid)
