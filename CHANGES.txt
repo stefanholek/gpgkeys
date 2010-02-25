@@ -4,6 +4,12 @@ Changelog
 1.8 - Unreleased
 ----------------
 
+- Support Python 3 via distribute.
+  [stefan]
+
+- The --fingerprint option may be given more than once.
+  [stefan]
+
 
 1.7.1 - 2010-02-13
 ------------------
@@ -11,6 +17,7 @@ Changelog
 - Depend on rl >= 1.4.1 explicitly so setuptools does not forget to upgrade
   it as well.
   [stefan]
+
 
 1.7 - 2010-02-13
 ----------------
