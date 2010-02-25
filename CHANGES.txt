@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.8 - Unreleased
+1.8 - 2010-02-25
 ----------------
 
 - Support Python 3 via distribute.
