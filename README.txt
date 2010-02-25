@@ -15,7 +15,7 @@ While probably not very interesting in itself, it serves as example
 application and testbed for the development of the rl_ library.
 In particular, gpgkeys contains a sophisticated implementation of
 `filename completion`_ which may one day find its way into a standalone
-package or rl add-on.
+package or rl_ add-on.
 
 .. _rl: http://pypi.python.org/pypi/rl
 .. _`filename completion`: http://github.com/stefanholek/gpgkeys/tree/master/gpgkeys/completions
@@ -30,17 +30,17 @@ gpgkeys development is hosted on github_.
 Installation
 ============
 
-gpgkeys depends on the rl_ library. Since rl contains a C extension it is a
-good idea to install_ it independently first.
+gpgkeys depends on the rl_ library. Since rl_ contains a C extension, it is
+a good idea to review its `installation instructions`_ and make sure
+all dependencies are in place.
 
-Once rl is installed, type::
+To install the ``gpgkeys`` script, type::
 
     easy_install gpgkeys
 
-to install the ``gpgkeys`` script. Then put it on your system PATH by e.g.
-symlinking it to ``/usr/local/bin``.
+Then put it on your system PATH by e.g.  symlinking it to ``/usr/local/bin``.
 
-.. _install: http://pypi.python.org/pypi/rl#installation
+.. _`installation instructions`: http://pypi.python.org/pypi/rl#installation
 
 Example Session
 ===============
@@ -51,7 +51,7 @@ commands, and keyserver URLs (not shown).
 ::
 
     $ gpgkeys
-    gpgkeys 1.7 (type help for help)
+    gpgkeys 1.8 (type help for help)
 
     gpgkeys> help
 
@@ -83,8 +83,8 @@ commands, and keyserver URLs (not shown).
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-gpgkeys understands shell pipes and input/output redirects. This
-allows things like::
+Note that gpgkeys understands shell pipes and input/output redirects. This
+allows command lines like::
 
     gpgkeys> export E1F438AD | pgpdump | less
 
