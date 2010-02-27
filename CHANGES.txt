@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.8.2 - Unreleased
+------------------
+
+- Fix failing tests under Python 3 on Linux.
+  [stefan]
+
+
 1.8.1 - 2010-02-25
 ------------------
 
