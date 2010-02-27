@@ -2,6 +2,9 @@ import unittest
 
 from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import split
+
+from rl import completer
+from rl.testing import reset
 from gpgkeys.completions import filename
 
 
@@ -60,6 +63,10 @@ class CharIsQuotedTests(unittest.TestCase):
         '"foo \'bar\'"',
         '\'foo "bar"\'',
     )
+
+    def setUp(self):
+        reset()
+        completer.quote_characters = '"\''
 
     def test_true(self):
         # Expect the last character in s to be quoted
