@@ -48,7 +48,7 @@ MINIMAL = ['--minimal']
 SERVER  = ['--keyserver']
 EXPERT  = ['--expert']
 SECRET  = ['--secret']
-ALL     = ['--all']
+DELETE  = ['--secret-and-public']
 
 
 class GPGKeys(cmd.Cmd):
@@ -240,7 +240,7 @@ class GPGKeys(cmd.Cmd):
             command = '--delete-key'
             if args.secret:
                 command = '--delete-secret-key'
-            if args.all:
+            if args.secret_and_public:
                 command = '--delete-secret-and-public-key'
             self.gnupg(command, *args.tuple)
 
@@ -471,7 +471,7 @@ class GPGKeys(cmd.Cmd):
     def complete_del(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
         if word.isoption:
-            return self.completeoption(word.text, GLOBAL + SECRET + ALL)
+            return self.completeoption(word.text, GLOBAL + DELETE + SECRET)
         return self.completebase(word, self.completekeyspec)
 
     def complete_search(self, text, line, begidx, endidx):
@@ -630,7 +630,7 @@ class Args(object):
                     'keyserver=',
                     'expert',
                     'secret',
-                    'all')
+                    'secret-and-public')
 
     def __init__(self):
         self.openpgp = False
@@ -645,7 +645,7 @@ class Args(object):
         self.keyserver = None
         self.expert = False
         self.secret = False
-        self.all = False
+        self.secret_and_public = False
         self.args = ()
         self.pipe = ()
         self.ok = True
@@ -682,8 +682,8 @@ class Args(object):
                     self.expert = True
                 elif name == '--secret':
                     self.secret = True
-                elif name == '--all':
-                    self.all = True
+                elif name == '--secret-and-public':
+                    self.secret_and_public = True
             self.args = tuple(args)
 
     @property
