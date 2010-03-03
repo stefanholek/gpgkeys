@@ -4,6 +4,9 @@ Changelog
 1.9 - Unreleased
 ----------------
 
+- Require rl >= 1.6.
+  [stefan]
+
 
 1.8.2 - 2010-03-01
 ------------------

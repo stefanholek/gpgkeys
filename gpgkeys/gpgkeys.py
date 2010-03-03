@@ -608,9 +608,9 @@ class GPGKeys(cmd.Cmd):
     # History
 
     def init_history(self):
+        history.max_entries = 250
         histfile = os.path.expanduser('~/.gpgkeys_history')
         history.read_file(histfile)
-        history.length = 100
         atexit.register(history.write_file, histfile)
 
 
