@@ -18,10 +18,10 @@ class KeyserverCompletion(object):
 
     @print_exc
     def __call__(self, text):
-        self.update_servers()
+        self.update()
         return [x for x in self.servers if x.startswith(text)]
 
-    def update_servers(self):
+    def update(self):
         mtime = os.stat(self.gpgconf).st_mtime
         if self.mtime != mtime:
             self.mtime = mtime
@@ -33,7 +33,9 @@ class KeyserverCompletion(object):
             config = f.read()
         finally:
             f.close()
+        return self.parse_servers(config)
 
+    def parse_servers(self, config):
         for line in config.strip().split('\n'):
             tokens = line.split()
             if len(tokens) > 1:
