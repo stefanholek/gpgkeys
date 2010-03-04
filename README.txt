@@ -51,7 +51,7 @@ commands, and keyserver URLs (not shown).
 ::
 
     $ gpgkeys
-    gpgkeys 1.8 (type help for help)
+    gpgkeys 1.9 (type help for help)
 
     gpgkeys> help
 
@@ -84,7 +84,7 @@ commands, and keyserver URLs (not shown).
     alice.asc             stefan.asc
 
 Note that gpgkeys understands shell pipes and input/output redirects. This
-allows command lines like::
+enables command lines like::
 
     gpgkeys> export E1F438AD | pgpdump | less
 
