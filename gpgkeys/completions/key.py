@@ -12,10 +12,11 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.completions.filename import quote_string
 from gpgkeys.completions.filename import dequote_string
 
-from gpgkeys.utils import decode
+from gpgkeys.utils import decode as default_decode
 from gpgkeys.utils import encode
 
-b = encode # Python 2.5
+# Python 2.5 doesn't know about byte literals
+b = encode
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
@@ -27,7 +28,7 @@ else:
 
 
 def char(int):
-    """Create a one-character byte string from the ordinal ``int``."""
+    """Create a one-character (byte) string from the ordinal ``int``."""
     if sys.version_info[0] >= 3:
         return bytes((int,))
     else:
@@ -35,7 +36,7 @@ def char(int):
 
 
 def unescape(text):
-    """Convert ``gpg --with-colons`` output to a byte string."""
+    """Convert ``gpg --with-colons`` output to a (byte) string."""
     seen = {}
     for m in escaped_char_re.finditer(text):
         for g in m.groups():
@@ -45,24 +46,24 @@ def unescape(text):
     return text
 
 
-def _decode(text):
-    """Decode from either UTF-8 or Latin-1."""
+def decode(text):
+    """Decode a GnuPG string."""
     try:
         text = text.decode('utf-8')
     except UnicodeDecodeError:
         try:
             text = text.decode('latin-1')
         except UnicodeDecodeError:
-            text = decode(text)
+            text = default_decode(text)
     return text
 
 
 def recode(text):
-    """Return text formatted for display."""
+    """Reformat text for display."""
     if sys.version_info[0] >= 3:
         return text
     else:
-        return encode(_decode(text))
+        return encode(decode(text))
 
 
 class KeyCompletion(object):
@@ -82,7 +83,7 @@ class KeyCompletion(object):
 
     @print_exc
     def __call__(self, text):
-        self.update_keys()
+        self.update()
         self.quote_results = False
         matches = []
         if not text or keyid_re.match(text):
@@ -118,7 +119,7 @@ class KeyCompletion(object):
                 self.quote_results = True
         return text
 
-    def update_keys(self):
+    def update(self):
         mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
         if self.mtimes != mtimes:
             self.by_keyid = {}
@@ -136,12 +137,15 @@ class KeyCompletion(object):
         process = subprocess.Popen(GNUPGEXE+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
+        return self.parse_keys(stdout)
+
+    def parse_keys(self, stdout):
         if sys.version_info[0] >= 3:
             for line in stdout.strip().split(b('\n')):
                 if line[:3] == b('pub'):
                     fields = line.split(b(':'))
-                    keyid = _decode(fields[4])
-                    userid = _decode(unescape(fields[9]))
+                    keyid = decode(fields[4])
+                    userid = decode(unescape(fields[9]))
                     yield (keyid, userid)
         else:
             for line in stdout.strip().split('\n'):
