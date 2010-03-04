@@ -4,8 +4,7 @@ Changelog
 1.9 - Unreleased
 ----------------
 
-- Rename the del command's --all option to --secret-and-public which is more
-  self-explanatory.
+- Rename the del command's --all option to --secret-and-public.
   [stefan]
 
 - Require rl >= 1.6.
