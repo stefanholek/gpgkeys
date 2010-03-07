@@ -51,7 +51,7 @@ commands, and keyserver URLs (not shown).
 ::
 
     $ gpgkeys
-    gpgkeys 1.9 (type help for help)
+    gpgkeys 1.10 (type help for help)
 
     gpgkeys> help
 
