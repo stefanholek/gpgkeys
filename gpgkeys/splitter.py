@@ -1,3 +1,5 @@
+from functools import partial
+
 from scanner import WHITESPACE
 from scanner import QUOTECHARS
 from scanner import char_is_quoted
@@ -41,12 +43,8 @@ class Token(str):
 class Tokens(list):
     """A list of tokens."""
 
-    def __init__(self, line):
-        list.__init__(self)
-        self.line = line
-
-    def append(self, start, end, type):
-        list.append(self, Token(self.line[start:end], start, end, type))
+    def append(self, line, start, end, type):
+        list.append(self, Token(line[start:end], start, end, type))
 
 
 def split(line):
@@ -54,8 +52,8 @@ def split(line):
     """
     skip_next = False
     quote_char = ''
-    tokens = Tokens(line)
-    append = tokens.append
+    tokens = Tokens()
+    append = partial(tokens.append, line)
     end = len(line)
     s = InfiniteString(line)
     i = j = 0
