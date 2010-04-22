@@ -1,11 +1,12 @@
 import os
 import sys
-
-from unicodedata import normalize
+import unicodedata
 
 from rl import completer
 from rl import completion
 from rl import print_exc
+
+PY3 = sys.version_info[0] >= 3
 
 BASH_QUOTE_CHARACTERS = "'\""
 BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
@@ -22,18 +23,18 @@ QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
 def compose(text):
     """Return fully composed UTF-8."""
-    if sys.version_info[0] >= 3:
-        return normalize('NFC', text)
+    if PY3:
+        return unicodedata.normalize('NFC', text)
     else:
-        return normalize('NFC', text.decode('utf-8')).encode('utf-8')
+        return unicodedata.normalize('NFC', text.decode('utf-8')).encode('utf-8')
 
 
 def decompose(text):
     """Return fully decomposed UTF-8 for HFS Plus."""
-    if sys.version_info[0] >= 3:
-        return normalize('NFD', text)
+    if PY3:
+        return unicodedata.normalize('NFD', text)
     else:
-        return normalize('NFD', text.decode('utf-8')).encode('utf-8')
+        return unicodedata.normalize('NFD', text.decode('utf-8')).encode('utf-8')
 
 
 def backslash_quote(text, chars=''):
