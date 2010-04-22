@@ -12,24 +12,18 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.completions.filename import quote_string
 from gpgkeys.completions.filename import dequote_string
 
-from gpgkeys.utils import decode as default_decode
+from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
-
-# Python 2.5 doesn't know about byte literals
-b = encode
+from gpgkeys.utils import b
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-
-if sys.version_info[0] >= 3:
-    escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
-else:
-    escaped_char_re = re.compile(r'([\\]x[0-9a-f]{2})')
+escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
 
 
 def char(int):
     """Create a one-character (byte) string from the ordinal ``int``."""
-    if sys.version_info[0] >= 3:
+    if PY3:
         return bytes((int,))
     else:
         return chr(int)
@@ -54,13 +48,16 @@ def decode(text):
         try:
             text = text.decode('latin-1')
         except UnicodeDecodeError:
-            text = default_decode(text)
+            if PY3:
+                text = text.decode('utf-8', 'surrogateescape')
+            else:
+                text = text.decode('utf-8', 'replace')
     return text
 
 
 def recode(text):
-    """Reformat text for display."""
-    if sys.version_info[0] >= 3:
+    """Reformat string for display."""
+    if PY3:
         return text
     else:
         return encode(decode(text))
@@ -140,20 +137,15 @@ class KeyCompletion(object):
         return self.parse_keys(stdout)
 
     def parse_keys(self, stdout):
-        if sys.version_info[0] >= 3:
-            for line in stdout.strip().split(b('\n')):
-                if line[:3] == b('pub'):
-                    fields = line.split(b(':'))
-                    keyid = decode(fields[4])
-                    userid = decode(unescape(fields[9]))
-                    yield (keyid, userid)
-        else:
-            for line in stdout.strip().split('\n'):
-                if line[:3] == 'pub':
-                    fields = line.split(':')
-                    keyid = fields[4]
-                    userid = unescape(fields[9])
-                    yield (keyid, userid)
+        for line in stdout.strip().split(b('\n')):
+            if line[:3] == b('pub'):
+                fields = line.split(b(':'))
+                keyid = fields[4]
+                userid = unescape(fields[9])
+                if PY3:
+                    keyid = decode(keyid)
+                    userid = decode(userid)
+                yield (keyid, userid)
 
     def parse_names(self, userid):
         m = userid_re.match(userid)
