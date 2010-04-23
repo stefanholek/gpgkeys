@@ -371,9 +371,6 @@ class GPGKeys(cmd.Cmd):
         completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
-    def completeoption(self, text, options):
-        return [x for x in options if x.startswith(text)]
-
     def parseword(self, line, begidx, endidx):
         # Parse the completion word
         word = Word()
@@ -389,6 +386,9 @@ class GPGKeys(cmd.Cmd):
         if word.postredir:
             return self.completefilename(word.text)
         return default(word.text)
+
+    def completeoption(self, text, options):
+        return [x for x in options if x.startswith(text)]
 
     def complete_genkey(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
