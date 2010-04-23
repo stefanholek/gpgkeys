@@ -183,9 +183,7 @@ class FilenameCompletion(object):
     """
 
     def __init__(self, quote_char='\\'):
-        self.configure(quote_char)
-
-    def configure(self, quote_char):
+        """Configure the readline completer for filename completion."""
         completer.quote_characters = MY_QUOTE_CHARACTERS
         completer.word_break_characters = MY_WORD_BREAK_CHARACTERS
         completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
@@ -199,6 +197,7 @@ class FilenameCompletion(object):
 
     @print_exc
     def __call__(self, text):
+        """Return filenames matching 'text'."""
         matches = []
         # Dequoting early allows us to skip some hooks
         if completion.found_quote:
