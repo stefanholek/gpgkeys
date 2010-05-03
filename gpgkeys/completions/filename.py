@@ -169,7 +169,7 @@ def backslash_quote_filename(text, single_match, quote_char):
     return text
 
 
-class FilenameCompletion(object):
+class FilenameCompletion(Completion):
     """Perform filename completion
 
     Extends readline's default filename quoting by taking
@@ -178,9 +178,7 @@ class FilenameCompletion(object):
 
     def __init__(self, quote_char='\\'):
         """Configure the readline completer for filename completion."""
-        completer.quote_characters = MY_QUOTE_CHARACTERS
-        completer.word_break_characters = MY_WORD_BREAK_CHARACTERS
-        completer.filename_quote_characters = MY_FILENAME_QUOTE_CHARACTERS
+        super(FilenameCompletion, self).__init__()
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
 
