@@ -6,19 +6,13 @@ from rl import completer
 from rl import completion
 from rl import print_exc
 
+from gpgkeys.config import BASH_QUOTE_CHARACTERS
+from gpgkeys.config import BASH_FILENAME_QUOTE_CHARACTERS
+from gpgkeys.config import QUOTED
+
+from completion import Completion
+
 PY3 = sys.version_info[0] >= 3
-
-BASH_QUOTE_CHARACTERS = "'\""
-BASH_COMPLETER_WORD_BREAK_CHARACTERS = " \t\n\"'@><;|&=(:"
-BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS = " \t\n\"'><;|&=(:"
-BASH_FILENAME_QUOTE_CHARACTERS = "\\ \t\n\"'@><;|&=()#$`?*[!:{~"
-BASH_COMMAND_SEPARATORS = ";|&{(`"
-
-MY_QUOTE_CHARACTERS = "\"'"
-MY_WORD_BREAK_CHARACTERS = BASH_NOHOSTNAME_WORD_BREAK_CHARACTERS[:-3]
-MY_FILENAME_QUOTE_CHARACTERS = BASH_FILENAME_QUOTE_CHARACTERS[:-1]
-
-QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
 
 def compose(text):
