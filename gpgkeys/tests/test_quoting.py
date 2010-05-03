@@ -8,10 +8,10 @@ from rl import generator
 from rl import readline
 from rl import print_exc
 
-from rl.testing import JailSetup
-from rl.testing import reset
-
 from gpgkeys.gpgkeys import GPGKeys
+
+from gpgkeys.testing import JailSetup
+from gpgkeys.testing import reset
 
 from gpgkeys.completions.filename import backslash_quote
 from gpgkeys.completions.filename import backslash_dequote

@@ -6,10 +6,10 @@ from rl import completer
 from rl import completion
 from rl import readline
 
-from rl.testing import JailSetup
-from rl.testing import reset
-
 from gpgkeys.gpgkeys import GPGKeys
+
+from gpgkeys.testing import JailSetup
+from gpgkeys.testing import reset
 
 TAB = '\t'
 
