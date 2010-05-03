@@ -9,12 +9,12 @@ from rl import print_exc
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
 
-from gpgkeys.completions.filename import quote_string
-from gpgkeys.completions.filename import dequote_string
-
 from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
 from gpgkeys.utils import b
+
+from filename import quote_string
+from filename import dequote_string
 
 from completion import Completion
 
