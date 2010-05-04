@@ -4,9 +4,9 @@ from rl import completion
 from gpgkeys.config import QUOTE_CHARACTERS
 from gpgkeys.config import WORD_BREAK_CHARACTERS
 from gpgkeys.config import FILENAME_QUOTE_CHARACTERS
-
 from gpgkeys.config import BASH_FILENAME_QUOTE_CHARACTERS
-from gpgkeys.config import QUOTED
+
+QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
 _configured = False
 
