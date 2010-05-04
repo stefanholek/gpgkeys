@@ -13,9 +13,8 @@ from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
 from gpgkeys.utils import b
 
-from filename import quote_string
-from filename import dequote_string
-
+from completion import quote_string
+from completion import dequote_string
 from completion import Completion
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)

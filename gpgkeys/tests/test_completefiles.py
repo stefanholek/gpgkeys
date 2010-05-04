@@ -7,7 +7,6 @@ from rl import completion
 from rl import readline
 
 from gpgkeys.gpgkeys import GPGKeys
-
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
 
