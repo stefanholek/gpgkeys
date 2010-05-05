@@ -8,18 +8,16 @@ from rl import generator
 from rl import readline
 from rl import print_exc
 
-from rl.testing import JailSetup
-from rl.testing import reset
-
 from gpgkeys.gpgkeys import GPGKeys
+from gpgkeys.testing import JailSetup
+from gpgkeys.testing import reset
 
-from gpgkeys.completions.filename import backslash_quote
-from gpgkeys.completions.filename import backslash_dequote
-from gpgkeys.completions.filename import is_fully_quoted
-from gpgkeys.completions.filename import char_is_quoted # See test_splitter
-from gpgkeys.completions.filename import dequote_string
-from gpgkeys.completions.filename import quote_string
-from gpgkeys.completions.filename import backslash_quote_string
+from gpgkeys.completions.completion import backslash_quote
+from gpgkeys.completions.completion import backslash_dequote
+from gpgkeys.completions.completion import is_fully_quoted
+from gpgkeys.completions.completion import dequote_string
+from gpgkeys.completions.completion import quote_string
+from gpgkeys.completions.completion import backslash_quote_string
 from gpgkeys.completions.filename import dequote_filename
 from gpgkeys.completions.filename import quote_filename
 from gpgkeys.completions.filename import backslash_quote_filename
@@ -122,7 +120,7 @@ class DequoteStringTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_string
+        completer.filename_dequoting_function = print_exc(dequote_string)
         completer.filename_quoting_function = lambda x,y,z: x
 
     def test_dequote_string(self):
@@ -153,8 +151,8 @@ class QuoteStringTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_string
-        completer.filename_quoting_function = quote_string
+        completer.filename_dequoting_function = print_exc(dequote_string)
+        completer.filename_quoting_function = print_exc(quote_string)
 
     def test_quote_string(self):
         self.assertEqual(self.complete(''), '')
@@ -191,8 +189,8 @@ class BackslashQuoteStringTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_string
-        completer.filename_quoting_function = backslash_quote_string
+        completer.filename_dequoting_function = print_exc(dequote_string)
+        completer.filename_quoting_function = print_exc(backslash_quote_string)
 
     def test_backslash_quote_string(self):
         self.assertEqual(self.complete(''), '')
@@ -229,7 +227,7 @@ class DequoteFilenameTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_filename
+        completer.filename_dequoting_function = print_exc(dequote_filename)
         completer.filename_quoting_function = lambda x,y,z: x
 
     def test_dequote_filename(self):
@@ -260,8 +258,8 @@ class QuoteFilenameTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_filename
-        completer.filename_quoting_function = quote_filename
+        completer.filename_dequoting_function = print_exc(dequote_filename)
+        completer.filename_quoting_function = print_exc(quote_filename)
 
     def test_quote_filename(self):
         self.assertEqual(self.complete(''), '')
@@ -298,8 +296,8 @@ class BackslashQuoteFilenameTests(FileSetup):
         self.cmd = GPGKeys()
         self.cmd.init_completer()
         completer.completer = filecomplete
-        completer.filename_dequoting_function = dequote_filename
-        completer.filename_quoting_function = backslash_quote_filename
+        completer.filename_dequoting_function = print_exc(dequote_filename)
+        completer.filename_quoting_function = print_exc(backslash_quote_filename)
 
     def test_backslash_quote_filename(self):
         self.assertEqual(self.complete(''), '')

@@ -13,8 +13,9 @@ from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
 from gpgkeys.utils import b
 
-from filename import quote_string
-from filename import dequote_string
+from completion import quote_string
+from completion import dequote_string
+from completion import Completion
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
@@ -63,7 +64,7 @@ def recode(text):
         return encode(decode(text))
 
 
-class KeyCompletion(object):
+class KeyCompletion(Completion):
     """Perform keyid and userid completion
 
     Watches the keyrings for changes and automatically refreshes
@@ -71,6 +72,7 @@ class KeyCompletion(object):
     """
 
     def __init__(self):
+        super(KeyCompletion, self).__init__()
         self.pubring = os.path.join(GNUPGHOME, 'pubring.gpg')
         self.secring = os.path.join(GNUPGHOME, 'secring.gpg')
         self.mtimes = (0, 0)

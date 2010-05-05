@@ -1,11 +1,11 @@
 import unittest
 
+from rl import completer
+
 from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import split
-
-from rl import completer
-from rl.testing import reset
 from gpgkeys.completions import filename
+from gpgkeys.testing import reset
 
 
 class CharIsQuotedTests(unittest.TestCase):

@@ -1,9 +1,10 @@
 import os
 
 from rl import print_exc
+from completion import Completion
 
 
-class CommandCompletion(object):
+class CommandCompletion(Completion):
     """Perform system command completion
     """
 
