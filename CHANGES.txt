@@ -4,6 +4,12 @@ Changelog
 1.10 - Unreleased
 -----------------
 
+- Refactor completions: Extract generic parts into base class.
+  [stefan]
+
+- Require rl >= 1.10.
+  [stefan]
+
 
 1.9 - 2010-03-07
 ----------------
