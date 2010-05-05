@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.10 - Unreleased
+1.10 - 2010-05-05
 -----------------
 
 - Refactor completions: Extract generic parts into base class.
