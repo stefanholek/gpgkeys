@@ -1,10 +1,10 @@
 Changelog
 =========
 
-1.10.1 - Unreleased
--------------------
+1.11 - Unreleased
+-----------------
 
-- Change an import statement so 2to3 can resolve it.
+- Change an import statement so 2to3 is able to resolve it.
   [stefan]
 
 
