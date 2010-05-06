@@ -124,6 +124,6 @@ class Completion(object):
             completer.char_is_quoted_function = char_is_quoted
 
     def __call__(self, text):
-        """Return a list of matches for text."""
+        """Return a list of matches for 'text'."""
         raise NotImplementedError
 
