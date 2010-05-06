@@ -1,10 +1,10 @@
 import rl.testing
-import completions.completion
+from completions import completion
 
 
 def reset():
     rl.testing.reset()
-    completions.completion._configured = False
+    completion._configured = False
 
 
 class JailSetup(rl.testing.JailSetup):
