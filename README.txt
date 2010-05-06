@@ -46,7 +46,7 @@ Example Session
 
 Everything in gpgkeys can be tab-completed: commands, help
 topics, userids, option flags, keyids, filenames, shell
-commands, and keyserver URLs (not shown).
+commands, and keyserver URLs.
 ::
 
     $ gpgkeys
@@ -82,8 +82,8 @@ commands, and keyserver URLs (not shown).
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-Note that gpgkeys understands shell pipes and input/output redirects. This
-enables command lines like::
+gpgkeys understands shell pipes and input/output redirects. This
+allows command lines like::
 
     gpgkeys> export E1F438AD | pgpdump | less
 
