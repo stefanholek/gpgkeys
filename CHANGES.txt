@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.11 - Unreleased
+1.11 - 2010-05-07
 -----------------
 
 - Change an import statement so 2to3 is able to resolve it.
