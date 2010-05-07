@@ -50,7 +50,7 @@ commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.11 (type help for help)
+    gpgkeys 1.12 (type help for help)
 
     gpgkeys> help
 
