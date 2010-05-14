@@ -240,3 +240,37 @@ class DirectoryCompletionHookTests(JailSetup):
                                        'fdump funny\\ dir/foo.')
         self.assertEqual(called, [('funny dir/',)])
 
+
+class InitQuoteCharactersTests(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        self.cmd = GPGKeys()
+
+    def test_double_quote(self):
+        self.cmd.init_completer('"')
+        self.assertEqual(completer.quote_characters, '"\'')
+
+    def test_single_quote(self):
+        self.cmd.init_completer("'")
+        self.assertEqual(completer.quote_characters, '\'"')
+
+    def test_backslash(self):
+        self.cmd.init_completer('\\')
+        self.assertEqual(completer.quote_characters, '"\'')
+
+    def test_reconfigure(self):
+        self.cmd.init_completer('"')
+        self.assertEqual(completer.quote_characters, '"\'')
+        self.cmd.init_completer("'")
+        self.assertEqual(completer.quote_characters, '\'"')
+        self.cmd.init_completer('"')
+        self.assertEqual(completer.quote_characters, '"\'')
+        self.cmd.init_completer("'")
+        self.assertEqual(completer.quote_characters, '\'"')
+        self.cmd.init_completer('\\')
+        self.assertEqual(completer.quote_characters, '"\'')
+
+    def test_invalid(self):
+        self.assertRaises(ValueError, self.cmd.init_completer, 'A')
+

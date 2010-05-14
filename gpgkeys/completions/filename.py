@@ -6,7 +6,9 @@ from rl import completer
 from rl import completion
 from rl import print_exc
 
+from gpgkeys.config import QUOTE_CHARACTERS
 from gpgkeys.config import BASH_QUOTE_CHARACTERS
+
 from gpgkeys.utils import PY3
 
 from completion import backslash_quote
@@ -91,12 +93,15 @@ class FilenameCompletion(Completion):
     def __init__(self, quote_char='\\'):
         """Configure the readline completer for filename completion."""
         super(FilenameCompletion, self).__init__()
+        completer.quote_characters = QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
         if quote_char == "'":
             completer.quote_characters = BASH_QUOTE_CHARACTERS
         elif quote_char == '\\':
             completer.filename_quoting_function = self.backslash_quote_filename
+        elif quote_char != '"':
+            raise ValueError('quote_char must be one of " \' \\')
 
     @print_exc
     def __call__(self, text):
