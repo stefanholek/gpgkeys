@@ -169,16 +169,22 @@ class GPGKeys(cmd.Cmd):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--gen-revoke', *args.tuple)
+            if args.args:
+                self.gnupg('--gen-revoke', *args.tuple)
+            else:
+                self.do_help('genrevoke')
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--import', *args.tuple)
+            if args.args:
+                self.gnupg('--import', *args.tuple)
+            else:
+                self.do_help('import')
 
     def do_export(self, args):
-        """Export keys to stdout or to a file (Usage: export <keyspec>)"""
+        """Export keys to stdout or to a file (Usage: export [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             command = '--export'
@@ -187,7 +193,7 @@ class GPGKeys(cmd.Cmd):
             self.gnupg(command, *args.tuple)
 
     def do_list(self, args):
-        """List keys (Usage: list <keyspec>)"""
+        """List keys (Usage: list [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             command = '--list-keys'
@@ -199,7 +205,7 @@ class GPGKeys(cmd.Cmd):
         self.do_list(args)
 
     def do_listsig(self, args):
-        """List keys including signatures (Usage: listsig <keyspec>)"""
+        """List keys including signatures (Usage: listsig [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--list-sigs', *args.tuple)
@@ -208,7 +214,7 @@ class GPGKeys(cmd.Cmd):
         self.do_listsig(args)
 
     def do_checksig(self, args):
-        """Like listsig, but also verify the signatures (Usage: checksig <keyspec>)"""
+        """Like listsig, but also verify the signatures (Usage: checksig [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--check-sigs', *args.tuple)
@@ -217,7 +223,10 @@ class GPGKeys(cmd.Cmd):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--edit-key', *args.tuple)
+            if args.args:
+                self.gnupg('--edit-key', *args.tuple)
+            else:
+                self.do_help('edit')
 
     def do_e(self, args):
         self.do_edit(args)
@@ -226,45 +235,63 @@ class GPGKeys(cmd.Cmd):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--lsign-key', *args.tuple)
+            if args.args:
+                self.gnupg('--lsign-key', *args.tuple)
+            else:
+                self.do_help('lsign')
 
     def do_sign(self, args):
         """Sign a key with an exportable signature (Usage: sign <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--sign-key', *args.tuple)
+            if args.args:
+                self.gnupg('--sign-key', *args.tuple)
+            else:
+                self.do_help('sign')
 
     def do_del(self, args):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            command = '--delete-key'
-            if args.secret:
-                command = '--delete-secret-key'
-            if args.secret_and_public:
-                command = '--delete-secret-and-public-key'
-            self.gnupg(command, *args.tuple)
+            if args.args:
+                command = '--delete-key'
+                if args.secret:
+                    command = '--delete-secret-key'
+                if args.secret_and_public:
+                    command = '--delete-secret-and-public-key'
+                self.gnupg(command, *args.tuple)
+            else:
+                self.do_help('del')
 
     def do_search(self, args):
         """Search for keys on a keyserver (Usage: search <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--search-keys', *args.tuple)
+            if args.args:
+                self.gnupg('--search-keys', *args.tuple)
+            else:
+                self.do_help('search')
 
     def do_recv(self, args):
         """Fetch keys from a keyserver (Usage: recv <keyids>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--recv-keys', *args.tuple)
+            if args.args:
+                self.gnupg('--recv-keys', *args.tuple)
+            else:
+                self.do_help('recv')
 
     def do_send(self, args):
         """Send keys to a keyserver (Usage: send <keyspec>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--send-keys', *args.tuple)
+            if args.args:
+                self.gnupg('--send-keys', *args.tuple)
+            else:
+                self.do_help('send')
 
     def do_refresh(self, args):
-        """Refresh keys from a keyserver (Usage: refresh <keyspec>)"""
+        """Refresh keys from a keyserver (Usage: refresh [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--refresh-keys', *args.tuple)
@@ -273,10 +300,13 @@ class GPGKeys(cmd.Cmd):
         """Fetch keys from a URL (Usage: fetch <url>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--fetch-keys', *args.tuple)
+            if args.args:
+                self.gnupg('--fetch-keys', *args.tuple)
+            else:
+                self.do_help('fetch')
 
     def do_dump(self, args):
-        """List the packet sequence of a key (Usage: dump <keyspec>)"""
+        """List the packet sequence of a key (Usage: dump [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             command = '--export'
@@ -289,7 +319,10 @@ class GPGKeys(cmd.Cmd):
         """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
         args = self.parseargs(args)
         if args.ok:
-            self.gnupg('--list-packets', *args.tuple)
+            if args.args:
+                self.gnupg('--list-packets', *args.tuple)
+            else:
+                self.do_help('fdump')
 
     def do_shell(self, args):
         """Execute a command or start an interactive shell (Usage: .<command> or .)"""
