@@ -7,6 +7,9 @@ Changelog
 - Print help when required command arguments are missing.
   [stefan]
 
+- Require rl >= 1.11.
+  [stefan]
+
 
 1.11 - 2010-05-07
 -----------------
