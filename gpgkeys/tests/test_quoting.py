@@ -12,12 +12,12 @@ from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
 
-from gpgkeys.completions.completion import backslash_quote
-from gpgkeys.completions.completion import backslash_dequote
-from gpgkeys.completions.completion import is_fully_quoted
-from gpgkeys.completions.completion import dequote_string
-from gpgkeys.completions.completion import quote_string
-from gpgkeys.completions.completion import backslash_quote_string
+from gpgkeys.completions.quoting import backslash_dequote
+from gpgkeys.completions.quoting import backslash_quote
+from gpgkeys.completions.quoting import is_fully_quoted
+from gpgkeys.completions.quoting import dequote_string
+from gpgkeys.completions.quoting import quote_string
+from gpgkeys.completions.quoting import backslash_quote_string
 from gpgkeys.completions.filename import dequote_filename
 from gpgkeys.completions.filename import quote_filename
 from gpgkeys.completions.filename import backslash_quote_filename
@@ -29,26 +29,6 @@ TAB = '\t'
 @generator
 def filecomplete(text):
     return completion.complete_filename(text)
-
-
-class BackslashQuoteTests(unittest.TestCase):
-
-    def setUp(self):
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer()
-
-    def test_backslash_quote(self):
-        self.assertEqual(backslash_quote(''), '')
-        self.assertEqual(backslash_quote(' '), '\\ ')
-        self.assertEqual(backslash_quote('a'), 'a')
-        self.assertEqual(backslash_quote('@'), '\\@')
-
-    def test_backslash_quote_string(self):
-        self.assertEqual(backslash_quote(' foo bar#baz&'), '\\ foo\\ bar\\#baz\\&')
-
-    def test_backslash_quote_unknown_char(self):
-        self.assertEqual(backslash_quote('€'), '€')
 
 
 class BackslashDequoteTests(unittest.TestCase):
@@ -70,6 +50,26 @@ class BackslashDequoteTests(unittest.TestCase):
 
     def test_backslash_dequote_unknown_char(self):
         self.assertEqual(backslash_dequote('\\€'), '\\€') # NB: not dequoted
+
+
+class BackslashQuoteTests(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        self.cmd = GPGKeys()
+        self.cmd.init_completer()
+
+    def test_backslash_quote(self):
+        self.assertEqual(backslash_quote(''), '')
+        self.assertEqual(backslash_quote(' '), '\\ ')
+        self.assertEqual(backslash_quote('a'), 'a')
+        self.assertEqual(backslash_quote('@'), '\\@')
+
+    def test_backslash_quote_string(self):
+        self.assertEqual(backslash_quote(' foo bar#baz&'), '\\ foo\\ bar\\#baz\\&')
+
+    def test_backslash_quote_unknown_char(self):
+        self.assertEqual(backslash_quote('€'), '€')
 
 
 class FullyQuotedTests(unittest.TestCase):

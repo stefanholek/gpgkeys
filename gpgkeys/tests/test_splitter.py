@@ -3,8 +3,8 @@ import unittest
 from rl import completer
 
 from gpgkeys.scanner import char_is_quoted
+from gpgkeys.completions import quoting
 from gpgkeys.splitter import split
-from gpgkeys.completions import filename
 from gpgkeys.testing import reset
 
 
@@ -78,15 +78,15 @@ class CharIsQuotedTests(unittest.TestCase):
         for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
-    def test_true_filename(self):
+    def test_true_quoting(self):
         # Expect the last character in s to be quoted
         for s in self.TRUE:
-            self.assertEqual(filename.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
+            self.assertEqual(quoting.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
 
-    def test_false_filename(self):
+    def test_false_quoting(self):
         # Expect the last character in s to be unquoted
         for s in self.FALSE:
-            self.assertEqual(filename.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
+            self.assertEqual(quoting.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
 class SplitTests(unittest.TestCase):

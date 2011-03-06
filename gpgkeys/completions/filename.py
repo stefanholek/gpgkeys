@@ -11,11 +11,12 @@ from gpgkeys.config import BASH_QUOTE_CHARACTERS
 
 from gpgkeys.utils import PY3
 
-from completion import backslash_quote
-from completion import backslash_dequote
-from completion import char_is_quoted
-from completion import is_fully_quoted
 from completion import Completion
+
+from quoting import backslash_dequote
+from quoting import backslash_quote
+from quoting import char_is_quoted
+from quoting import is_fully_quoted
 
 
 def decompose(text):

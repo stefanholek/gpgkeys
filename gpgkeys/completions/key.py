@@ -12,9 +12,10 @@ from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
 from gpgkeys.utils import b
 
-from completion import quote_string
-from completion import dequote_string
 from completion import Completion
+
+from quoting import dequote_string
+from quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
