@@ -92,9 +92,9 @@ class FilenameCompletion(Completion):
     def __init__(self, quote_char='\\'):
         """Configure the readline completer for filename completion."""
         super(FilenameCompletion, self).__init__()
-        completer.quote_characters = QUOTE_CHARACTERS
         completer.char_is_quoted_function = self.char_is_quoted
         completer.filename_quoting_function = self.quote_filename
+        completer.quote_characters = QUOTE_CHARACTERS
         if quote_char == "'":
             completer.quote_characters = BASH_QUOTE_CHARACTERS
         elif quote_char == '\\':

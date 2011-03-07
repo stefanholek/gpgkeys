@@ -139,6 +139,8 @@ class KeyCompletion(Completion):
         return self.parse_keys(stdout)
 
     def parse_keys(self, stdout):
+        # Process stdout as byte string since we must run
+        # unescape before decoding
         for line in stdout.strip().split(b('\n')):
             if line[:3] == b('pub'):
                 fields = line.split(b(':'))
