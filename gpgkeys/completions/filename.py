@@ -9,8 +9,6 @@ from rl import print_exc
 from gpgkeys.config import QUOTE_CHARACTERS
 from gpgkeys.config import BASH_QUOTE_CHARACTERS
 
-from gpgkeys.utils import PY3
-
 from completion import Completion
 
 from quoting import backslash_dequote
@@ -21,7 +19,7 @@ from quoting import is_fully_quoted
 
 def decompose(text):
     """Return fully decomposed UTF-8 for HFS Plus."""
-    if PY3:
+    if sys.version_info[0] >= 3:
         return unicodedata.normalize('NFD', text)
     else:
         return unicodedata.normalize('NFD', text.decode('utf-8')).encode('utf-8')
@@ -29,7 +27,7 @@ def decompose(text):
 
 def compose(text):
     """Return fully composed UTF-8."""
-    if PY3:
+    if sys.version_info[0] >= 3:
         return unicodedata.normalize('NFC', text)
     else:
         return unicodedata.normalize('NFC', text.decode('utf-8')).encode('utf-8')

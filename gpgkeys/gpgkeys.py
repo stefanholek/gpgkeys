@@ -27,7 +27,6 @@ from splitter import split
 from splitter import closequote
 from splitter import splitpipe
 
-from utils import PY3
 from utils import decode
 
 from completions.filename import FilenameCompletion
@@ -353,7 +352,7 @@ class GPGKeys(cmd.Cmd):
             shell=True, stdout=subprocess.PIPE)
         stdout, stderr = process.communicate()
         if process.returncode == 0:
-            if PY3:
+            if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
             for line in stdout.strip().split('\n'):
                 return line

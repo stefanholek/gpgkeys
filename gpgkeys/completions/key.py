@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import subprocess
 
@@ -8,7 +9,6 @@ from rl import print_exc
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
 
-from gpgkeys.utils import PY3
 from gpgkeys.utils import encode
 from gpgkeys.utils import b
 
@@ -24,7 +24,7 @@ escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
 
 def char(int):
     """Create a one-character (byte) string from the ordinal ``int``."""
-    if PY3:
+    if sys.version_info[0] >= 3:
         return bytes((int,))
     else:
         return chr(int)
@@ -49,7 +49,7 @@ def decode(text):
         try:
             text = text.decode('latin-1')
         except UnicodeDecodeError:
-            if PY3:
+            if sys.version_info[0] >= 3:
                 text = text.decode('utf-8', 'surrogateescape')
             else:
                 text = text.decode('utf-8', 'replace')
@@ -58,7 +58,7 @@ def decode(text):
 
 def recode(text):
     """Reformat string for display."""
-    if PY3:
+    if sys.version_info[0] >= 3:
         return text
     else:
         return encode(decode(text))
@@ -144,7 +144,7 @@ class KeyCompletion(Completion):
                 fields = line.split(b(':'))
                 keyid = fields[4]
                 userid = unescape(fields[9])
-                if PY3:
+                if sys.version_info[0] >= 3:
                     keyid = decode(keyid)
                     userid = decode(userid)
                 yield (keyid, userid)
