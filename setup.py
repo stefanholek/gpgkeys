@@ -28,7 +28,7 @@ setup(name='gpgkeys',
       test_suite='gpgkeys.tests',
       install_requires=[
           'setuptools',
-          'rl >= 1.11',
+          'rl >= 1.13',
       ],
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
