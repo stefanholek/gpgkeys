@@ -17,6 +17,14 @@ def encode(text):
         return text.encode(sys.getfilesystemencoding(), 'replace')
 
 
+def char(int):
+    """Create a one-character byte string from the ordinal ``int``."""
+    if sys.version_info[0] >= 3:
+        return bytes((int,))
+    else:
+        return chr(int)
+
+
 def b(text):
     """Simulate byte literals for Python 2.5 compatibility."""
     if sys.version_info[0] >= 3:

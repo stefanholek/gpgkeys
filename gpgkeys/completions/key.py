@@ -10,6 +10,7 @@ from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
 
 from gpgkeys.utils import encode
+from gpgkeys.utils import char
 from gpgkeys.utils import b
 
 from completion import Completion
@@ -20,14 +21,6 @@ from quoting import quote_string
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
 escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
-
-
-def char(int):
-    """Create a one-character (byte) string from the ordinal ``int``."""
-    if sys.version_info[0] >= 3:
-        return bytes((int,))
-    else:
-        return chr(int)
 
 
 def unescape(text):
