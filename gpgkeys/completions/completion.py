@@ -10,7 +10,7 @@ _configured = False
 
 
 class Completion(object):
-    """Base Completion
+    """Base completion
 
     Guarantees a minimum configuration and interface.
     """

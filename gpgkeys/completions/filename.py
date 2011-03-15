@@ -72,7 +72,7 @@ def quote_filename(text, single_match, quote_char):
 
 
 def backslash_quote_filename(text, single_match, quote_char):
-    """Return a (backslash) quoted version of text."""
+    """Return a backslash-quoted version of text."""
     if text:
         # If the user has typed a quote character, use it.
         if quote_char:

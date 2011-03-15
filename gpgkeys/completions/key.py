@@ -31,7 +31,7 @@ def char(int):
 
 
 def unescape(text):
-    """Convert ``gpg --with-colons`` output to a (byte) string."""
+    """Convert ``gpg --with-colons`` output to a byte string."""
     seen = {}
     for m in escaped_char_re.finditer(text):
         for g in m.groups():
@@ -65,7 +65,7 @@ def recode(text):
 
 
 class KeyCompletion(Completion):
-    """Perform keyid and userid completion
+    """Perform key id and user name completion
 
     Watches the keyrings for changes and automatically refreshes
     its completion cache.

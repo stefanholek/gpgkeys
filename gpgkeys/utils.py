@@ -18,7 +18,7 @@ def encode(text):
 
 
 def b(text):
-    """Python 2.5 doesn't know about byte literals."""
+    """Simulate byte literals for Python 2.5 compatibility."""
     if sys.version_info[0] >= 3:
         return text.encode('utf-8')
     else:

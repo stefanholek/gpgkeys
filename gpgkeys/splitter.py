@@ -41,7 +41,7 @@ class Token(str):
 
 
 class Tokens(list):
-    """A list of tokens."""
+    """A list of Tokens."""
 
     def append(self, line, start, end, type):
         list.append(self, Token(line[start:end], start, end, type))

@@ -52,7 +52,10 @@ DELETE  = ['--secret-and-public']
 
 
 class GPGKeys(cmd.Cmd):
-    """Cmd interface for GnuPG with advanced completion capabilities.
+    """Command line shell for GnuPG.
+
+    Implements a shell providing commands to view and
+    manipulate GnuPG keys and keyrings.
     """
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__

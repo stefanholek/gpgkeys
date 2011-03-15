@@ -8,7 +8,7 @@ from completion import Completion
 class KeyserverCompletion(Completion):
     """Perform keyserver completion
 
-    To become available for completion, keyservers must be configured
+    To become available for completion keyservers must be configured
     in $GNUPGHOME/gpg.conf.
     """
 

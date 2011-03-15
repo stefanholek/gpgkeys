@@ -7,14 +7,14 @@ QUOTED = dict((x, '\\'+x) for x in BASH_FILENAME_QUOTE_CHARACTERS)
 
 
 def backslash_dequote(text, chars=''):
-    """Return a backslash-dequoted version of text."""
+    """Backslash-dequote text."""
     for c in (chars or BASH_FILENAME_QUOTE_CHARACTERS):
         text = text.replace(QUOTED[c], c)
     return text
 
 
 def backslash_quote(text, chars=''):
-    """Return a backslash-quoted version of text."""
+    """Backslash-quote text."""
     for c in (chars or completer.filename_quote_characters):
         text = text.replace(c, QUOTED[c])
     return text
@@ -93,7 +93,7 @@ def quote_string(text, single_match, quote_char):
 
 
 def backslash_quote_string(text, single_match, quote_char):
-    """Return a (backslash) quoted version of text."""
+    """Return a backslash-quoted version of text."""
     if text:
         # If the user has typed a quote character, use it.
         if quote_char:
