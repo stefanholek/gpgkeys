@@ -418,7 +418,7 @@ class GPGKeys(cmd.Cmd):
             if not word.isfilename:
                 return self.completecommand(word.text)
             return self.completefilename(word.text)
-        if word.postredir:
+        if word.filepos:
             return self.completefilename(word.text)
         return default(word.text)
 
@@ -806,7 +806,7 @@ class Word(object):
         return False
 
     @property
-    def postredir(self):
+    def filepos(self):
         return scan_unquoted(self.line, self.begidx, ('|', '>', '<')) >= 0
 
 
