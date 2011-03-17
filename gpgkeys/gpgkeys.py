@@ -62,7 +62,7 @@ class GPGKeys(cmd.Cmd):
     prompt = 'gpgkeys> '
 
     doc_header = 'Available commands (type help <topic>):'
-    undoc_header = 'Shortcut commands (type help <topic>):'
+    shortcut_header = 'Shortcut commands (type help <topic>):'
 
     nohelp = "gpgkeys: no help on '%s'"
 
@@ -327,7 +327,7 @@ class GPGKeys(cmd.Cmd):
                 self.do_help('fdump')
 
     def do_shell(self, args):
-        """Execute a command or start an interactive shell (Usage: .<command> or .)"""
+        """Execute a command or start an interactive shell (Usage: !<command> or !)"""
         args = self.splitargs(args)
         if args:
             cmd = args[0]
@@ -573,8 +573,8 @@ class GPGKeys(cmd.Cmd):
 
     @print_exc
     def word_break_hook(self, begidx, endidx):
-        # When completing '.<command>' make '.' a word break character.
-        # Ditto for '!'.
+        # When completing '!<command>' make '!' a word break character.
+        # Ditto for '.'
         origline = completion.line_buffer
         line = origline.lstrip()
         if line[0] in ('!', '.') and line[0] not in completer.word_break_characters:
@@ -602,13 +602,12 @@ class GPGKeys(cmd.Cmd):
 
     # Help
 
-    shortcuts = {'ls': 'list',
-                 'll': 'listsig',
-                 'e':  'edit'}
+    shortcuts = {'ls': 'list', 'll': 'listsig', 'e': 'edit', '!': 'shell', '.': 'shell'}
 
     def do_help(self, arg):
         """Interactive help (Usage: help <topic>)"""
         if arg:
+            orig_arg = arg
             arg = self.shortcuts.get(arg, arg)
             try:
                 helpfunc = getattr(self, 'help_' + arg)
@@ -625,6 +624,9 @@ class GPGKeys(cmd.Cmd):
                         help = doc[:lparen-1]
                         usage = doc[lparen+1:rparen]
 
+                        if arg == 'shell' and orig_arg == '.':
+                            usage = usage.replace('!', '.')
+
                         options = []
                         compfunc = getattr(self, 'complete_' + arg, None)
                         if compfunc is not None:
@@ -639,7 +641,38 @@ class GPGKeys(cmd.Cmd):
             else:
                 helpfunc()
         else:
-            cmd.Cmd.do_help(self, '')
+            self.default_help()
+
+    def default_help(self):
+        names = self.get_names()
+        cmds_doc = []
+        cmds_undoc = []
+        help = {}
+        for name in names:
+            if name[:5] == 'help_':
+                help[name[5:]] = 1
+        names.sort()
+        prevname = ''
+        for name in names:
+            if name[:3] == 'do_':
+                if name == prevname:
+                    continue
+                prevname = name
+                cmd = name[3:]
+                if cmd in self.shortcuts:
+                    continue
+                if cmd in help:
+                    cmds_doc.append(cmd)
+                    del help[cmd]
+                elif getattr(self, name).__doc__:
+                    cmds_doc.append(cmd)
+                else:
+                    cmds_undoc.append(cmd)
+        self.stdout.write("%s\n" % self.doc_leader)
+        self.print_topics(self.doc_header, cmds_doc, 15, 80)
+        self.print_topics(self.shortcut_header, sorted(self.shortcuts.keys()), 15, 80)
+        self.print_topics(self.misc_header, sorted(help.keys()), 15, 80)
+        self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
 
     # History
 
