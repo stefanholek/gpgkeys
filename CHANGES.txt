@@ -4,6 +4,9 @@ Changelog
 1.14 - Unreleased
 -----------------
 
+- Add '!' and '.' to shortcut commands so they show up in help.
+  [stefan]
+
 
 1.13 - 2011-03-11
 -----------------
