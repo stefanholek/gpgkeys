@@ -24,11 +24,3 @@ def char(int):
     else:
         return chr(int)
 
-
-def b(text):
-    """Simulate byte literals for Python 2.5 compatibility."""
-    if sys.version_info[0] >= 3:
-        return text.encode('utf-8')
-    else:
-        return text
-

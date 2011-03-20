@@ -11,7 +11,6 @@ from gpgkeys.config import GNUPGHOME
 
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
-from gpgkeys.utils import b
 
 from completion import Completion
 
@@ -20,7 +19,7 @@ from quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-escaped_char_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
+escaped_char_re = re.compile(br'([\\]x[0-9a-f]{2})')
 
 
 def unescape(text):
@@ -134,9 +133,9 @@ class KeyCompletion(Completion):
     def parse_keys(self, stdout):
         # Process stdout as byte string since we must run
         # unescape before decoding
-        for line in stdout.strip().split(b('\n')):
-            if line[:3] == b('pub'):
-                fields = line.split(b(':'))
+        for line in stdout.strip().split(b'\n'):
+            if line[:3] == b'pub':
+                fields = line.split(b':')
                 keyid = fields[4]
                 userid = unescape(fields[9])
                 if sys.version_info[0] >= 3:
