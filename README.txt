@@ -50,7 +50,7 @@ commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.13 (type help for help)
+    gpgkeys 1.14 (type help for help)
 
     gpgkeys> help
 
@@ -62,7 +62,7 @@ commands, and keyserver URLs.
 
     Shortcut commands (type help <topic>):
     ======================================
-    e  ll  ls
+    !  .  e  ll  ls
 
     gpgkeys> help export
     Usage: export <keyspec>
