@@ -1,14 +1,14 @@
 Changelog
 =========
 
-1.14 - Unreleased
+1.14 - 2011-03-24
 -----------------
 
 - Add '!' and '.' to shortcut commands so they show up in help.
   [stefan]
 
-- Drop Python 2.5 support in favor of faster execution in later Python
-  versions (2.6-3.2).
+- Drop Python 2.5 support in favor of faster byte string operations
+  in later Python versions.
   [stefan]
 
 
