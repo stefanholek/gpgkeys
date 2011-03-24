@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.14'
+version = '1.15'
 
 
 setup(name='gpgkeys',
