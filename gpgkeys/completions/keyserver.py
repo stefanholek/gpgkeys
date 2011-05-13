@@ -1,11 +1,11 @@
 import os
 
 from rl import print_exc
+
 from gpgkeys.config import GNUPGHOME
-from completion import Completion
 
 
-class KeyserverCompletion(Completion):
+class KeyserverCompletion(object):
     """Perform keyserver completion
 
     To become available for completion keyservers must be configured
@@ -13,7 +13,6 @@ class KeyserverCompletion(Completion):
     """
 
     def __init__(self):
-        super(KeyserverCompletion, self).__init__()
         self.gpgconf = os.path.join(GNUPGHOME, 'gpg.conf')
         self.mtime = 0
         self.servers = []

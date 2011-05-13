@@ -9,14 +9,14 @@ __version__ = pkg_resources.get_distribution('gpgkeys').version
 
 import os
 import sys
-import cmd
 import atexit
 import getopt
 import subprocess
 
+from shell import shell
+
 from rl import completer
 from rl import completion
-from rl import history
 from rl import readline
 from rl import print_exc
 
@@ -29,8 +29,8 @@ from splitter import splitpipe
 
 from utils import decode
 
-from completions.filename import FilenameCompletion
-from completions.command import CommandCompletion
+from shell.completions.filename import FilenameCompletion
+from shell.completions.command import CommandCompletion
 from completions.key import KeyCompletion
 from completions.keyserver import KeyserverCompletion
 
@@ -51,63 +51,37 @@ SECRET  = ['--secret']
 DELETE  = ['--secret-and-public']
 
 
-class GPGKeys(cmd.Cmd):
+class GPGKeys(shell.Shell):
     """Command line shell for GnuPG.
 
     Implements a shell providing commands to view and
     manipulate GnuPG keys and keyrings.
     """
+    name = 'gpgkeys'
+    prompt = 'gpgkeys> '
+    history_max_entries = 300
+    history_file = '~/.gpgkeys'
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
-    prompt = 'gpgkeys> '
-
+    nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
     shortcut_header = 'Shortcut commands (type help <topic>):'
 
-    nohelp = "gpgkeys: no help on '%s'"
-
     def __init__(self, completekey='tab', stdin=None, stdout=None,
                  quote_char='\\', verbose=False):
-        cmd.Cmd.__init__(self, completekey, stdin, stdout)
+        super(GPGKeys, self).__init__(completekey, stdin, stdout)
         self.quote_char = quote_char
         self.verbose = verbose
         os.umask(UMASK)
 
     def preloop(self):
-        cmd.Cmd.preloop(self)
-        self.init_completer(self.quote_char)
-        self.init_history()
-
-    # Overrides
-
-    def parseline(self, line):
-        # Make '.' work as shell escape character.
-        # Make '#' work as comment character.
-        line = line.strip()
-        if not line:
-            return None, None, line
-        elif line[0] == '?':
-            line = 'help ' + line[1:]
-        elif line[0] == '!' or line[0] == '.':
-            if hasattr(self, 'do_shell'):
-                line = 'shell ' + line[1:]
-            else:
-                return None, None, line
-        elif line[0] == '#':
-            line = ''
-        i, n = 0, len(line)
-        while i < n and line[i] in self.identchars:
-            i = i+1
-        cmd, arg = line[:i], line[i:].strip()
-        return cmd, arg, line
-
-    def __getattr__(self, name):
-        # Expand unique command prefixes. Thanks to TL.
-        if name.startswith(('do_', 'complete_', 'help_')):
-            matches = set(x for x in self.get_names() if x.startswith(name))
-            if len(matches) == 1:
-                return getattr(self, matches.pop())
-        raise AttributeError(name)
+        super(GPGKeys, self).preloop()
+        self.completefilename = FilenameCompletion(self.quote_char)
+        self.completecommand = CommandCompletion()
+        self.completekeyspec = KeyCompletion()
+        self.completekeyserver = KeyserverCompletion()
+        completer.word_break_hook = self.word_break_hook
+        completer.display_matches_hook = self.display_matches_hook
 
     # GnuPG runner
 
@@ -398,14 +372,6 @@ class GPGKeys(cmd.Cmd):
 
     # Completions
 
-    def init_completer(self, quote_char='\\'):
-        self.completefilename = FilenameCompletion(quote_char)
-        self.completecommand = CommandCompletion()
-        self.completekeyspec = KeyCompletion()
-        self.completekeyserver = KeyserverCompletion()
-        completer.word_break_hook = self.word_break_hook
-        completer.display_matches_hook = self.display_matches_hook
-
     def parseword(self, line, begidx, endidx):
         # Parse the completion word
         word = Word()
@@ -573,18 +539,21 @@ class GPGKeys(cmd.Cmd):
 
     @print_exc
     def word_break_hook(self, begidx, endidx):
-        # When completing '!<command>' make '!' a word break character.
-        # Ditto for '.'
+        """When completing '!<command>' make '!' a word break character.
+
+        Ditto for '.<command>' and '.'. This has a flaw as we cannot complete
+        names that contain the new word break character.
+        """
         origline = completion.line_buffer
         line = origline.lstrip()
+        stripped = len(origline) - len(line)
         if line[0] in ('!', '.') and line[0] not in completer.word_break_characters:
-            stripped = len(origline) - len(line)
             if begidx - stripped == 0:
                 return line[0] + completer.word_break_characters
 
     @print_exc
     def display_matches_hook(self, substitution, matches, max_length):
-        # Handle our own display because we can
+        """Handle our own display because we can."""
         num_matches = len(matches)
         if num_matches > completer.query_items >= 0:
             self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
@@ -673,14 +642,6 @@ class GPGKeys(cmd.Cmd):
         self.print_topics(self.shortcut_header, sorted(self.shortcuts.keys()), 15, 80)
         self.print_topics(self.misc_header, sorted(help.keys()), 15, 80)
         self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
-
-    # History
-
-    def init_history(self):
-        history.max_entries = 250
-        histfile = os.path.expanduser('~/.gpgkeys_history')
-        history.read_file(histfile)
-        atexit.register(history.write_file, histfile)
 
 
 class Args(object):
@@ -866,16 +827,7 @@ def main(args=None):
             return 0
 
     shell = GPGKeys(quote_char=quote_char, verbose=verbose)
-    if args:
-        shell.onecmd(' '.join(args))
-    else:
-        try:
-            shell.cmdloop()
-        except KeyboardInterrupt:
-            print
-            return 1
-    return 0
-
+    return shell.run(args)
 
 if __name__ == '__main__':
     sys.exit(main())
