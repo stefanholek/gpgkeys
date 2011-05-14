@@ -80,7 +80,6 @@ class GPGKeys(shell.Shell):
         self.completecommand = CommandCompletion()
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
-        completer.word_break_hook = self.word_break_hook
         completer.display_matches_hook = self.display_matches_hook
 
     # GnuPG runner
@@ -536,20 +535,6 @@ class GPGKeys(shell.Shell):
         return self.completebase(word, self.completefilename)
 
     # Completion hooks
-
-    @print_exc
-    def word_break_hook(self, begidx, endidx):
-        """When completing '!<command>' make '!' a word break character.
-
-        Ditto for '.<command>' and '.'. This has a flaw as we cannot complete
-        names that contain the new word break character.
-        """
-        origline = completion.line_buffer
-        line = origline.lstrip()
-        stripped = len(origline) - len(line)
-        if line[0] in ('!', '.') and line[0] not in completer.word_break_characters:
-            if begidx - stripped == 0:
-                return line[0] + completer.word_break_characters
 
     @print_exc
     def display_matches_hook(self, substitution, matches, max_length):
