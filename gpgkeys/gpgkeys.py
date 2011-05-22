@@ -134,6 +134,10 @@ class GPGKeys(shell.Shell):
         """Clear the terminal screen (Usage: clear)"""
         self.system('clear')
 
+    def do_version(self, args):
+        """Show the GnuPG version (Usage: version)"""
+        self.gnupg('--version')
+
     def do_genkey(self, args):
         """Generate a new key pair and certificate (Usage: genkey)"""
         args = self.parseargs(args)
@@ -316,10 +320,6 @@ class GPGKeys(shell.Shell):
                 self.shell_default(*args)
         else:
             self.system(os.environ.get('SHELL'))
-
-    def do_version(self, args):
-        """Show the GnuPG version (Usage: version)"""
-        self.gnupg('--version')
 
     # Shell commands
 
