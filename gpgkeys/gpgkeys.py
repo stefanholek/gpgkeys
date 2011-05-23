@@ -100,11 +100,11 @@ class GPGKeys(shell.Shell):
     # Commands
 
     def splitargs(self, args):
-        # Split the command line into tokens
+        """Split the command line into tokens."""
         return closequote(split(args))
 
     def parseargs(self, args):
-        # Parse the command line
+        """Parse the command line."""
         mine, pipe = splitpipe(self.splitargs(args))
         args = Args()
         args.parse(mine)
@@ -322,7 +322,7 @@ class GPGKeys(shell.Shell):
 
     # Shell commands
 
-    def getdirectory(self, dir):
+    def get_dir(self, dir):
         process = subprocess.Popen('cd %s; pwd' % dir,
             shell=True, stdout=subprocess.PIPE)
         stdout, stderr = process.communicate()
@@ -340,7 +340,7 @@ class GPGKeys(shell.Shell):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.getdirectory(args[0])
+            dir = self.get_dir(args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
@@ -371,13 +371,13 @@ class GPGKeys(shell.Shell):
     # Completions
 
     def parseword(self, line, begidx, endidx):
-        # Parse the completion word
+        """Parse the completion word."""
         word = Word()
         word.parse(line, begidx, endidx)
         return word
 
     def completebase(self, word, default):
-        # Perform completion after pipes and input/output redirects
+        """Complete after pipes and input/output redirects."""
         if word.pipepos:
             if not word.isfilename:
                 return self.completecommand(word.text)
@@ -387,6 +387,7 @@ class GPGKeys(shell.Shell):
         return default(word.text)
 
     def completeoption(self, text, options):
+        """Complete from a list of options."""
         return [x for x in options if x.startswith(text)]
 
     def complete_genkey(self, text, line, begidx, endidx):
