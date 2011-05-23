@@ -12,8 +12,8 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
 
-from shell.completions.quoting import dequote_string
-from shell.completions.quoting import quote_string
+from shell.quoting import dequote_string
+from shell.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
