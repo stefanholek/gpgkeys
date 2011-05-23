@@ -12,8 +12,7 @@ import sys
 import atexit
 import getopt
 import subprocess
-
-from shell import shell
+import shell
 
 from rl import completer
 from rl import completion
