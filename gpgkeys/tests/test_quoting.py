@@ -12,80 +12,24 @@ from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
 
-from gpgkeys.completions.quoting import backslash_dequote
-from gpgkeys.completions.quoting import backslash_quote
-from gpgkeys.completions.quoting import is_fully_quoted
-from gpgkeys.completions.quoting import dequote_string
-from gpgkeys.completions.quoting import quote_string
-from gpgkeys.completions.quoting import backslash_quote_string
-from gpgkeys.completions.filename import dequote_filename
-from gpgkeys.completions.filename import quote_filename
-from gpgkeys.completions.filename import backslash_quote_filename
+from shell.quoting import backslash_dequote
+from shell.quoting import backslash_quote
+from shell.quoting import is_fully_quoted
+from shell.quoting import dequote_string
+from shell.quoting import quote_string
+from shell.quoting import backslash_quote_string
+
+from shell.completions.filename import dequote_filename
+from shell.completions.filename import quote_filename
+from shell.completions.filename import backslash_quote_filename
 
 TAB = '\t'
 
 
 @print_exc
 @generator
-def filecomplete(text):
+def completefilename(text):
     return completion.complete_filename(text)
-
-
-class BackslashDequoteTests(unittest.TestCase):
-
-    def setUp(self):
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer()
-
-    def test_backslash_dequote(self):
-        self.assertEqual(backslash_dequote(''), '')
-        self.assertEqual(backslash_dequote(' '), ' ')
-        self.assertEqual(backslash_dequote('\\ '), ' ')
-        self.assertEqual(backslash_dequote('a'), 'a')
-        self.assertEqual(backslash_dequote('\\@'), '@')
-
-    def test_backslash_dequote_string(self):
-        self.assertEqual(backslash_dequote('\\ foo\\ bar\\#baz\\&'), ' foo bar#baz&')
-
-    def test_backslash_dequote_unknown_char(self):
-        self.assertEqual(backslash_dequote('\\€'), '\\€') # NB: not dequoted
-
-
-class BackslashQuoteTests(unittest.TestCase):
-
-    def setUp(self):
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer()
-
-    def test_backslash_quote(self):
-        self.assertEqual(backslash_quote(''), '')
-        self.assertEqual(backslash_quote(' '), '\\ ')
-        self.assertEqual(backslash_quote('a'), 'a')
-        self.assertEqual(backslash_quote('@'), '\\@')
-
-    def test_backslash_quote_string(self):
-        self.assertEqual(backslash_quote(' foo bar#baz&'), '\\ foo\\ bar\\#baz\\&')
-
-    def test_backslash_quote_unknown_char(self):
-        self.assertEqual(backslash_quote('€'), '€')
-
-
-class FullyQuotedTests(unittest.TestCase):
-
-    def setUp(self):
-        reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer()
-
-    def test_fully_quoted(self):
-        self.assertEqual(is_fully_quoted('foo\\ bar\\"baz\\&'), True)
-        self.assertEqual(is_fully_quoted('foo\\ bar\\"baz\\\\'), True)
-
-    def test_not_fully_quoted(self):
-        self.assertEqual(is_fully_quoted('foo&bar'), False)
-        self.assertEqual(is_fully_quoted('foo\\&bar\\'), False)
 
 
 class FileSetup(JailSetup):
@@ -112,14 +56,71 @@ class FileSetup(JailSetup):
         self.mkfile('~StartsWithTilde.txt')
 
 
+class BackslashDequoteTests(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        self.cmd = GPGKeys()
+        self.cmd.preloop()
+
+    def test_backslash_dequote(self):
+        self.assertEqual(backslash_dequote(''), '')
+        self.assertEqual(backslash_dequote(' '), ' ')
+        self.assertEqual(backslash_dequote('\\ '), ' ')
+        self.assertEqual(backslash_dequote('a'), 'a')
+        self.assertEqual(backslash_dequote('\\@'), '@')
+
+    def test_backslash_dequote_string(self):
+        self.assertEqual(backslash_dequote('\\ foo\\ bar\\#baz\\&'), ' foo bar#baz&')
+
+    def test_backslash_dequote_unknown_char(self):
+        self.assertEqual(backslash_dequote('\\€'), '\\€') # NB: not dequoted
+
+
+class BackslashQuoteTests(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        self.cmd = GPGKeys()
+        self.cmd.preloop()
+
+    def test_backslash_quote(self):
+        self.assertEqual(backslash_quote(''), '')
+        self.assertEqual(backslash_quote(' '), '\\ ')
+        self.assertEqual(backslash_quote('a'), 'a')
+        self.assertEqual(backslash_quote('@'), '\\@')
+
+    def test_backslash_quote_string(self):
+        self.assertEqual(backslash_quote(' foo bar#baz&'), '\\ foo\\ bar\\#baz\\&')
+
+    def test_backslash_quote_unknown_char(self):
+        self.assertEqual(backslash_quote('€'), '€')
+
+
+class FullyQuotedTests(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        self.cmd = GPGKeys()
+        self.cmd.preloop()
+
+    def test_fully_quoted(self):
+        self.assertEqual(is_fully_quoted('foo\\ bar\\"baz\\&'), True)
+        self.assertEqual(is_fully_quoted('foo\\ bar\\"baz\\\\'), True)
+
+    def test_not_fully_quoted(self):
+        self.assertEqual(is_fully_quoted('foo&bar'), False)
+        self.assertEqual(is_fully_quoted('foo\\&bar\\'), False)
+
+
 class DequoteStringTests(FileSetup):
 
     def setUp(self):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_string)
         completer.filename_quoting_function = lambda x,y,z: x
 
@@ -149,8 +150,8 @@ class QuoteStringTests(FileSetup):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_string)
         completer.filename_quoting_function = print_exc(quote_string)
 
@@ -187,8 +188,8 @@ class BackslashQuoteStringTests(FileSetup):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_string)
         completer.filename_quoting_function = print_exc(backslash_quote_string)
 
@@ -225,8 +226,8 @@ class DequoteFilenameTests(FileSetup):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_filename)
         completer.filename_quoting_function = lambda x,y,z: x
 
@@ -256,8 +257,8 @@ class QuoteFilenameTests(FileSetup):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_filename)
         completer.filename_quoting_function = print_exc(quote_filename)
 
@@ -294,8 +295,8 @@ class BackslashQuoteFilenameTests(FileSetup):
         FileSetup.setUp(self)
         reset()
         self.cmd = GPGKeys()
-        self.cmd.init_completer()
-        completer.completer = filecomplete
+        self.cmd.preloop()
+        completer.completer = completefilename
         completer.filename_dequoting_function = print_exc(dequote_filename)
         completer.filename_quoting_function = print_exc(backslash_quote_filename)
 

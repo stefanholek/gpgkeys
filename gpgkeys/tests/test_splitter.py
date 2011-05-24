@@ -1,9 +1,9 @@
 import unittest
 
 from rl import completer
+from shell import quoting
 
 from gpgkeys.scanner import char_is_quoted
-from gpgkeys.completions import quoting
 from gpgkeys.splitter import split
 from gpgkeys.testing import reset
 

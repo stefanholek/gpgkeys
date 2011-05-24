@@ -18,9 +18,8 @@ class CompleterTests(JailSetup):
     def setUp(self):
         JailSetup.setUp(self)
         reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer(quote_char='"')
-        completer.completer = self.cmd.complete
+        self.cmd = GPGKeys(quote_char='"')
+        self.cmd.preloop()
         self.mkfiles()
 
     def complete(self, text):
@@ -125,8 +124,8 @@ class CharIsQuotedTests(unittest.TestCase):
 
     def setUp(self):
         reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer(quote_char='"')
+        self.cmd = GPGKeys(quote_char='"')
+        self.cmd.preloop()
         self.is_quoted = self.cmd.completefilename.char_is_quoted
 
     def test_backslash_quoted_double_quote(self):
@@ -201,9 +200,8 @@ class DirectoryCompletionHookTests(JailSetup):
     def setUp(self):
         JailSetup.setUp(self)
         reset()
-        self.cmd = GPGKeys()
-        self.cmd.init_completer(quote_char='\\')
-        completer.completer = self.cmd.complete
+        self.cmd = GPGKeys(quote_char='\\')
+        self.cmd.preloop()
         self.mkfiles()
 
     def complete(self, text):
@@ -245,32 +243,40 @@ class InitQuoteCharactersTests(unittest.TestCase):
 
     def setUp(self):
         reset()
-        self.cmd = GPGKeys()
 
     def test_double_quote(self):
-        self.cmd.init_completer('"')
+        self.cmd = GPGKeys(quote_char='"')
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '"\'')
 
     def test_single_quote(self):
-        self.cmd.init_completer("'")
+        self.cmd = GPGKeys(quote_char="'")
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '\'"')
 
     def test_backslash(self):
-        self.cmd.init_completer('\\')
+        self.cmd = GPGKeys(quote_char='\\')
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '"\'')
 
     def test_reconfigure(self):
-        self.cmd.init_completer('"')
+        self.cmd = GPGKeys(quote_char='"')
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '"\'')
-        self.cmd.init_completer("'")
+        self.cmd = GPGKeys(quote_char="'")
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '\'"')
-        self.cmd.init_completer('"')
+        self.cmd = GPGKeys(quote_char='"')
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '"\'')
-        self.cmd.init_completer("'")
+        self.cmd = GPGKeys(quote_char="'")
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '\'"')
-        self.cmd.init_completer('\\')
+        self.cmd = GPGKeys(quote_char='\\')
+        self.cmd.preloop()
         self.assertEqual(completer.quote_characters, '"\'')
 
     def test_invalid(self):
-        self.assertRaises(ValueError, self.cmd.init_completer, 'A')
+        self.cmd = GPGKeys(quote_char='A')
+        self.assertRaises(ValueError, self.cmd.preloop)
 
