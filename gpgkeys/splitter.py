@@ -1,5 +1,3 @@
-from functools import partial
-
 from scanner import WHITESPACE
 from scanner import QUOTECHARS
 from scanner import char_is_quoted
@@ -16,8 +14,8 @@ T_WORD = 1
 T_SHELL = 2
 
 
-class InfiniteString(str):
-    """A string without IndexErrors."""
+class InfiniteStr(str):
+    """A string without IndexErrors"""
 
     def __getitem__(self, index):
         if index < 0 or index >= len(self):
@@ -26,7 +24,10 @@ class InfiniteString(str):
 
 
 class Token(str):
-    """A string with some additional attributes."""
+    """A string with additional attributes
+
+    Turns into plain str when mutated.
+    """
 
     def __new__(cls, string, start, end, type):
         s = str.__new__(cls, string)
@@ -35,28 +36,19 @@ class Token(str):
         s.type = type
         return s
 
-    def __add__(self, string):
-        s = str.__add__(self, string)
-        return Token(s, self.start, self.end, self.type)
-
-
-class Tokens(list):
-    """A list of Tokens."""
-
-    def append(self, line, start, end, type):
-        list.append(self, Token(line[start:end], start, end, type))
-
 
 def split(line):
     """Return a tuple of tokens found in line.
     """
     skip_next = False
     quote_char = ''
-    tokens = Tokens()
-    append = partial(tokens.append, line)
+    tokens = []
     end = len(line)
-    s = InfiniteString(line)
+    s = InfiniteStr(line)
     i = j = 0
+
+    def append(start, end, type):
+        tokens.append(Token(line[start:end], start, end, type))
 
     while i < end:
         c = s[i]
@@ -187,14 +179,14 @@ def closequote(tokens):
         last = tokens[-1]
         if last and last.type == T_WORD:
             if last[0] == '"' and last[-1] != '"':
-                tokens = tokens[:-1] + (last+'"',)
+                tokens = tokens[:-1] + (Token(last+'"', last.start, last.end+1, last.type),)
             elif last[0] == "'" and last[-1] != "'":
-                tokens = tokens[:-1] + (last+"'",)
+                tokens = tokens[:-1] + (Token(last+"'", last.start, last.end+1, last.type),)
     return tokens
 
 
 def splitpipe(tokens):
-    """Split tokens at the first shell redirect.
+    """Split tokens at the first shell token.
     """
     for i, token in enumerate(tokens):
         if token.type == T_SHELL:
