@@ -58,8 +58,9 @@ class GPGKeys(shell.Shell):
     """
     name = 'gpgkeys'
     prompt = 'gpgkeys> '
-    history_max_entries = 300
+    shell_escape_chars = '!.'
     history_file = '~/.gpgkeys'
+    history_max_entries = 300
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
     nohelp = "gpgkeys: no help on '%s'"
