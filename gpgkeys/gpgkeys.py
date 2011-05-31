@@ -80,7 +80,6 @@ class GPGKeys(shell.Shell):
         self.completecommand = CommandCompletion()
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
-        completer.display_matches_hook = self.display_matches_hook
 
     # GnuPG runner
 
@@ -534,26 +533,6 @@ class GPGKeys(shell.Shell):
             if not word.isfilename:
                 return self.completecommand(word.text)
         return self.completebase(word, self.completefilename)
-
-    # Completion hooks
-
-    @print_exc
-    def display_matches_hook(self, substitution, matches, max_length):
-        """Handle our own display because we can."""
-        num_matches = len(matches)
-        if num_matches > completer.query_items >= 0:
-            self.stdout.write('\nDisplay all %d possibilities? (y or n)' % num_matches)
-            self.stdout.flush()
-            while True:
-                c = readline.read_key()
-                if c in 'yY\x20': # SPACEBAR
-                    break
-                if c in 'nN\x7f': # RUBOUT
-                    self.stdout.write('\n')
-                    completion.redisplay(force=True)
-                    return
-        completion.display_match_list(substitution, matches, max_length)
-        completion.redisplay(force=True)
 
     # Help
 
