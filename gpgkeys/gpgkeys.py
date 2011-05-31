@@ -81,7 +81,7 @@ class GPGKeys(shell.Shell):
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
 
-    # GnuPG runner
+    # Execute GnuPG
 
     def system(self, *args):
         command = ' '.join(args)
@@ -793,6 +793,7 @@ def main(args=None):
 
     shell = GPGKeys(quote_char=quote_char, verbose=verbose)
     return shell.run(args)
+
 
 if __name__ == '__main__':
     sys.exit(main())
