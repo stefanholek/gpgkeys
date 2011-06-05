@@ -4,6 +4,12 @@ Changelog
 1.16 - Unreleased
 -----------------
 
+- Use shell.Shell instead of cmd.Cmd as base class.
+  [stefan]
+
+- Depend on rl through the shell dependency only.
+  [stefan]
+
 
 1.15 - 2011-05-05
 -----------------
