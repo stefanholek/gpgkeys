@@ -536,7 +536,8 @@ class GPGKeys(shell.Shell):
 
     # Help
 
-    shortcuts = {'ls': 'list', 'll': 'listsig', 'e': 'edit', '!': 'shell', '.': 'shell'}
+    shortcuts = {'ls': 'list', 'll': 'listsig', 'e': 'edit',
+                 '!': 'shell', '.': 'shell', '?': 'help'}
 
     def do_help(self, arg):
         """Interactive help (Usage: help <topic>)"""
