@@ -5,7 +5,7 @@ Changelog
 -----------------
 
 
-1.16 - 2011-07-07
+1.16 - 2011-07-14
 -----------------
 
 - Use kmd.Kmd instead of cmd.Cmd as base class.
