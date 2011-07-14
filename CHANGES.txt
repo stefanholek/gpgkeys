@@ -4,10 +4,10 @@ Changelog
 1.16 - Unreleased
 -----------------
 
-- Use shell.Shell instead of cmd.Cmd as base class.
+- Use kmd.Kmd instead of cmd.Cmd as base class.
   [stefan]
 
-- Depend on rl through the shell dependency only.
+- Depend on rl through the kmd dependency only.
   [stefan]
 
 

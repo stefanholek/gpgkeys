@@ -1,7 +1,7 @@
 import unittest
 
 from rl import completer
-from shell.completions import quoting
+from kmd.completions import quoting
 
 from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import split

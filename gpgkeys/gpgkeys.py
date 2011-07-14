@@ -12,7 +12,7 @@ import sys
 import atexit
 import getopt
 import subprocess
-import shell
+import kmd
 
 from rl import completer
 from rl import completion
@@ -28,8 +28,8 @@ from splitter import splitpipe
 
 from utils import decode
 
-from shell.completions.filename import FilenameCompletion
-from shell.completions.command import CommandCompletion
+from kmd.completions.filename import FilenameCompletion
+from kmd.completions.command import CommandCompletion
 from completions.key import KeyCompletion
 from completions.keyserver import KeyserverCompletion
 
@@ -50,7 +50,7 @@ SECRET  = ['--secret']
 DELETE  = ['--secret-and-public']
 
 
-class GPGKeys(shell.Shell):
+class GPGKeys(kmd.Kmd):
     """Command line shell for GnuPG.
 
     Implements a shell providing commands to view and

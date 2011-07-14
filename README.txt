@@ -13,9 +13,9 @@ and keyrings from the command line. Its main UI feature is end-to-end
 TAB-completion.
 
 gpgkeys also serves as example application and testbed for the development of
-the shell_ and rl_ libraries.
+the kmd_ and rl_ libraries.
 
-.. _shell: http://pypi.python.org/pypi/shell
+.. _kmd: http://pypi.python.org/pypi/kmd
 .. _rl: http://pypi.python.org/pypi/rl
 
 Example Session
@@ -78,7 +78,7 @@ gpgkeys development is hosted on github_.
 Installation
 ============
 
-gpgkeys depends on shell_ which in turn uses the rl_ library. Since rl_
+gpgkeys depends on kmd_ which in turn uses the rl_ library. Since rl_
 contains a C extension, it is a good idea to review its `installation
 instructions`_ and make sure all dependencies are in place.
 

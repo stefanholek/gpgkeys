@@ -12,16 +12,16 @@ from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
 
-from shell.completions.quoting import backslash_dequote
-from shell.completions.quoting import backslash_quote
-from shell.completions.quoting import is_fully_quoted
-from shell.completions.quoting import dequote_string
-from shell.completions.quoting import quote_string
-from shell.completions.quoting import backslash_quote_string
+from kmd.completions.quoting import backslash_dequote
+from kmd.completions.quoting import backslash_quote
+from kmd.completions.quoting import is_fully_quoted
+from kmd.completions.quoting import dequote_string
+from kmd.completions.quoting import quote_string
+from kmd.completions.quoting import backslash_quote_string
 
-from shell.completions.filename import dequote_filename
-from shell.completions.filename import quote_filename
-from shell.completions.filename import backslash_quote_filename
+from kmd.completions.filename import dequote_filename
+from kmd.completions.filename import quote_filename
+from kmd.completions.filename import backslash_quote_filename
 
 TAB = '\t'
 
