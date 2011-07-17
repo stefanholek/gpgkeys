@@ -65,11 +65,14 @@ class GPGKeys(kmd.Kmd):
     intro = 'gpgkeys %s (type help for help)\n' % __version__
     nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
-    shortcut_header = 'Shortcut commands (type help <topic>):'
+    aliases_header = 'Shortcut commands (type help <topic>):'
 
     def __init__(self, completekey='tab', stdin=None, stdout=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout)
+        self.aliases['e'] = 'edit'
+        self.aliases['ls'] = 'list'
+        self.aliases['ll'] = 'listsig'
         self.quote_char = quote_char
         self.verbose = verbose
         os.umask(UMASK)
@@ -181,17 +184,11 @@ class GPGKeys(kmd.Kmd):
                 command = '--list-secret-keys'
             self.gnupg(command, *args.tuple)
 
-    def do_ls(self, args):
-        self.do_list(args)
-
     def do_listsig(self, args):
         """List keys including signatures (Usage: listsig [<keyspec>])"""
         args = self.parseargs(args)
         if args.ok:
             self.gnupg('--list-sigs', *args.tuple)
-
-    def do_ll(self, args):
-        self.do_listsig(args)
 
     def do_checksig(self, args):
         """Like listsig, but also verify the signatures (Usage: checksig [<keyspec>])"""
@@ -207,9 +204,6 @@ class GPGKeys(kmd.Kmd):
                 self.gnupg('--edit-key', *args.tuple)
             else:
                 self.do_help('edit')
-
-    def do_e(self, args):
-        self.do_edit(args)
 
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
@@ -426,17 +420,11 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + LIST + SECRET)
         return self.completebase(word, self.completekeyspec)
 
-    def complete_ls(self, text, line, begidx, endidx):
-        return self.complete_list(text, line, begidx, endidx)
-
     def complete_listsig(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST)
         return self.completebase(word, self.completekeyspec)
-
-    def complete_ll(self, text, line, begidx, endidx):
-        return self.complete_listsig(text, line, begidx, endidx)
 
     def complete_checksig(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
@@ -451,9 +439,6 @@ class GPGKeys(kmd.Kmd):
         if word.follows('--local-user'):
             return self.completekeyspec(word.text)
         return self.completebase(word, self.completekeyspec)
-
-    def complete_e(self, text, line, begidx, endidx):
-        return self.complete_edit(text, line, begidx, endidx)
 
     def complete_lsign(self, text, line, begidx, endidx):
         word = self.parseword(line, begidx, endidx)
@@ -538,19 +523,16 @@ class GPGKeys(kmd.Kmd):
 
     # Help
 
-    shortcuts = {'ls': 'list', 'll': 'listsig', 'e': 'edit',
-                 '!': 'shell', '.': 'shell', '?': 'help'}
-
-    def do_help(self, arg):
+    def do_help(self, topic):
         """Interactive help (Usage: help <topic>)"""
-        if arg:
-            orig_arg = arg
-            arg = self.shortcuts.get(arg, arg)
+        if topic:
+            orig_topic = topic
+            topic = self.aliases.get(topic, topic)
             try:
-                helpfunc = getattr(self, 'help_' + arg)
+                helpfunc = getattr(self, 'help_' + topic)
             except AttributeError:
                 try:
-                    dofunc = getattr(self, 'do_' + arg)
+                    dofunc = getattr(self, 'do_' + topic)
                 except AttributeError:
                     pass
                 else:
@@ -561,11 +543,11 @@ class GPGKeys(kmd.Kmd):
                         help = doc[:lparen-1]
                         usage = doc[lparen+1:rparen]
 
-                        if arg == 'shell' and orig_arg == '.':
+                        if topic == 'shell' and orig_topic == '.':
                             usage = usage.replace('!', '.')
 
                         options = []
-                        compfunc = getattr(self, 'complete_' + arg, None)
+                        compfunc = getattr(self, 'complete_' + topic, None)
                         if compfunc is not None:
                             options = compfunc('-', '-', 0, 1)
 
@@ -574,42 +556,11 @@ class GPGKeys(kmd.Kmd):
                             self.stdout.write("Options: %s\n" % ' '.join(sorted(options)))
                         self.stdout.write("\n%s\n\n" % help)
                         return
-                self.stdout.write("%s\n" % (self.nohelp % (arg,)))
+                self.stdout.write("%s\n" % (self.nohelp % (topic,)))
             else:
                 helpfunc()
         else:
-            self.default_help()
-
-    def default_help(self):
-        names = self.get_names()
-        cmds_doc = []
-        cmds_undoc = []
-        help = {}
-        for name in names:
-            if name[:5] == 'help_':
-                help[name[5:]] = 1
-        names.sort()
-        prevname = ''
-        for name in names:
-            if name[:3] == 'do_':
-                if name == prevname:
-                    continue
-                prevname = name
-                cmd = name[3:]
-                if cmd in self.shortcuts:
-                    continue
-                if cmd in help:
-                    cmds_doc.append(cmd)
-                    del help[cmd]
-                elif getattr(self, name).__doc__:
-                    cmds_doc.append(cmd)
-                else:
-                    cmds_undoc.append(cmd)
-        self.stdout.write("%s\n" % self.doc_leader)
-        self.print_topics(self.doc_header, cmds_doc, 15, 80)
-        self.print_topics(self.shortcut_header, sorted(self.shortcuts.keys()), 15, 80)
-        self.print_topics(self.misc_header, sorted(help.keys()), 15, 80)
-        self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
+            self.helpdefault()
 
 
 class Args(object):
