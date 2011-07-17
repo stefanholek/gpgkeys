@@ -74,6 +74,8 @@ class GPGKeys(kmd.Kmd):
         self.verbose = verbose
         os.umask(UMASK)
 
+    # Setup custom completions
+
     def preloop(self):
         super(GPGKeys, self).preloop()
         self.completefilename = FilenameCompletion(self.quote_char)
