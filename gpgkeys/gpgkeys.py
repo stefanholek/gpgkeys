@@ -99,7 +99,7 @@ class GPGKeys(kmd.Kmd):
     def gnupg(self, *args):
         return self.system(GNUPGEXE, *args)
 
-    # Commands
+    # Available commands
 
     def splitargs(self, args):
         """Split the command line into tokens."""
