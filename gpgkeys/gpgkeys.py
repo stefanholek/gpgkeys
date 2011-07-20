@@ -497,10 +497,8 @@ class GPGKeys(kmd.Kmd):
     # Help
 
     def do_help(self, topic):
-        """Interactive help (Usage: help <topic>)"""
+        """Interactive help (Usage: help [<topic>])"""
         if topic:
-            orig_topic = topic
-            topic = self.aliases.get(topic, topic)
             try:
                 helpfunc = getattr(self, 'help_' + topic)
             except AttributeError:
@@ -516,7 +514,7 @@ class GPGKeys(kmd.Kmd):
                         help = doc[:lparen-1]
                         usage = doc[lparen+1:rparen]
 
-                        if topic == 'shell' and orig_topic == '.':
+                        if topic == '.':
                             usage = usage.replace('!', '.')
 
                         options = []
