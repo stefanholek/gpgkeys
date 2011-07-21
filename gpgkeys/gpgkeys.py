@@ -9,22 +9,13 @@ __version__ = pkg_resources.get_distribution('gpgkeys').version
 
 import os
 import sys
-import atexit
 import getopt
 import subprocess
 import kmd
 
-from rl import completer
-from rl import completion
-from rl import readline
-from rl import print_exc
-
-from scanner import scan_unquoted
-from scanner import rscan_unquoted
-
-from splitter import split
-from splitter import closequote
-from splitter import splitpipe
+from parser import splitargs
+from parser import parseargs
+from parser import parseword
 
 from utils import decode
 
@@ -65,11 +56,14 @@ class GPGKeys(kmd.Kmd):
     intro = 'gpgkeys %s (type help for help)\n' % __version__
     nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
-    shortcut_header = 'Shortcut commands (type help <topic>):'
+    aliases_header = 'Shortcut commands (type help <topic>):'
 
     def __init__(self, completekey='tab', stdin=None, stdout=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout)
+        self.aliases['e'] = 'edit'
+        self.aliases['ls'] = 'list'
+        self.aliases['ll'] = 'listsig'
         self.quote_char = quote_char
         self.verbose = verbose
         os.umask(UMASK)
@@ -101,26 +95,14 @@ class GPGKeys(kmd.Kmd):
 
     # Available commands
 
-    def splitargs(self, args):
-        """Split the command line into tokens."""
-        return closequote(split(args))
-
-    def parseargs(self, args):
-        """Parse the command line."""
-        mine, pipe = splitpipe(self.splitargs(args))
-        args = Args()
-        args.parse(mine)
-        args.pipe = pipe
-        return args
-
     def emptyline(self):
         """Empty line"""
         pass
 
     def default(self, args):
         """Unknown command"""
-        args = self.splitargs(args)
-        self.stdout.write('gpgkeys: unknown command: %s\n' % args[0])
+        args = splitargs(args)
+        self.stdout.write("gpgkeys: unknown command '%s'\n" % args[0])
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
@@ -141,13 +123,13 @@ class GPGKeys(kmd.Kmd):
 
     def do_genkey(self, args):
         """Generate a new key pair and certificate (Usage: genkey)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             self.gnupg('--gen-key', *args.tuple)
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--gen-revoke', *args.tuple)
@@ -156,7 +138,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--import', *args.tuple)
@@ -165,7 +147,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_export(self, args):
         """Export keys to stdout or to a file (Usage: export [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             command = '--export'
             if args.secret:
@@ -174,46 +156,37 @@ class GPGKeys(kmd.Kmd):
 
     def do_list(self, args):
         """List keys (Usage: list [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             command = '--list-keys'
             if args.secret:
                 command = '--list-secret-keys'
             self.gnupg(command, *args.tuple)
 
-    def do_ls(self, args):
-        self.do_list(args)
-
     def do_listsig(self, args):
         """List keys including signatures (Usage: listsig [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             self.gnupg('--list-sigs', *args.tuple)
 
-    def do_ll(self, args):
-        self.do_listsig(args)
-
     def do_checksig(self, args):
         """Like listsig, but also verify the signatures (Usage: checksig [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             self.gnupg('--check-sigs', *args.tuple)
 
     def do_edit(self, args):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--edit-key', *args.tuple)
             else:
                 self.do_help('edit')
 
-    def do_e(self, args):
-        self.do_edit(args)
-
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--lsign-key', *args.tuple)
@@ -222,7 +195,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_sign(self, args):
         """Sign a key with an exportable signature (Usage: sign <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--sign-key', *args.tuple)
@@ -231,7 +204,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_del(self, args):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 command = '--delete-key'
@@ -245,7 +218,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_search(self, args):
         """Search for keys on a keyserver (Usage: search <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--search-keys', *args.tuple)
@@ -254,7 +227,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_recv(self, args):
         """Fetch keys from a keyserver (Usage: recv <keyids>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--recv-keys', *args.tuple)
@@ -263,7 +236,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_send(self, args):
         """Send keys to a keyserver (Usage: send <keyspec>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--send-keys', *args.tuple)
@@ -272,13 +245,13 @@ class GPGKeys(kmd.Kmd):
 
     def do_refresh(self, args):
         """Refresh keys from a keyserver (Usage: refresh [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             self.gnupg('--refresh-keys', *args.tuple)
 
     def do_fetch(self, args):
         """Fetch keys from a URL (Usage: fetch <url>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--fetch-keys', *args.tuple)
@@ -287,7 +260,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_dump(self, args):
         """List the packet sequence of a key (Usage: dump [<keyspec>])"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             command = '--export'
             if args.secret:
@@ -297,7 +270,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_fdump(self, args):
         """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
-        args = self.parseargs(args)
+        args = parseargs(args)
         if args.ok:
             if args.args:
                 self.gnupg('--list-packets', *args.tuple)
@@ -306,7 +279,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_shell(self, args):
         """Execute a command or start an interactive shell (Usage: !<command> or !)"""
-        args = self.splitargs(args)
+        args = splitargs(args)
         if args:
             cmd = args[0]
             if cmd == 'ls':
@@ -324,7 +297,7 @@ class GPGKeys(kmd.Kmd):
 
     # Shell commands
 
-    def get_dir(self, dir):
+    def getdir(self, dir):
         process = subprocess.Popen('cd %s; pwd' % dir,
             shell=True, stdout=subprocess.PIPE)
         stdout, stderr = process.communicate()
@@ -342,7 +315,7 @@ class GPGKeys(kmd.Kmd):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.get_dir(args[0])
+            dir = self.getdir(args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
@@ -372,12 +345,6 @@ class GPGKeys(kmd.Kmd):
 
     # Completions
 
-    def parseword(self, line, begidx, endidx):
-        """Parse the completion word."""
-        word = Word()
-        word.parse(line, begidx, endidx)
-        return word
-
     def completebase(self, word, default):
         """Complete after pipes and input/output redirects."""
         if word.pipepos:
@@ -393,13 +360,13 @@ class GPGKeys(kmd.Kmd):
         return [x for x in options if x.startswith(text)]
 
     def complete_genkey(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + EXPERT)
         return self.completebase(word, self.completedefault)
 
     def complete_genrevoke(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + OUTPUT)
         if word.follows('--output'):
@@ -407,13 +374,13 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_import(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + INPUT + CLEAN + MINIMAL)
         return self.completebase(word, self.completefilename)
 
     def complete_export(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + OUTPUT + SECRET + CLEAN + MINIMAL)
         if word.follows('--output'):
@@ -421,42 +388,33 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_list(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST + SECRET)
         return self.completebase(word, self.completekeyspec)
 
-    def complete_ls(self, text, line, begidx, endidx):
-        return self.complete_list(text, line, begidx, endidx)
-
     def complete_listsig(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST)
         return self.completebase(word, self.completekeyspec)
 
-    def complete_ll(self, text, line, begidx, endidx):
-        return self.complete_listsig(text, line, begidx, endidx)
-
     def complete_checksig(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST)
         return self.completebase(word, self.completekeyspec)
 
     def complete_edit(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN + EXPERT)
         if word.follows('--local-user'):
             return self.completekeyspec(word.text)
         return self.completebase(word, self.completekeyspec)
 
-    def complete_e(self, text, line, begidx, endidx):
-        return self.complete_edit(text, line, begidx, endidx)
-
     def complete_lsign(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN)
         if word.follows('--local-user'):
@@ -464,7 +422,7 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_sign(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN)
         if word.follows('--local-user'):
@@ -472,13 +430,13 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_del(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + DELETE + SECRET)
         return self.completebase(word, self.completekeyspec)
 
     def complete_search(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
         if word.follows('--keyserver'):
@@ -486,7 +444,7 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_recv(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
         if word.follows('--keyserver'):
@@ -494,7 +452,7 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_send(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
         if word.follows('--keyserver'):
@@ -502,7 +460,7 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_refresh(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
         if word.follows('--keyserver'):
@@ -510,25 +468,25 @@ class GPGKeys(kmd.Kmd):
         return self.completebase(word, self.completekeyspec)
 
     def complete_fetch(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + INPUT + CLEAN)
         return self.completebase(word, self.completedefault)
 
     def complete_dump(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SECRET + CLEAN + MINIMAL)
         return self.completebase(word, self.completekeyspec)
 
     def complete_fdump(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL)
         return self.completebase(word, self.completefilename)
 
     def complete_shell(self, text, line, begidx, endidx):
-        word = self.parseword(line, begidx, endidx)
+        word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL)
         if word.commandpos:
@@ -538,19 +496,14 @@ class GPGKeys(kmd.Kmd):
 
     # Help
 
-    shortcuts = {'ls': 'list', 'll': 'listsig', 'e': 'edit',
-                 '!': 'shell', '.': 'shell', '?': 'help'}
-
-    def do_help(self, arg):
-        """Interactive help (Usage: help <topic>)"""
-        if arg:
-            orig_arg = arg
-            arg = self.shortcuts.get(arg, arg)
+    def do_help(self, topic):
+        """Interactive help (Usage: help [<topic>])"""
+        if topic:
             try:
-                helpfunc = getattr(self, 'help_' + arg)
+                helpfunc = getattr(self, 'help_' + topic)
             except AttributeError:
                 try:
-                    dofunc = getattr(self, 'do_' + arg)
+                    dofunc = getattr(self, 'do_' + topic)
                 except AttributeError:
                     pass
                 else:
@@ -561,11 +514,11 @@ class GPGKeys(kmd.Kmd):
                         help = doc[:lparen-1]
                         usage = doc[lparen+1:rparen]
 
-                        if arg == 'shell' and orig_arg == '.':
+                        if topic == '.':
                             usage = usage.replace('!', '.')
 
                         options = []
-                        compfunc = getattr(self, 'complete_' + arg, None)
+                        compfunc = getattr(self, 'complete_' + topic, None)
                         if compfunc is not None:
                             options = compfunc('-', '-', 0, 1)
 
@@ -574,202 +527,11 @@ class GPGKeys(kmd.Kmd):
                             self.stdout.write("Options: %s\n" % ' '.join(sorted(options)))
                         self.stdout.write("\n%s\n\n" % help)
                         return
-                self.stdout.write("%s\n" % (self.nohelp % (arg,)))
+                self.stdout.write("%s\n" % (self.nohelp % (topic,)))
             else:
                 helpfunc()
         else:
-            self.default_help()
-
-    def default_help(self):
-        names = self.get_names()
-        cmds_doc = []
-        cmds_undoc = []
-        help = {}
-        for name in names:
-            if name[:5] == 'help_':
-                help[name[5:]] = 1
-        names.sort()
-        prevname = ''
-        for name in names:
-            if name[:3] == 'do_':
-                if name == prevname:
-                    continue
-                prevname = name
-                cmd = name[3:]
-                if cmd in self.shortcuts:
-                    continue
-                if cmd in help:
-                    cmds_doc.append(cmd)
-                    del help[cmd]
-                elif getattr(self, name).__doc__:
-                    cmds_doc.append(cmd)
-                else:
-                    cmds_undoc.append(cmd)
-        self.stdout.write("%s\n" % self.doc_leader)
-        self.print_topics(self.doc_header, cmds_doc, 15, 80)
-        self.print_topics(self.shortcut_header, sorted(self.shortcuts.keys()), 15, 80)
-        self.print_topics(self.misc_header, sorted(help.keys()), 15, 80)
-        self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
-
-
-class Args(object):
-    """Parse the command line with getopt.
-    """
-
-    long_options = ('openpgp',
-                    'local-user=',
-                    'fingerprint',
-                    'with-colons',
-                    'clean',
-                    'minimal',
-                    'merge-only',
-                    'armor',
-                    'output=',
-                    'keyserver=',
-                    'expert',
-                    'secret',
-                    'secret-and-public')
-
-    def __init__(self):
-        self.openpgp = False
-        self.local_user = None
-        self.fingerprint = 0
-        self.with_colons = False
-        self.merge_only = False
-        self.clean = False
-        self.minimal = False
-        self.armor = False
-        self.output = None
-        self.keyserver = None
-        self.expert = False
-        self.secret = False
-        self.secret_and_public = False
-        self.args = ()
-        self.pipe = ()
-        self.ok = True
-
-    def parse(self, args):
-        try:
-            options, args = getopt.gnu_getopt(args, '', self.long_options)
-        except getopt.GetoptError, e:
-            print >>sys.stderr, 'gpgkeys:', e
-            self.ok = False
-        else:
-            for name, value in options:
-                if name == '--openpgp':
-                    self.openpgp = True
-                elif name == '--local-user':
-                    self.local_user = value
-                elif name == '--fingerprint':
-                    self.fingerprint += 1
-                elif name == '--with-colons':
-                    self.with_colons = True
-                elif name == '--merge-only':
-                    self.merge_only = True
-                elif name == '--clean':
-                    self.clean = True
-                elif name == '--minimal':
-                    self.minimal = True
-                elif name == '--armor':
-                    self.armor = True
-                elif name == '--output':
-                    self.output = value
-                elif name == '--keyserver':
-                    self.keyserver = value
-                elif name == '--expert':
-                    self.expert = True
-                elif name == '--secret':
-                    self.secret = True
-                elif name == '--secret-and-public':
-                    self.secret_and_public = True
-            self.args = tuple(args)
-
-    @property
-    def options(self):
-        options = []
-        if self.openpgp:
-            options.append('--openpgp')
-        if self.local_user:
-            options.append('--local-user %s' % self.local_user)
-        for x in range(self.fingerprint):
-            options.append('--with-fingerprint')
-        if self.with_colons:
-            options.append('--with-colons')
-        if self.armor:
-            options.append('--armor')
-        if self.output:
-            options.append('--output %s' % self.output)
-        if self.keyserver:
-            options.append('--keyserver %s' % self.keyserver)
-        if self.expert:
-            options.append('--expert')
-        if self.merge_only:
-            options.append('--import-options merge-only')
-            options.append('--keyserver-options merge-only')
-        if self.clean:
-            options.append('--import-options import-clean')
-            options.append('--export-options export-clean')
-            options.append('--keyserver-options import-clean')
-            options.append('--keyserver-options export-clean')
-        if self.minimal:
-            options.append('--import-options import-minimal')
-            options.append('--export-options export-minimal')
-        return tuple(options)
-
-    @property
-    def tuple(self):
-        return self.options + self.args + self.pipe
-
-
-class Word(object):
-    """Parse the completion word.
-    """
-
-    def parse(self, line, begidx, endidx):
-        self.line = line
-        self.text = line[begidx:endidx]
-        self.begidx = begidx
-        self.endidx = endidx
-
-    @property
-    def isoption(self):
-        return self.text.startswith('-')
-
-    @property
-    def isfilename(self):
-        return self.text.startswith('~') or (os.sep in self.text)
-
-    def follows(self, text):
-        idx = self.line.rfind(text, 0, self.begidx)
-        if idx >= 0:
-            delta = self.line[idx+len(text):self.begidx]
-            if delta.strip() in ('"', "'", ''):
-                return True
-        return False
-
-    @property
-    def commandpos(self):
-        delta = self.line[0:self.begidx]
-        if delta.strip() in ('!', '.', 'shell'):
-            return True
-        return False
-
-    @property
-    def pipepos(self):
-        idx = rscan_unquoted(self.line, self.begidx, ('|', ';'))
-        if idx >= 0:
-            delta = self.line[idx+1:self.begidx]
-            if delta.strip() in ('"', "'", ''):
-                # '>|' is not a pipe but an output redirect
-                if idx > 0 and self.line[idx] == '|':
-                    if rscan_unquoted(self.line, self.begidx, ('>',)) == idx-1:
-                        return False
-                return True
-        return False
-
-    @property
-    def filepos(self):
-        return scan_unquoted(self.line, self.begidx, ('|', '>', '<')) >= 0
+            self.helpdefault()
 
 
 def main(args=None):
