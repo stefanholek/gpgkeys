@@ -102,7 +102,7 @@ class GPGKeys(kmd.Kmd):
     def default(self, args):
         """Unknown command"""
         args = splitargs(args)
-        self.stdout.write('gpgkeys: unknown command: %s\n' % args[0])
+        self.stdout.write("gpgkeys: unknown command '%s'\n" % args[0])
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
