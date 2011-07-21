@@ -4,6 +4,15 @@ Changelog
 1.17 - Unreleased
 -----------------
 
+- Use kmd.Kmd's aliases dictionary to set up command aliases.
+  [stefan]
+
+- Use kmd.Kmd's helpdefault method.
+  [stefan]
+
+- Require kmd >= 1.1.
+  [stefan]
+
 
 1.16 - 2011-07-14
 -----------------
