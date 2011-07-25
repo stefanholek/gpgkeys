@@ -1,10 +1,10 @@
 Changelog
 =========
 
-1.16.1 - Unreleased
+1.16.1 - 2011-07-25
 -------------------
 
-- Fix history file handling broken in 1.16.
+- Fix history file handling silently broken in 1.16.
   [stefan]
 
 
