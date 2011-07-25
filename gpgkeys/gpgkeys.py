@@ -50,7 +50,7 @@ class GPGKeys(kmd.Kmd):
     name = 'gpgkeys'
     prompt = 'gpgkeys> '
     shell_escape_chars = '!.'
-    history_file = '~/.gpgkeys'
+    history_file = '~/.gpgkeys_history'
     history_max_entries = 300
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
