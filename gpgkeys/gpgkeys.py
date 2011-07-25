@@ -59,7 +59,7 @@ class GPGKeys(kmd.Kmd):
     name = 'gpgkeys'
     prompt = 'gpgkeys> '
     shell_escape_chars = '!.'
-    history_file = '~/.gpgkeys'
+    history_file = '~/.gpgkeys_history'
     history_max_entries = 300
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
@@ -75,6 +75,8 @@ class GPGKeys(kmd.Kmd):
         os.umask(UMASK)
 
     def preloop(self):
+        # XXX Temp fix for broken history file in 1.16
+        self.history_file = os.path.expanduser(self.history_file)
         super(GPGKeys, self).preloop()
         self.completefilename = FilenameCompletion(self.quote_char)
         self.completecommand = CommandCompletion()
