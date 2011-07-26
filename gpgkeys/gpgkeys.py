@@ -278,7 +278,7 @@ class GPGKeys(kmd.Kmd):
                 self.do_help('fdump')
 
     def do_shell(self, args):
-        """Execute a command or start an interactive shell (Usage: !<command> or !)"""
+        """Execute a command or start an interactive shell (Usage: ! [<command>])"""
         args = splitargs(args)
         if args:
             cmd = args[0]
@@ -514,6 +514,8 @@ class GPGKeys(kmd.Kmd):
                         help = doc[:lparen-1]
                         usage = doc[lparen+1:rparen]
 
+                        if topic == '?':
+                            usage = usage.replace('help', '?')
                         if topic == '.':
                             usage = usage.replace('!', '.')
 
