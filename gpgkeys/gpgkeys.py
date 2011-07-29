@@ -519,6 +519,11 @@ class GPGKeys(kmd.Kmd):
                         if topic == '.':
                             usage = usage.replace('!', '.')
 
+                        cmd = dofunc.__name__[3:]
+                        aliases = [x for (x, y) in self.aliases.iteritems() if y == cmd]
+                        if aliases:
+                            usage = usage.replace(cmd, '%s (%s)' % (cmd, ', '.join(sorted(aliases))))
+
                         options = []
                         compfunc = getattr(self, 'complete_' + topic, None)
                         if compfunc is not None:
