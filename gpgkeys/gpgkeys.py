@@ -507,12 +507,12 @@ class GPGKeys(kmd.Kmd):
                 except AttributeError:
                     pass
                 else:
-                    doc = dofunc.__doc__.strip()
+                    doc = dofunc.__doc__
                     if doc:
-                        lparen = doc.rfind('(')
                         rparen = doc.rfind(')')
-                        help = doc[:lparen-1]
-                        usage = doc[lparen+1:rparen]
+                        lparen = doc.rfind('(', 0, rparen)
+                        help = doc[:lparen].strip()
+                        usage = doc[lparen+1:rparen].strip()
 
                         if topic == '?':
                             usage = usage.replace('help', '?')
