@@ -508,6 +508,7 @@ class GPGKeys(kmd.Kmd):
                     pass
                 else:
                     doc = dofunc.__doc__
+                    cmd = dofunc.__name__[3:]
                     if doc:
                         rparen = doc.rfind(')')
                         lparen = doc.rfind('(', 0, rparen)
@@ -515,14 +516,14 @@ class GPGKeys(kmd.Kmd):
                         usage = doc[lparen+1:rparen].strip()
 
                         if topic == '?':
-                            usage = usage.replace('help', '?')
+                            usage = usage.replace(cmd, '?', 1)
                         if topic == '.':
-                            usage = usage.replace('!', '.')
+                            usage = usage.replace('!', '.', 1)
 
-                        cmd = dofunc.__name__[3:]
                         aliases = [x for (x, y) in self.aliases.iteritems() if y == cmd]
                         if aliases:
-                            usage = usage.replace(cmd, '%s (%s)' % (cmd, ', '.join(sorted(aliases))))
+                            aliases = ', '.join(sorted(aliases))
+                            usage = usage.replace(cmd, '%s (%s)' % (cmd, aliases), 1)
 
                         options = []
                         compfunc = getattr(self, 'complete_' + topic, None)
@@ -531,7 +532,8 @@ class GPGKeys(kmd.Kmd):
 
                         self.stdout.write("%s\n" % usage)
                         if options:
-                            self.stdout.write("Options: %s\n" % ' '.join(sorted(options)))
+                            options = ' '.join(sorted(options))
+                            self.stdout.write("Options: %s\n" % options)
                         self.stdout.write("\n%s\n\n" % help)
                         return
                 self.stdout.write("%s\n" % (self.nohelp % (topic,)))
