@@ -128,7 +128,7 @@ class GPGKeys(kmd.Kmd):
             self.gnupg('--gen-key', *args.tuple)
 
     def do_genrevoke(self, args):
-        """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
+        """Generate a revocation certificate for a key pair (Usage: genrevoke <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
@@ -164,13 +164,13 @@ class GPGKeys(kmd.Kmd):
             self.gnupg(command, *args.tuple)
 
     def do_listsig(self, args):
-        """List keys including signatures (Usage: listsig [<keyspec>])"""
+        """List keys with signatures (Usage: listsig [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
             self.gnupg('--list-sigs', *args.tuple)
 
     def do_checksig(self, args):
-        """Like listsig, but also verify the signatures (Usage: checksig [<keyspec>])"""
+        """List keys with signatures and verify the signatures (Usage: checksig [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
             self.gnupg('--check-sigs', *args.tuple)
@@ -259,7 +259,7 @@ class GPGKeys(kmd.Kmd):
                 self.do_help('fetch')
 
     def do_dump(self, args):
-        """List the packet sequence of a key (Usage: dump [<keyspec>])"""
+        """Print the packet sequence of keys (Usage: dump [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
             command = '--export'
@@ -269,7 +269,7 @@ class GPGKeys(kmd.Kmd):
             self.gnupg(command, *tuple)
 
     def do_fdump(self, args):
-        """List the packet sequence of a key stored in a file (Usage: fdump <filename>)"""
+        """Print the packet sequence of keys in a file (Usage: fdump <filename>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
@@ -278,7 +278,7 @@ class GPGKeys(kmd.Kmd):
                 self.do_help('fdump')
 
     def do_shell(self, args):
-        """Execute a command or start an interactive shell (Usage: ! [<command>])"""
+        """Execute a shell command or start an interactive shell (Usage: ! [<command>])"""
         args = splitargs(args)
         if args:
             cmd = args[0]
