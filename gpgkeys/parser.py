@@ -145,8 +145,8 @@ class Word(object):
     """
 
     def parse(self, line, begidx, endidx):
-        self.line = line
         self.text = line[begidx:endidx]
+        self.line = line
         self.begidx = begidx
         self.endidx = endidx
 
