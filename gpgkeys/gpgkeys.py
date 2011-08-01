@@ -56,7 +56,6 @@ class GPGKeys(kmd.Kmd):
     history_max_entries = 300
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
-    nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
@@ -110,7 +109,7 @@ class GPGKeys(kmd.Kmd):
     def default(self, args):
         """Unknown command"""
         args = splitargs(args)
-        self.stdout.write("gpgkeys: unknown command '%s'\n" % args[0])
+        self.stderr.write("gpgkeys: unknown command '%s'\n" % args[0])
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
@@ -333,7 +332,7 @@ class GPGKeys(kmd.Kmd):
             try:
                 os.chdir(dir)
             except OSError, e:
-                self.stdout.write('%s\n' % (e,))
+                self.stderr.write('%s\n' % (e,))
 
     def shell_umask(self, *args):
         if args:
@@ -341,13 +340,13 @@ class GPGKeys(kmd.Kmd):
                 try:
                     mask = int(args[0], 8)
                 except ValueError, e:
-                    self.stdout.write('%s\n' % (e,))
+                    self.stderr.write('%s\n' % (e,))
                 else:
                     if mask < 512:
                         try:
                             os.umask(mask)
                         except OSError, e:
-                            self.stdout.write('%s\n' % (e,))
+                            self.stderr.write('%s\n' % (e,))
         else:
             self.system('umask')
 
@@ -549,7 +548,7 @@ class GPGKeys(kmd.Kmd):
                             self.stdout.write("Options: %s\n" % options)
                         self.stdout.write("\n%s\n\n" % help)
                         return
-                self.stdout.write("%s\n" % (self.nohelp % (topic,)))
+                self.helpdefault(topic)
             else:
                 try:
                     helpfunc(topic)
@@ -557,6 +556,10 @@ class GPGKeys(kmd.Kmd):
                     helpfunc()
         else:
             self.help()
+
+    def helpdefault(self, topic):
+        """Unknown help topic"""
+        self.stderr.write("gpgkeys: no help on '%s'\n" % (topic,))
 
 
 def main(args=None):
