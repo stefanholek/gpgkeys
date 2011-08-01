@@ -356,9 +356,9 @@ class GPGKeys(kmd.Kmd):
         if args:
             if self.system('man', *args, stderr=subprocess.PIPE) == 1:
                 args = ' '.join(args)
-                self.stdout.write('No manual entry for %s\n' % args)
+                self.stderr.write('No manual entry for %s\n' % args)
         else:
-            self.stdout.write('What manual page do you want?\n')
+            self.stderr.write('What manual page do you want?\n')
 
     # Completions
 
