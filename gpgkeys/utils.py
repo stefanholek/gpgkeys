@@ -1,4 +1,5 @@
 import sys
+import signal
 
 
 def decode(text):
@@ -23,4 +24,23 @@ def char(int):
         return bytes((int,))
     else:
         return chr(int)
+
+
+def ignoresignal(signum):
+    """Decorator to temporarily ignore signals."""
+    def wrapper(func):
+        def wrapped_func(*args, **kw):
+            saved = signal.getsignal(signum)
+            signal.signal(signum, signal.SIG_IGN)
+            try:
+                return func(*args, **kw)
+            finally:
+                signal.signal(signum, saved)
+
+        wrapped_func.__doc__ = func.__doc__
+        wrapped_func.__name__ = func.__name__
+        wrapped_func.__module__ = func.__module__
+        wrapped_func.__dict__.update(func.__dict__)
+        return wrapped_func
+    return wrapper
 

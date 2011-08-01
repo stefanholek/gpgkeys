@@ -10,6 +10,7 @@ __version__ = pkg_resources.get_distribution('gpgkeys').version
 import os
 import sys
 import getopt
+import signal
 import subprocess
 import kmd
 
@@ -18,6 +19,7 @@ from parser import parseargs
 from parser import parseword
 
 from utils import decode
+from utils import ignoresignal
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -343,9 +345,15 @@ class GPGKeys(kmd.Kmd):
         else:
             self.system('umask')
 
+    @ignoresignal(signal.SIGINT)
+    @ignoresignal(signal.SIGQUIT)
     def shell_man(self, *args):
-        if self.system('man', *args, stderr=subprocess.PIPE) == 1:
-            self.stdout.write('No manual entry for %s\n' % ' '.join(args))
+        if args:
+            if self.system('man', *args, stderr=subprocess.PIPE) == 1:
+                args = ' '.join(args)
+                self.stdout.write('No manual entry for %s\n' % args)
+        else:
+            self.stdout.write('What manual page do you want?\n')
 
     def shelldefault(self, *args):
         self.system(*args)
