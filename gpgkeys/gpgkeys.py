@@ -538,7 +538,7 @@ class GPGKeys(kmd.Kmd):
                         return
                 self.stdout.write("%s\n" % (self.nohelp % (topic,)))
             else:
-                helpfunc()
+                helpfunc(topic)
         else:
             self.helpdefault()
 
