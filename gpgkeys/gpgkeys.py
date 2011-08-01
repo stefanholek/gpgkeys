@@ -545,7 +545,10 @@ class GPGKeys(kmd.Kmd):
                         return
                 self.stdout.write("%s\n" % (self.nohelp % (topic,)))
             else:
-                helpfunc(topic)
+                try:
+                    helpfunc(topic)
+                except TypeError:
+                    helpfunc()
         else:
             self.helpdefault()
 
