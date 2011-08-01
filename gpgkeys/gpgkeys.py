@@ -79,12 +79,13 @@ class GPGKeys(kmd.Kmd):
 
     # Execute GnuPG
 
-    def system(self, *args):
+    def system(self, *args, **kw):
         command = ' '.join(args)
         if self.verbose:
             self.stdout.write('>>> %s\n' % command)
         try:
-            process = subprocess.Popen(command, shell=True)
+            process = subprocess.Popen(command,
+                shell=True, stdout=kw.get('stdout'), stderr=kw.get('stderr'))
             process.communicate()
             return process.returncode
         except KeyboardInterrupt:
@@ -290,6 +291,8 @@ class GPGKeys(kmd.Kmd):
                 self.shell_chdir(*args[1:])
             elif cmd == 'umask':
                 self.shell_umask(*args[1:])
+            elif cmd == 'man':
+                self.shell_man(*args[1:])
             else:
                 self.shell_default(*args)
         else:
@@ -339,6 +342,10 @@ class GPGKeys(kmd.Kmd):
                             self.stdout.write('%s\n' % (e,))
         else:
             self.system('umask')
+
+    def shell_man(self, *args):
+        if self.system('man', *args, stderr=subprocess.PIPE) == 1:
+            self.stdout.write('No manual entry for %s\n' % ' '.join(args))
 
     def shell_default(self, *args):
         self.system(*args)
