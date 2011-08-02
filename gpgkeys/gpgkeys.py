@@ -56,6 +56,7 @@ class GPGKeys(kmd.Kmd):
     history_max_entries = 300
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
+    nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
@@ -556,10 +557,6 @@ class GPGKeys(kmd.Kmd):
                     helpfunc()
         else:
             self.help()
-
-    def helpdefault(self, topic):
-        """Unknown help topic"""
-        self.stderr.write("gpgkeys: no help on '%s'\n" % (topic,))
 
 
 def main(args=None):
