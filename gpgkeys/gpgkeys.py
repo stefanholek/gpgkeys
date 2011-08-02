@@ -308,10 +308,8 @@ class GPGKeys(kmd.Kmd):
     # Shell commands
 
     def getdir(self, dir):
-        process = subprocess.Popen('cd %s; pwd' % dir,
-            shell=True, stdout=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        if process.returncode == 0:
+        rc, stdout = self.popen('cd %s; pwd' % dir, stdout=subprocess.PIPE)
+        if rc == 0:
             if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
             for line in stdout.strip().split('\n'):
