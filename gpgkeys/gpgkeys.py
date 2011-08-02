@@ -558,7 +558,7 @@ class GPGKeys(kmd.Kmd):
                 except TypeError:
                     helpfunc()
         else:
-            self.helpdefault()
+            self.help()
 
 
 def main(args=None):
