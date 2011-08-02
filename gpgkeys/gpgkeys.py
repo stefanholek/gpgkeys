@@ -312,6 +312,9 @@ class GPGKeys(kmd.Kmd):
             for line in stdout.strip().split('\n'):
                 return line
 
+    def shelldefault(self, *args):
+        self.system(*args)
+
     def shell_ls(self, *args):
         self.system('ls', '-F', *args)
 
@@ -354,9 +357,6 @@ class GPGKeys(kmd.Kmd):
                 self.stdout.write('No manual entry for %s\n' % args)
         else:
             self.stdout.write('What manual page do you want?\n')
-
-    def shelldefault(self, *args):
-        self.system(*args)
 
     # Completions
 
