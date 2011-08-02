@@ -79,19 +79,24 @@ class GPGKeys(kmd.Kmd):
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
 
-    # Execute GnuPG
+    # Execute subprocesses
 
-    def system(self, *args, **kw):
+    def popen(self, *args, **kw):
         command = ' '.join(args)
-        if self.verbose:
+        if self.verbose and kw.get('verbose', False):
             self.stdout.write('>>> %s\n' % command)
         try:
             process = subprocess.Popen(command,
                 shell=True, stdout=kw.get('stdout'), stderr=kw.get('stderr'))
-            process.communicate()
-            return process.returncode
+            stdout, stderr = process.communicate()
+            return process.returncode, stdout
         except KeyboardInterrupt:
-            return 1
+            return 1, None
+
+    def system(self, *args, **kw):
+        kw = kw.copy()
+        kw.setdefault('verbose', True)
+        return self.popen(*args, **kw)[0]
 
     def gnupg(self, *args):
         return self.system(GNUPGEXE, *args)
