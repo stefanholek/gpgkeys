@@ -178,7 +178,7 @@ class GPGKeys(kmd.Kmd):
             self.gnupg('--list-sigs', *args.tuple)
 
     def do_checksig(self, args):
-        """List keys with signatures and verify the signatures (Usage: checksig [<keyspec>])"""
+        """List keys with signatures and also verify the signatures (Usage: checksig [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
             self.gnupg('--check-sigs', *args.tuple)
