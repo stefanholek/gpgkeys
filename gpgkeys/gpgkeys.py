@@ -511,7 +511,7 @@ class GPGKeys(kmd.Kmd):
 
     # Help
 
-    def do_help(self, topic):
+    def do_help(self, topic=''):
         """Interactive help (Usage: help [<topic>])"""
         if topic:
             try:
