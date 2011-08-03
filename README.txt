@@ -59,6 +59,9 @@ commands, and keyserver URLs.
     gpgkeys> .ls
     alice.asc             stefan.asc
 
+Some Details
+------------
+
 gpgkeys understands shell pipes and input/output redirects. This
 allows command lines like::
 
@@ -68,11 +71,7 @@ and::
 
     gpgkeys> ls --with-colons | grep ^pub
 
-For all the GnuPG documentation you ever wanted to read type::
-
-    gpgkeys> .man gpg
-
-To see the exact commands gpgkeys sends to GnuPG, run gpgkeys with the
+To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
 -v option::
 
     $ gpgkeys -v
@@ -83,6 +82,10 @@ To see the exact commands gpgkeys sends to GnuPG, run gpgkeys with the
     pub   1024D/355A2D28 2001-11-04
     uid                  Stefan H. Holek <stefan@epy.co.at>
     sub   2048g/A27E0DBC 2004-10-27
+
+For everything you ever wanted to know about GnuPG commands, type::
+
+    gpgkeys> .man gpg
 
 Repository Access
 -----------------
