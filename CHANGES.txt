@@ -4,10 +4,10 @@ Changelog
 1.17 - Unreleased
 -----------------
 
-- Use kmd.Kmd's aliases dictionary to set up command aliases.
+- Use the new aliases dictionary to set up command aliases.
   [stefan]
 
-- Use kmd.Kmd's helpdefault method.
+- Make sure error messages go to stderr.
   [stefan]
 
 - Require kmd >= 1.1.

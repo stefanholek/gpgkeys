@@ -27,7 +27,7 @@ commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.16 (type help for help)
+    gpgkeys 1.17 (type help for help)
 
     gpgkeys> help
 
@@ -67,6 +67,10 @@ allows command lines like::
 and::
 
     gpgkeys> ls --with-colons | grep ^pub
+
+For all the GnuPG documentation you ever wanted to read type::
+
+    gpgkeys> .man gpg
 
 Repository Access
 -----------------
