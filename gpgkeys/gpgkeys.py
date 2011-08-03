@@ -49,7 +49,6 @@ class GPGKeys(kmd.Kmd):
     Implements a shell providing commands to view and
     manipulate GnuPG keys and keyrings.
     """
-    name = 'gpgkeys'
     prompt = 'gpgkeys> '
     shell_escape_chars = '!.'
     history_file = '~/.gpgkeys_history'
