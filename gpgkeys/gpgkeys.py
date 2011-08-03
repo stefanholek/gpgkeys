@@ -549,7 +549,7 @@ class GPGKeys(kmd.Kmd):
                             self.stdout.write("Options: %s\n" % options)
                         self.stdout.write("\n%s\n\n" % help)
                         return
-                self.helpdefault(topic)
+                self.stderr.write('%s\n' % (self.nohelp % (topic,)))
             else:
                 try:
                     helpfunc(topic)
