@@ -84,7 +84,7 @@ class GPGKeys(kmd.Kmd):
     def popen(self, *args, **kw):
         command = ' '.join(args)
         if self.verbose and kw.get('verbose', False):
-            self.stdout.write('>>> %s\n' % command)
+            self.stdout.write('gpgkeys: %s\n' % command)
         try:
             process = subprocess.Popen(command,
                 shell=True, stdout=kw.get('stdout'), stderr=kw.get('stderr'))

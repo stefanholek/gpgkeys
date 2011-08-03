@@ -72,6 +72,18 @@ For all the GnuPG documentation you ever wanted to read type::
 
     gpgkeys> .man gpg
 
+To see the exact commands gpgkeys sends to GnuPG, run gpgkeys with the
+-v option::
+
+    $ gpgkeys -v
+    gpgkeys 1.17 (type help for help)
+
+    gpgkeys> ls 355A2D28
+    gpgkeys: gpg --list-keys 355A2D28
+    pub   1024D/355A2D28 2001-11-04
+    uid                  Stefan H. Holek <stefan@epy.co.at>
+    sub   2048g/A27E0DBC 2004-10-27
+
 Repository Access
 -----------------
 
