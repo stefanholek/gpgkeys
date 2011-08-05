@@ -561,6 +561,7 @@ class GPGKeys(kmd.Kmd):
 def main(args=None):
     quote_char = '\\'
     verbose = False
+    help = False
 
     if args is None:
         args = sys.argv[1:]
@@ -577,10 +578,15 @@ def main(args=None):
         elif name in ('-v', '--verbose'):
             verbose = True
         elif name in ('-h', '--help'):
-            print "Type 'gpgkeys' to start the shell"
-            return 0
+            help = True
 
     shell = GPGKeys(quote_char=quote_char, verbose=verbose)
+
+    if help:
+        shell.help()
+        print "Type '%s' to start the interactive shell.\n" % sys.argv[0]
+        return 0
+
     return shell.run(args)
 
 
