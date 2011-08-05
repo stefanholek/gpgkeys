@@ -8,22 +8,35 @@ Command line shell for GnuPG
 Introduction
 ============
 
-**gpgkeys** is a Python program that allows to conveniently manage GnuPG keys
+**gpgkeys** is a Python program that allows to conveniently manage GnuPG_ keys
 and keyrings from the command line. Its main UI feature is end-to-end
-TAB-completion.
+TAB completion.
 
-gpgkeys also serves as example application and testbed for the development of
-the kmd_ and rl_ libraries.
+It also serves as testbed for the development of the kmd_ and rl_ Python
+libraries.
 
+.. _GnuPG: http://www.gnupg.org/
 .. _kmd: http://pypi.python.org/pypi/kmd
 .. _rl: http://pypi.python.org/pypi/rl
+
+Motivation
+----------
+
+The GnuPG CLI is very powerful – and with great power comes
+great incomprehensibility.
+
+**gpgkeys** makes key management easy by:
+
+1. providing a sensible subset of GnuPG commands, and
+
+2. using TAB completion to streamline the input process and guide the user
+   through key management tasks.
 
 Example Session
 ---------------
 
-Everything in gpgkeys can be TAB-completed: commands, help
-topics, userids, option flags, keyids, filenames, shell
-commands, and keyserver URLs.
+Everything in gpgkeys can be TAB-completed: commands, option flags, help
+topics, user ids, key ids, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
@@ -55,7 +68,7 @@ commands, and keyserver URLs.
     uid                  Stefan H. Holek <stefan@epy.co.at>
     sub   2048g/A27E0DBC 2004-10-27
 
-    gpgkeys> export --armor E1F438AD > stefan.asc
+    gpgkeys> export --armor 355A2D28 > stefan.asc
     gpgkeys> .ls
     alice.asc             stefan.asc
 
@@ -65,11 +78,7 @@ Some Details
 gpgkeys understands shell pipes and input/output redirects. This
 allows command lines like::
 
-    gpgkeys> export E1F438AD | pgpdump | less
-
-and::
-
-    gpgkeys> ls --with-colons | grep ^pub
+    gpgkeys> export 355A2D28 | pgpdump | less
 
 To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
 -v option::
@@ -86,6 +95,14 @@ To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
 For everything you ever wanted to know about GnuPG commands, type::
 
     gpgkeys> .man gpg
+
+
+gpgkeys can be invoked with arguments, in which case it does not enter
+the command loop::
+
+    $ gpgkeys export --armor 355A2D28 > stefan.asc
+    $ ls
+    alice.asc             stefan.asc
 
 Repository Access
 -----------------
@@ -108,4 +125,9 @@ To install the ``gpgkeys`` script, type::
 Then put it on your system PATH by e.g.  symlinking it to ``/usr/local/bin``.
 
 .. _`installation instructions`: http://pypi.python.org/pypi/rl#installation
+
+Requirements
+============
+
+The ``gpg`` command must be available on the system PATH.
 
