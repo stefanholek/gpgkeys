@@ -5,7 +5,7 @@ version = '1.17'
 
 setup(name='gpgkeys',
       version=version,
-      description='Command line shell for GnuPG',
+      description='A front-end for GnuPG',
       long_description=open('README.txt').read() + '\n' +
                        open('CHANGES.txt').read(),
       classifiers=[
