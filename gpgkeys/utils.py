@@ -44,3 +44,20 @@ def ignoresignal(signum):
         return wrapped_func
     return wrapper
 
+
+class ignore_signals(object):
+    """Context manager to temporarily ignore signals."""
+
+    def __init__(self, *signums):
+        self.signums = signums
+        self.saved = {}
+
+    def __enter__(self):
+        for signum in self.signums:
+            self.saved.setdefault(signum, signal.getsignal(signum))
+            signal.signal(signum, signal.SIG_IGN)
+
+    def __exit__(self, *ignored):
+        for signum in reversed(self.signums):
+            signal.signal(signum, self.saved[signum])
+

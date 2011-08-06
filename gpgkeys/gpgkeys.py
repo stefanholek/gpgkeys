@@ -19,7 +19,7 @@ from parser import parseargs
 from parser import parseword
 
 from utils import decode
-from utils import ignoresignal
+from utils import ignore_signals
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -95,7 +95,16 @@ class GPGKeys(kmd.Kmd):
     def system(self, *args, **kw):
         kw = kw.copy()
         kw.setdefault('verbose', True)
-        return self.popen(*args, **kw)[0]
+        if not self.should_ignore_signals(args):
+            return self.popen(*args, **kw)[0]
+        with ignore_signals(signal.SIGINT, signal.SIGQUIT):
+            return self.popen(*args, **kw)[0]
+
+    def should_ignore_signals(self, args):
+        # XXX: This is crap
+        for cmd in ('less', 'more', 'man'):
+            if cmd in args:
+                return True
 
     def gnupg(self, *args):
         return self.system(GNUPGEXE, *args)
@@ -350,8 +359,6 @@ class GPGKeys(kmd.Kmd):
         else:
             self.system('umask')
 
-    @ignoresignal(signal.SIGINT)
-    @ignoresignal(signal.SIGQUIT)
     def shell_man(self, *args):
         if args:
             if self.system('man', *args, stderr=subprocess.PIPE) == 1:
