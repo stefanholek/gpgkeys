@@ -59,9 +59,9 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    def __init__(self, completekey='tab', stdin=None, stdout=None,
+    def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
-        super(GPGKeys, self).__init__(completekey, stdin, stdout)
+        super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
         self.aliases['e'] = 'edit'
         self.aliases['ls'] = 'list'
         self.aliases['ll'] = 'listsig'
