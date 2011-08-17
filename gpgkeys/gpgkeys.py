@@ -103,7 +103,7 @@ class GPGKeys(kmd.Kmd):
 
     def should_ignore_signals(self, args):
         # XXX: This is crap
-        for x in ('less', 'more', 'man'):
+        for x in ('less', 'more', 'most', 'view', 'man'):
             if x in args:
                 return True
 
