@@ -10,6 +10,9 @@ Changelog
 - Make sure error messages go to stderr.
   [stefan]
 
+- Ignore signals when a pager application is in the foreground.
+  [stefan]
+
 - Require kmd >= 1.1.
   [stefan]
 
