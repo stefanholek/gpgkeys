@@ -59,6 +59,8 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
+    looping = False # True when the cmdloop is active
+
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
@@ -77,6 +79,11 @@ class GPGKeys(kmd.Kmd):
         self.completecommand = CommandCompletion()
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
+        self.looping = True
+
+    def postloop(self):
+        self.looping = False
+        super(GPGKeys, self).postloop()
 
     # Execute subprocesses
 
@@ -159,6 +166,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.gnupg('--import', *args.tuple)
+            elif not self.looping:
+                self.gnupg('--import', '-')
             else:
                 self.do_help('import')
 
@@ -291,6 +300,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.gnupg('--list-packets', *args.tuple)
+            elif not self.looping:
+                self.gnupg('--list-packets', '-')
             else:
                 self.do_help('fdump')
 
