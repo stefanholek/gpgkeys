@@ -107,9 +107,9 @@ the command loop::
 Repository Access
 -----------------
 
-gpgkeys development is hosted on github_.
+gpgkeys development is hosted on GitHub_.
 
-.. _github: http://github.com/stefanholek/gpgkeys
+.. _GitHub: http://github.com/stefanholek/gpgkeys
 
 Installation
 ============
