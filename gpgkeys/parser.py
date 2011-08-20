@@ -65,14 +65,13 @@ class Args(object):
         self.secret_and_public = False
         self.args = ()
         self.pipe = ()
-        self.ok = True
+        self.error = None
 
     def parse(self, args):
         try:
             options, args = getopt.gnu_getopt(args, '', self.long_options)
         except getopt.GetoptError, e:
-            print >>sys.stderr, 'gpgkeys:', e
-            self.ok = False
+            self.error = e
         else:
             for name, value in options:
                 if name == '--openpgp':
@@ -102,6 +101,10 @@ class Args(object):
                 elif name == '--secret-and-public':
                     self.secret_and_public = True
             self.args = tuple(args)
+
+    @property
+    def ok(self):
+        return self.error is None
 
     @property
     def options(self):
