@@ -49,9 +49,9 @@ class ignoresignals(object):
         def wrapped_func(*args, **kw):
             with ignoresignals(*self.signums):
                 return func(*args, **kw)
-        wrapped_func.__doc__ = func.__doc__
         wrapped_func.__name__ = func.__name__
         wrapped_func.__module__ = func.__module__
+        wrapped_func.__doc__ = func.__doc__
         wrapped_func.__dict__.update(func.__dict__)
         return wrapped_func
 
