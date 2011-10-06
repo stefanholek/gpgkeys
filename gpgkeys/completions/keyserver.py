@@ -14,6 +14,7 @@ class KeyserverCompletion(object):
 
     def __init__(self):
         self.gpgconf = os.path.join(GNUPGHOME, 'gpg.conf')
+        self.options = os.path.join(GNUPGHOME, 'options')
         self.mtime = 0
         self.servers = []
 
@@ -29,7 +30,12 @@ class KeyserverCompletion(object):
             self.servers = list(self.read_servers())
 
     def read_servers(self):
-        f = open(self.gpgconf, 'rt')
+        if os.path.isfile(self.gpgconf):
+            f = open(self.gpgconf, 'rt')
+        elif os.path.isfile(self.options):
+            f = open(self.options, 'rt')
+        else:
+            return []
         try:
             config = f.read()
         finally:
