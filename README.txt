@@ -22,7 +22,7 @@ libraries.
 Motivation
 ----------
 
-The GnuPG CLI is very powerful – and with great power comes
+The GnuPG CLI is very powerful - and with great power comes
 great incomprehensibility.
 
 **gpgkeys** makes key management easy by:
