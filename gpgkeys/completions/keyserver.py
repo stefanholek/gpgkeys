@@ -1,6 +1,5 @@
 import os
 
-from rl import print_exc
 
 from gpgkeys.config import GNUPGHOME
 
@@ -18,7 +17,6 @@ class KeyserverCompletion(object):
         self.mtime = 0
         self.servers = []
 
-    @print_exc
     def __call__(self, text):
         self.update()
         return [x for x in self.servers if x.startswith(text)]

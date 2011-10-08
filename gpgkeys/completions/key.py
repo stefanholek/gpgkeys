@@ -4,7 +4,6 @@ import re
 import subprocess
 
 from rl import completion
-from rl import print_exc
 
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
@@ -69,7 +68,6 @@ class KeyCompletion(object):
         self.by_userid = {}
         self.by_name = {}
 
-    @print_exc
     def __call__(self, text):
         self.update()
         self.quote_results = False
