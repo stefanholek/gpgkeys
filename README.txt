@@ -40,7 +40,7 @@ topics, user ids, key ids, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.17 (type help for help)
+    gpgkeys 1.18 (type help for help)
 
     gpgkeys> help
 
