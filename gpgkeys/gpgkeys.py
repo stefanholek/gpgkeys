@@ -639,7 +639,7 @@ def main(args=None):
 
     if help:
         shell.help()
-        print "Type '%s' to start the interactive shell.\n" % sys.argv[0]
+        print "Type 'gpgkeys' to start the interactive shell.\n"
         return 0
 
     return shell.run(args)
