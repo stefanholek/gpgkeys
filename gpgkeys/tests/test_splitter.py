@@ -4,8 +4,44 @@ from rl import completer
 from kmd.completions import quoting
 
 from gpgkeys.scanner import char_is_quoted
+from gpgkeys.splitter import Token, T_WORD
 from gpgkeys.splitter import split
 from gpgkeys.testing import reset
+
+
+class TokenTests(unittest.TestCase):
+
+    def test_create(self):
+        t = Token('foo', 0, 2, T_WORD)
+        self.assertTrue(isinstance(t, Token))
+        self.assertEqual(t, 'foo')
+        self.assertEqual(t.start, 0)
+        self.assertEqual(t.end, 2)
+        self.assertEqual(t.type, T_WORD)
+
+    def test_add(self):
+        t = Token('foo', 0, 2, T_WORD)
+        t = t + 'bar'
+        self.assertTrue(isinstance(t, Token))
+        self.assertEqual(t, 'foobar')
+        self.assertEqual(t.start, 0)
+        self.assertEqual(t.end, 2)
+        self.assertEqual(t.type, T_WORD)
+
+    def test_add_assign(self):
+        t = Token('foo', 0, 2, T_WORD)
+        t += 'bar'
+        self.assertTrue(isinstance(t, Token))
+        self.assertEqual(t, 'foobar')
+        self.assertEqual(t.start, 0)
+        self.assertEqual(t.end, 2)
+        self.assertEqual(t.type, T_WORD)
+
+    def test_turns_into_str_otherwise(self):
+        t = Token('foo', 0, 2, T_WORD)
+        s = t.lower()
+        self.assertFalse(isinstance(s, Token))
+        self.assertTrue(isinstance(s, str))
 
 
 class CharIsQuotedTests(unittest.TestCase):
