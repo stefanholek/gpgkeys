@@ -253,7 +253,8 @@ Enable expert mode, thereby unlocking more algorithm choices.
 
 fingerprint
 -----------
-Include the key fingerprint in listings.
+Include the public key fingerprint in listings. May be specified twice
+to include fingerprints of subkeys.
 
 ::
 
