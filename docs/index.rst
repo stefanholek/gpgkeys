@@ -237,7 +237,7 @@ Produce ASCII-armored output.
 
 clean
 -----
-Remove signatures by keys not on the keyring.
+Remove expired signatures and signatures by keys not on the keyring.
 
 ::
 
@@ -285,7 +285,7 @@ Never add new keys to the keyring, only update existing ones.
 
 minimal
 -------
-Remove all signatures except self-signatures.
+Remove all signatures except the most recent self-signatures.
 
 ::
 
