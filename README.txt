@@ -12,7 +12,7 @@ Introduction
 and keyrings from the command line. Its main UI feature is end-to-end
 TAB completion.
 
-It also serves as testbed for the development of the kmd_ and rl_ Python
+gpgkeys also serves as a testbed for the development of the kmd_ and rl_ Python
 libraries.
 
 .. _GnuPG: http://www.gnupg.org/

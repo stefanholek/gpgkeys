@@ -4,6 +4,18 @@ Changelog
 1.18 - Unreleased
 -----------------
 
+- Make sure keyserver completion survives a missing gpg.conf file.
+  [stefan]
+
+- Don't use print_exc decorator on completion functions.
+  [stefan]
+
+- Add pretty Sphinx-based docs.
+  [stefan]
+
+- Require kmd >= 2.0.1.
+  [stefan]
+
 
 1.17 - 2011-10-06
 -----------------
