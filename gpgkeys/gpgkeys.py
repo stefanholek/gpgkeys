@@ -171,7 +171,8 @@ class GPGKeys(kmd.Kmd):
             if args.args:
                 self.gnupg('--import', *args.tuple)
             elif not self.looping:
-                self.gnupg('--import', '-')
+                args.args = ('-',)
+                self.gnupg('--import', *args.tuple)
             else:
                 self.do_help('import')
         else:
@@ -335,7 +336,8 @@ class GPGKeys(kmd.Kmd):
             if args.args:
                 self.gnupg('--list-packets', *args.tuple)
             elif not self.looping:
-                self.gnupg('--list-packets', '-')
+                args.args = ('-',)
+                self.gnupg('--list-packets', *args.tuple)
             else:
                 self.do_help('fdump')
         else:

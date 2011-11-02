@@ -7,7 +7,7 @@ Changelog
 - Make sure keyserver completion survives a missing gpg.conf file.
   [stefan]
 
-- Don't use print_exc decorator on completion functions.
+- The import command ignored option flags when reading from stdin.
   [stefan]
 
 - Add pretty Sphinx-based docs.
