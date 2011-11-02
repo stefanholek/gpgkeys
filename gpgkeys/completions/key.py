@@ -96,12 +96,9 @@ class KeyCompletion(object):
         if map is self.by_keyid:
             if completion.completion_type == '?':
                 text = '%s %s' % map[text]
-                text = recode(text)
         else:
             text = '%s' % map[text]
-            if completion.completion_type == '?':
-                text = recode(text)
-            else:
+            if completion.completion_type != '?':
                 self.quote_results = True
         return text
 
@@ -136,6 +133,10 @@ class KeyCompletion(object):
                 if sys.version_info[0] >= 3:
                     keyid = decode(keyid)
                     userid = decode(userid)
+                else:
+                    # XXX: We lose the source encoding here
+                    keyid = recode(keyid)
+                    userid = recode(userid)
                 yield (keyid, userid)
 
     def parse_names(self, userid):
