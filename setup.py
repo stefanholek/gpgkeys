@@ -28,7 +28,7 @@ setup(name='gpgkeys',
       test_suite='gpgkeys.tests',
       install_requires=[
           'setuptools',
-          'kmd >= 2.0.1',
+          'kmd > 2.0',
       ],
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
