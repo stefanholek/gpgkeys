@@ -8,6 +8,7 @@ from rl import completion
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
 
+from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
 
@@ -16,13 +17,17 @@ from kmd.completions.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-escaped_char_re = re.compile(br'([\\]x[0-9a-f]{2})')
+unescape_re = re.compile(br'([\\]x[0-9a-f]{2})')
 
 
 def unescape(text):
-    """Convert ``gpg --with-colons`` output to a byte string."""
+    """Convert ``gpg --with-colons`` output to a byte string.
+
+    The string is quoted like a C string to avoid control characters.
+    The colon is encoded as '\x3a'.
+    """
     seen = {}
-    for m in escaped_char_re.finditer(text):
+    for m in unescape_re.finditer(text):
         for g in m.groups():
             if g not in seen:
                 text = text.replace(g, char(int(g[2:], 16)))
@@ -30,27 +35,25 @@ def unescape(text):
     return text
 
 
-def decode(text):
-    """Decode a GnuPG string."""
+def gpgdecode(text):
+    """Decode a GnuPG string.
+
+    Returns decoded string and source encoding.
+    """
     try:
-        text = text.decode('utf-8')
+        encoding = 'utf-8'
+        text = text.decode(encoding)
     except UnicodeDecodeError:
         try:
-            text = text.decode('latin-1')
+            encoding = 'latin-1'
+            text = text.decode(encoding)
         except UnicodeDecodeError:
+            encoding = 'utf-8'
             if sys.version_info[0] >= 3:
-                text = text.decode('utf-8', 'surrogateescape')
+                text = text.decode(encoding, 'surrogateescape')
             else:
-                text = text.decode('utf-8', 'replace')
-    return text
-
-
-def recode(text):
-    """Reformat string for display."""
-    if sys.version_info[0] >= 3:
-        return text
-    else:
-        return encode(decode(text))
+                text = text.decode(encoding, 'replace')
+    return text, encoding
 
 
 class KeyCompletion(object):
@@ -67,6 +70,7 @@ class KeyCompletion(object):
         self.by_keyid = {}
         self.by_userid = {}
         self.by_name = {}
+        self.encodings = {}
 
     def __call__(self, text):
         self.update()
@@ -83,8 +87,10 @@ class KeyCompletion(object):
                 matches = self.complete(self.by_name, text.lower())
             if not matches and not completion.quote_character and completion.found_quote:
                 matches = self.complete(self.by_userid, text.lower())
+        single_match = len(matches) == 1
+        if single_match:
+            matches = [self.recode(x) for x in matches]
         if self.quote_results:
-            single_match = len(matches) == 1
             matches = [quote_string(x, single_match, completion.quote_character)
                        for x in matches]
         return matches
@@ -108,8 +114,8 @@ class KeyCompletion(object):
             self.by_keyid = {}
             self.by_userid = {}
             self.by_name = {}
+            self.encodings = {}
             for keyid, userid in self.read_keys():
-                keyid = keyid[8:]
                 self.by_keyid.setdefault(keyid, (keyid, userid))
                 self.by_userid.setdefault(userid.lower(), userid)
                 for name in self.parse_names(userid):
@@ -128,15 +134,15 @@ class KeyCompletion(object):
         for line in stdout.strip().split(b'\n'):
             if line[:3] == b'pub':
                 fields = line.split(b':')
-                keyid = fields[4]
+                keyid = fields[4][8:]
                 userid = unescape(fields[9])
-                if sys.version_info[0] >= 3:
-                    keyid = decode(keyid)
-                    userid = decode(userid)
-                else:
-                    # XXX: We lose the source encoding here
-                    keyid = recode(keyid)
-                    userid = recode(userid)
+                keyid, key_enc = gpgdecode(keyid)
+                userid, user_enc = gpgdecode(userid)
+                if sys.version_info[0] < 3:
+                    keyid = encode(keyid)
+                    userid = encode(userid)
+                self.encodings[keyid] = key_enc
+                self.encodings[userid] = user_enc
                 yield (keyid, userid)
 
     def parse_names(self, userid):
@@ -144,5 +150,14 @@ class KeyCompletion(object):
         if m is not None:
             for name in m.group(1).split():
                 if len(name) > 1 and not (len(name) == 2 and name[-1] == '.'):
+                    self.encodings[name] = self.encodings[userid]
                     yield name
+
+    def recode(self, text):
+        encoding = self.encodings[text]
+        if sys.version_info[0] >= 3:
+            # XXX: Build-in input() does not support surrogates!
+            return decode(text.encode(encoding))
+        else:
+            return decode(text).encode(encoding)
 
