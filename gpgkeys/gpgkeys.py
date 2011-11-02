@@ -142,7 +142,7 @@ class GPGKeys(kmd.Kmd):
         self.system('clear')
 
     def do_version(self, args):
-        """Show the GnuPG version (Usage: version)"""
+        """Print the GnuPG version (Usage: version)"""
         self.gnupg('--version')
 
     def do_genkey(self, args):
