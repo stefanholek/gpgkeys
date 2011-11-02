@@ -614,10 +614,19 @@ class GPGKeys(kmd.Kmd):
                         if compfunc is not None:
                             options = compfunc('-', '-', 0, 1)
 
+                        aliases = [k for (k, v) in self.aliases.items() if v == cmd]
+                        if cmd == 'shell':
+                            aliases = [x for x in aliases if x != topic]
+                        if topic == 'shell':
+                            aliases = [x for x in aliases if x != '!']
+
                         self.stdout.write("%s\n" % usage)
                         if options:
                             options = ' '.join(sorted(options))
                             self.stdout.write("Options: %s\n" % options)
+                        if aliases:
+                            aliases = ' '.join(sorted(aliases))
+                            self.stdout.write("Aliases: %s\n" % aliases)
                         self.stdout.write("\n%s\n\n" % help)
                         return
                 self.stderr.write('%s\n' % (self.nohelp % (topic,)))
