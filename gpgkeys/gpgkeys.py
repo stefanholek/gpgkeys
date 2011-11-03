@@ -13,6 +13,7 @@ import getopt
 import signal
 import subprocess
 import kmd
+import rl
 
 from parser import splitargs
 from parser import parseargs
@@ -84,6 +85,14 @@ class GPGKeys(kmd.Kmd):
     def postloop(self):
         self.looping = False
         super(GPGKeys, self).postloop()
+
+    # Allow surrogates in input
+
+    def input(self, prompt):
+        if sys.version_info[0] >= 3:
+            return rl.input(prompt, errors='surrogateescape')
+        else:
+            return super(GPGKeys, self).input(prompt)
 
     # Execute subprocesses
 
