@@ -156,7 +156,7 @@ class KeyCompletion(object):
     def recode(self, text):
         encoding = self.encodings[text]
         if sys.version_info[0] >= 3:
-            # XXX: Build-in input() does not support surrogates!
+            # XXX: Built-in input() does not support surrogates!
             return decode(text.encode(encoding))
         else:
             return decode(text).encode(encoding)
