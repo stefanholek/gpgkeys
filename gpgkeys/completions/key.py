@@ -67,10 +67,10 @@ class KeyCompletion(object):
         self.pubring = os.path.join(GNUPGHOME, 'pubring.gpg')
         self.secring = os.path.join(GNUPGHOME, 'secring.gpg')
         self.mtimes = (0, 0)
+        self.encodings = {}
         self.by_keyid = {}
         self.by_userid = {}
         self.by_name = {}
-        self.encodings = {}
 
     def __call__(self, text):
         self.update()
@@ -111,10 +111,10 @@ class KeyCompletion(object):
     def update(self):
         mtimes = (os.stat(self.pubring).st_mtime, os.stat(self.secring).st_mtime)
         if self.mtimes != mtimes:
+            self.encodings = {}
             self.by_keyid = {}
             self.by_userid = {}
             self.by_name = {}
-            self.encodings = {}
             for keyid, userid in self.read_keys():
                 self.by_keyid.setdefault(keyid, (keyid, userid))
                 self.by_userid.setdefault(userid.lower(), userid)
@@ -156,7 +156,6 @@ class KeyCompletion(object):
     def recode(self, text):
         encoding = self.encodings[text]
         if sys.version_info[0] >= 3:
-            # XXX: Built-in input() does not support surrogates!
             return decode(text.encode(encoding))
         else:
             return decode(text).encode(encoding)
