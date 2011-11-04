@@ -55,3 +55,20 @@ class ignoresignals(object):
         wrapped_func.__dict__.update(func.__dict__)
         return wrapped_func
 
+
+class surrogateescape(object):
+    """Context manager to switch sys.stdin to 'surrogateescape'
+    error handling and back. Requires Python 3.
+    """
+
+    def __enter__(self):
+        import io
+        self.saved = sys.stdin.errors
+        sys.stdin = io.TextIOWrapper(
+            sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
+
+    def __exit__(self, *ignored):
+        import io
+        sys.stdin = io.TextIOWrapper(
+            sys.stdin.detach(), sys.stdin.encoding, self.saved)
+

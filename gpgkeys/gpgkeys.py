@@ -13,7 +13,6 @@ import getopt
 import signal
 import subprocess
 import kmd
-import rl
 
 from parser import splitargs
 from parser import parseargs
@@ -21,6 +20,7 @@ from parser import parseword
 
 from utils import decode
 from utils import ignoresignals
+from utils import surrogateescape
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -90,7 +90,8 @@ class GPGKeys(kmd.Kmd):
 
     def input(self, prompt):
         if sys.version_info[0] >= 3:
-            return rl.input(prompt, errors='surrogateescape')
+            with surrogateescape():
+                return raw_input(prompt) # [sic] renamed by 2to3
         else:
             return super(GPGKeys, self).input(prompt)
 
