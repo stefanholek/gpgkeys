@@ -28,8 +28,7 @@ def char(int):
 
 class ignoresignals(object):
     """Context manager to temporarily ignore signals.
-
-    Works as a decorator as well.
+    Also works as a decorator.
     """
 
     def __init__(self, *signums):
