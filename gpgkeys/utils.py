@@ -46,12 +46,14 @@ class ignoresignals(object):
 
 class surrogateescape(object):
     """Context manager to switch sys.stdin to 'surrogateescape'
-    error handling and back. Requires Python 3.
+    error handling. Requires Python 3.
     """
+
+    def __init__(self):
+        self.saved = sys.stdin.errors
 
     def __enter__(self):
         import io
-        self.saved = sys.stdin.errors
         sys.stdin = io.TextIOWrapper(
             sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
 
