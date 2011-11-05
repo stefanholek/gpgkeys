@@ -60,7 +60,7 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    looping = False # True when the cmdloop is active
+    looping = False # True while the cmdloop is running
 
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
@@ -91,7 +91,7 @@ class GPGKeys(kmd.Kmd):
     def input(self, prompt):
         if sys.version_info[0] >= 3:
             with surrogateescape():
-                return raw_input(prompt) # [sic] renamed by 2to3
+                return raw_input(prompt) # [sic]
         else:
             return super(GPGKeys, self).input(prompt)
 
