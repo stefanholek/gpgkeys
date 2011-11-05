@@ -4,7 +4,11 @@ Changelog
 1.18 - Unreleased
 -----------------
 
-- Make sure keyserver completion survives a missing gpg.conf file.
+- In Python 3, make sure the input function accepts surrogates.
+  Also see Python `issue 13342`_.
+  [stefan]
+
+- Keyserver completion broke when it failed to find a gpg.conf file.
   [stefan]
 
 - The import command ignored option flags when reading from stdin.
@@ -13,8 +17,10 @@ Changelog
 - Add pretty Sphinx-based docs.
   [stefan]
 
-- Require kmd >= 2.0.1.
+- Require kmd >= 2.1.
   [stefan]
+
+.. _`issue 13342`: http://bugs.python.org/issue13342
 
 
 1.17 - 2011-10-06
