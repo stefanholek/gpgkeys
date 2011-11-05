@@ -19,8 +19,8 @@ from parser import parseargs
 from parser import parseword
 
 from utils import decode
-from utils import ignoresignals
 from utils import surrogateescape
+from utils import ignoresignals
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -113,13 +113,13 @@ class GPGKeys(kmd.Kmd):
         kw = kw.copy()
         kw.setdefault('verbose', True)
         if self.should_ignore_signals(args):
-            with ignoresignals(signal.SIGINT, signal.SIGQUIT):
+            with ignoresignals():
                 return self.popen(*args, **kw)[0]
         else:
             return self.popen(*args, **kw)[0]
 
     def should_ignore_signals(self, args):
-        # XXX: This is crap
+        # This is lame
         for x in ('less', 'more', 'most', 'view', 'man'):
             if x in args:
                 return True
