@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.18 - Unreleased
+1.18 - 2011-11-05
 -----------------
 
 - In Python 3, make sure the input function accepts surrogates.
