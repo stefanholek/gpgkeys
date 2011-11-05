@@ -12,7 +12,7 @@ Introduction
 and keyrings from the command line. Its main UI feature is end-to-end
 TAB completion.
 
-It also serves as testbed for the development of the kmd_ and rl_ Python
+gpgkeys also serves as a testbed for the development of the kmd_ and rl_ Python
 libraries.
 
 .. _GnuPG: http://www.gnupg.org/
@@ -27,15 +27,15 @@ great incomprehensibility.
 
 **gpgkeys** makes key management easy by:
 
-1. providing a sensible subset of GnuPG commands, and
+1. Providing a sensible subset of GnuPG commands, and
 
-2. using TAB completion to streamline the input process and guide the user
+2. Using TAB completion to streamline the input process and guide the user
    through key management tasks.
 
 Example Session
 ---------------
 
-Everything in gpgkeys can be TAB-completed: commands, option flags, help
+Everything in gpgkeys can be TAB completed: commands, option flags, help
 topics, user ids, key ids, file names, shell commands, and keyserver URLs.
 ::
 
@@ -72,8 +72,8 @@ topics, user ids, key ids, file names, shell commands, and keyserver URLs.
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-Some Details
-------------
+Details
+-------
 
 gpgkeys understands shell pipes and input/output redirects. This
 allows command lines like::
