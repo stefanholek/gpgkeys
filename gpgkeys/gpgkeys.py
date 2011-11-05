@@ -90,6 +90,7 @@ class GPGKeys(kmd.Kmd):
 
     def input(self, prompt):
         if sys.version_info[0] >= 3:
+            # See http://bugs.python.org/issue13342
             with surrogateescape():
                 return raw_input(prompt) # [sic]
         else:
