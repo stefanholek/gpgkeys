@@ -19,6 +19,7 @@ from parser import parseargs
 from parser import parseword
 
 from utils import decode
+from utils import surrogateescape
 from utils import ignoresignals
 
 from kmd.completions.filename import FilenameCompletion
@@ -59,7 +60,7 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    looping = False # True when the cmdloop is active
+    looping = False # True while the cmdloop is running
 
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
@@ -85,6 +86,16 @@ class GPGKeys(kmd.Kmd):
         self.looping = False
         super(GPGKeys, self).postloop()
 
+    # Allow surrogates in input
+
+    def input(self, prompt):
+        if sys.version_info[0] >= 3:
+            # See http://bugs.python.org/issue13342
+            with surrogateescape():
+                return raw_input(prompt) # [sic]
+        else:
+            return super(GPGKeys, self).input(prompt)
+
     # Execute subprocesses
 
     def popen(self, *args, **kw):
@@ -103,13 +114,13 @@ class GPGKeys(kmd.Kmd):
         kw = kw.copy()
         kw.setdefault('verbose', True)
         if self.should_ignore_signals(args):
-            with ignoresignals(signal.SIGINT, signal.SIGQUIT):
+            with ignoresignals():
                 return self.popen(*args, **kw)[0]
         else:
             return self.popen(*args, **kw)[0]
 
     def should_ignore_signals(self, args):
-        # XXX: This is crap
+        # This is lame
         for x in ('less', 'more', 'most', 'view', 'man'):
             if x in args:
                 return True
