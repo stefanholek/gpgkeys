@@ -100,11 +100,14 @@ class GPGKeys(kmd.Kmd):
 
     def popen(self, *args, **kw):
         command = ' '.join(args)
-        if self.verbose and kw.get('verbose', False):
+        verbose = kw.get('verbose', False)
+        if self.verbose and verbose:
             self.stdout.write('gpgkeys: %s\n' % command)
         try:
+            stdout = kw.get('stdout')
+            stderr = kw.get('stderr')
             process = subprocess.Popen(command,
-                shell=True, stdout=kw.get('stdout'), stderr=kw.get('stderr'))
+                shell=True, stdout=stdout, stderr=stderr)
             stdout, stderr = process.communicate()
             return process.returncode, stdout
         except KeyboardInterrupt:
