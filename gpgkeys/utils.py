@@ -49,11 +49,9 @@ class surrogateescape(object):
     error handling. Requires Python 3.
     """
 
-    def __init__(self):
-        self.saved = sys.stdin.errors
-
     def __enter__(self):
         import io
+        self.saved = sys.stdin.errors
         sys.stdin = io.TextIOWrapper(
             sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
 
