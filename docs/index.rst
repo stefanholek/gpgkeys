@@ -241,7 +241,7 @@ Remove expired signatures and signatures by keys not on the keyring.
 
 ::
 
-  Usage: import --clean new-keys.asc
+  Usage: import --clean some-keys.asc
 
 :index:`expert`
 ---------------
