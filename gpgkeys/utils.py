@@ -30,17 +30,15 @@ class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
 
-    def __init__(self):
+    def __enter__(self):
         self.signums = (signal.SIGINT, signal.SIGQUIT)
         self.saved = {}
-
-    def __enter__(self):
         for signum in self.signums:
             self.saved[signum] = signal.getsignal(signum)
             signal.signal(signum, signal.SIG_IGN)
 
     def __exit__(self, *ignored):
-        for signum in reversed(self.signums):
+        for signum in self.signums:
             signal.signal(signum, self.saved[signum])
 
 
