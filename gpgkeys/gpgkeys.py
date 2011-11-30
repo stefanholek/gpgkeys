@@ -144,7 +144,8 @@ class GPGKeys(kmd.Kmd):
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
-        self.stdout.write('\n')
+        if self.looping:
+            self.stdout.write('\n')
         return self.do_quit(args)
 
     def do_quit(self, args):
