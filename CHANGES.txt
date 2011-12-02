@@ -4,6 +4,9 @@ Changelog
 1.19 - Unreleased
 -----------------
 
+- Include command aliases in help screens.
+  [stefan]
+
 
 1.18 - 2011-11-05
 -----------------
