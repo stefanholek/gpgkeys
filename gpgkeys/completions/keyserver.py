@@ -1,6 +1,5 @@
 import os
 
-
 from gpgkeys.config import GNUPGHOME
 
 
