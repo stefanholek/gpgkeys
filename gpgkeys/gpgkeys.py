@@ -60,7 +60,7 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    looping = False # True while the cmdloop is running
+    is_looping = False # True while the cmdloop is running
 
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
@@ -80,10 +80,10 @@ class GPGKeys(kmd.Kmd):
         self.completecommand = CommandCompletion()
         self.completekeyspec = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
-        self.looping = True
+        self.is_looping = True
 
     def postloop(self):
-        self.looping = False
+        self.is_looping = False
         super(GPGKeys, self).postloop()
 
     # Allow surrogates in input
@@ -144,7 +144,7 @@ class GPGKeys(kmd.Kmd):
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
-        if self.looping:
+        if self.is_looping:
             self.stdout.write('\n')
         return self.do_quit(args)
 
@@ -185,7 +185,7 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.gnupg('--import', *args.tuple)
-            elif not self.looping:
+            elif not self.is_looping:
                 args.args = ('-',)
                 self.gnupg('--import', *args.tuple)
             else:
@@ -350,7 +350,7 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.gnupg('--list-packets', *args.tuple)
-            elif not self.looping:
+            elif not self.is_looping:
                 args.args = ('-',)
                 self.gnupg('--list-packets', *args.tuple)
             else:
