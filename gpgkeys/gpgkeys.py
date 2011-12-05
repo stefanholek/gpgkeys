@@ -152,7 +152,7 @@ class GPGKeys(kmd.Kmd):
         return True # Break the cmd loop
 
     def do_clear(self, args):
-        """Clear the terminal screen (Usage: clear)"""
+        """Clear the screen (Usage: clear)"""
         self.system('clear')
 
     def do_version(self, args):
