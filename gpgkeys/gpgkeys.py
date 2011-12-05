@@ -600,8 +600,11 @@ class GPGKeys(kmd.Kmd):
                     if doc:
                         rparen = doc.rfind(')')
                         lparen = doc.rfind('(', 0, rparen)
-                        help = doc[:lparen].strip()
-                        usage = doc[lparen+1:rparen].strip()
+                        if -1 < lparen < rparen:
+                            help = doc[:lparen].strip()
+                            usage = doc[lparen+1:rparen].strip()
+                        else:
+                            help, usage = doc.strip(), ''
 
                         if topic == '?':
                             usage = usage.replace(cmd, '?', 1)
@@ -614,19 +617,22 @@ class GPGKeys(kmd.Kmd):
                             options = compfunc('-', '-', 0, 1)
 
                         aliases = [k for (k, v) in self.aliases.items() if v == cmd]
-                        if cmd == 'shell':
+                        if cmd in ('shell', 'help'):
                             aliases = [x for x in aliases if x != topic]
                         if topic == 'shell':
                             aliases = [x for x in aliases if x != '!']
 
-                        self.stdout.write("%s\n" % usage)
+                        if usage:
+                            self.stdout.write("%s\n" % usage)
                         if options:
                             options = ' '.join(sorted(options))
                             self.stdout.write("Options: %s\n" % options)
                         if aliases:
                             aliases = ' '.join(sorted(aliases))
                             self.stdout.write("Aliases: %s\n" % aliases)
-                        self.stdout.write("\n%s\n\n" % help)
+                        if usage or options or aliases:
+                            self.stdout.write("\n")
+                        self.stdout.write("%s\n\n" % help)
                         return
                 self.stderr.write('%s\n' % (self.nohelp % (topic,)))
             else:
