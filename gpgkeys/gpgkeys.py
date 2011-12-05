@@ -60,8 +60,6 @@ class GPGKeys(kmd.Kmd):
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    is_looping = False # True while the cmdloop is running
-
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
@@ -70,6 +68,7 @@ class GPGKeys(kmd.Kmd):
         self.aliases['ll'] = 'listsig'
         self.quote_char = quote_char
         self.verbose = verbose
+        self.is_looping = False # True when the cmdloop is running
         os.umask(UMASK)
 
     # Setup custom completions
