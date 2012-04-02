@@ -72,18 +72,6 @@ class GPGKeys(kmd.Kmd):
         self.is_looping = False # True when the cmdloop is running
         self.rc = 0
 
-    def precmd(self, line):
-        self.rc = 0
-        return line
-
-    def run(self, args=None):
-        rc = super(GPGKeys, self).run(args)
-        if rc != 0:
-            return rc
-        return self.rc
-
-    # Setup custom completions
-
     def preloop(self):
         super(GPGKeys, self).preloop()
         self.completefilename = FilenameCompletion(self.quote_char)
@@ -96,15 +84,24 @@ class GPGKeys(kmd.Kmd):
         self.is_looping = False
         super(GPGKeys, self).postloop()
 
-    # Allow surrogates in input
-
     def input(self, prompt):
         if sys.version_info[0] >= 3:
+            # Allow surrogates in input
             # See http://bugs.python.org/issue13342
             with surrogateescape():
                 return super(GPGKeys, self).input(prompt)
         else:
             return super(GPGKeys, self).input(prompt)
+
+    def onecmd(self, line):
+        self.rc = 0
+        return super(GPGKeys, self).onecmd(line)
+
+    def run(self, args=None):
+        rc = super(GPGKeys, self).run(args)
+        if rc != 0:
+            return rc
+        return self.rc
 
     # Execute subprocesses
 
