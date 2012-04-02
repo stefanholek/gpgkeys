@@ -140,6 +140,7 @@ class GPGKeys(kmd.Kmd):
         """Unknown command"""
         args = splitargs(args)
         self.stderr.write("gpgkeys: unknown command '%s'\n" % args[0])
+        self.rc = 1
 
     def do_EOF(self, args):
         """End the session (Usage: ^D)"""
@@ -157,40 +158,43 @@ class GPGKeys(kmd.Kmd):
 
     def do_version(self, args):
         """Print the GnuPG version (Usage: version)"""
-        self.gnupg('--version')
+        self.rc = self.gnupg('--version')
 
     def do_genkey(self, args):
         """Generate a new key pair and certificate (Usage: genkey)"""
         args = parseargs(args)
         if args.ok:
-            self.gnupg('--gen-key', *args.tuple)
+            self.rc = self.gnupg('--gen-key', *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_genrevoke(self, args):
         """Generate a revocation certificate for a key pair (Usage: genrevoke <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--gen-revoke', *args.tuple)
+                self.rc = self.gnupg('--gen-revoke', *args.tuple)
             else:
                 self.do_help('genrevoke')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_import(self, args):
         """Import keys from a file (Usage: import <filename>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--import', *args.tuple)
+                self.rc = self.gnupg('--import', *args.tuple)
             elif not self.is_looping:
                 args.args = ('-',)
-                self.gnupg('--import', *args.tuple)
+                self.rc = self.gnupg('--import', *args.tuple)
             else:
                 self.do_help('import')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_export(self, args):
         """Export keys to stdout or to a file (Usage: export [<keyspec>])"""
@@ -199,9 +203,10 @@ class GPGKeys(kmd.Kmd):
             command = '--export'
             if args.secret:
                 command = '--export-secret-keys'
-            self.gnupg(command, *args.tuple)
+            self.rc = self.gnupg(command, *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_list(self, args):
         """List keys (Usage: list [<keyspec>])"""
@@ -210,58 +215,64 @@ class GPGKeys(kmd.Kmd):
             command = '--list-keys'
             if args.secret:
                 command = '--list-secret-keys'
-            self.gnupg(command, *args.tuple)
+            self.rc = self.gnupg(command, *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_listsig(self, args):
         """List keys with signatures (Usage: listsig [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
-            self.gnupg('--list-sigs', *args.tuple)
+            self.rc = self.gnupg('--list-sigs', *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_checksig(self, args):
         """List keys with signatures and also verify the signatures (Usage: checksig [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
-            self.gnupg('--check-sigs', *args.tuple)
+            self.rc = self.gnupg('--check-sigs', *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_edit(self, args):
         """Enter the key edit menu (Usage: edit <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--edit-key', *args.tuple)
+                self.rc = self.gnupg('--edit-key', *args.tuple)
             else:
                 self.do_help('edit')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_lsign(self, args):
         """Sign a key with a local signature (Usage: lsign <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--lsign-key', *args.tuple)
+                self.rc = self.gnupg('--lsign-key', *args.tuple)
             else:
                 self.do_help('lsign')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_sign(self, args):
         """Sign a key with an exportable signature (Usage: sign <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--sign-key', *args.tuple)
+                self.rc = self.gnupg('--sign-key', *args.tuple)
             else:
                 self.do_help('sign')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_del(self, args):
         """Delete a key from the keyring (Usage: del <keyspec>)"""
@@ -273,63 +284,69 @@ class GPGKeys(kmd.Kmd):
                     command = '--delete-secret-key'
                 if args.secret_and_public:
                     command = '--delete-secret-and-public-key'
-                self.gnupg(command, *args.tuple)
+                self.rc = self.gnupg(command, *args.tuple)
             else:
                 self.do_help('del')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_search(self, args):
         """Search for keys on a keyserver (Usage: search <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--search-keys', *args.tuple)
+                self.rc = self.gnupg('--search-keys', *args.tuple)
             else:
                 self.do_help('search')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_recv(self, args):
         """Fetch keys from a keyserver (Usage: recv <keyids>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--recv-keys', *args.tuple)
+                self.rc = self.gnupg('--recv-keys', *args.tuple)
             else:
                 self.do_help('recv')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_send(self, args):
         """Send keys to a keyserver (Usage: send <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--send-keys', *args.tuple)
+                self.rc = self.gnupg('--send-keys', *args.tuple)
             else:
                 self.do_help('send')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_refresh(self, args):
         """Refresh keys from a keyserver (Usage: refresh [<keyspec>])"""
         args = parseargs(args)
         if args.ok:
-            self.gnupg('--refresh-keys', *args.tuple)
+            self.rc = self.gnupg('--refresh-keys', *args.tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_fetch(self, args):
         """Fetch keys from a URL (Usage: fetch <url>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--fetch-keys', *args.tuple)
+                self.rc = self.gnupg('--fetch-keys', *args.tuple)
             else:
                 self.do_help('fetch')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_dump(self, args):
         """Print the packet sequence of keys (Usage: dump [<keyspec>])"""
@@ -339,23 +356,25 @@ class GPGKeys(kmd.Kmd):
             if args.secret:
                 command = '--export-secret-keys'
             tuple = args.options + args.args + ('|', GNUPGEXE, '--list-packets') + args.pipe
-            self.gnupg(command, *tuple)
+            self.rc = self.gnupg(command, *tuple)
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_fdump(self, args):
         """Print the packet sequence of keys in a file (Usage: fdump <filename>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
-                self.gnupg('--list-packets', *args.tuple)
+                self.rc = self.gnupg('--list-packets', *args.tuple)
             elif not self.is_looping:
                 args.args = ('-',)
-                self.gnupg('--list-packets', *args.tuple)
+                self.rc = self.gnupg('--list-packets', *args.tuple)
             else:
                 self.do_help('fdump')
         else:
             self.stderr.write('gpgkeys: %s\n' % args.error)
+            self.rc = 1
 
     def do_shell(self, args):
         """Execute a shell command or start an interactive shell (Usage: ! [<command>])"""
@@ -406,6 +425,7 @@ class GPGKeys(kmd.Kmd):
                 os.chdir(dir)
             except OSError, e:
                 self.stderr.write('%s\n' % (e,))
+                self.rc = 1
 
     def shell_umask(self, *args):
         if args:
@@ -414,12 +434,14 @@ class GPGKeys(kmd.Kmd):
                     mask = int(args[0], 8)
                 except ValueError, e:
                     self.stderr.write('%s\n' % (e,))
+                    self.rc = 1
                 else:
                     if mask < 512:
                         try:
                             os.umask(mask)
                         except OSError, e:
                             self.stderr.write('%s\n' % (e,))
+                            self.rc = 1
         else:
             self.system('umask')
 
@@ -428,6 +450,7 @@ class GPGKeys(kmd.Kmd):
             if self.system('man', *args, stderr=subprocess.PIPE) == 1:
                 args = ' '.join(args)
                 self.stderr.write('No manual entry for %s\n' % args)
+                self.rc = 1
         else:
             self.stderr.write('What manual page do you want?\n')
 
@@ -635,6 +658,7 @@ class GPGKeys(kmd.Kmd):
                         self.stdout.write("%s\n\n" % help)
                         return
                 self.stderr.write('%s\n' % (self.nohelp % (topic,)))
+                self.rc = 1
             else:
                 try:
                     helpfunc(topic)
