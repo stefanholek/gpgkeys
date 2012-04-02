@@ -69,7 +69,7 @@ class GPGKeys(kmd.Kmd):
         self.aliases['ll'] = 'listsig'
         self.quote_char = quote_char
         self.verbose = verbose
-        self.is_looping = False # True when the cmdloop is running
+        self.is_looping = False # True when the cmd loop is running
         self.rc = 0
 
     def preloop(self):
@@ -138,7 +138,7 @@ class GPGKeys(kmd.Kmd):
     def gnupg(self, *args):
         return self.system(GNUPGEXE, *args)
 
-    # Available commands
+    # Commands
 
     def emptyline(self):
         """Empty line"""
