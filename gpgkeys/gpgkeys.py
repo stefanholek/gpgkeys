@@ -63,13 +63,24 @@ class GPGKeys(kmd.Kmd):
     def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
+        os.umask(UMASK)
         self.aliases['e'] = 'edit'
         self.aliases['ls'] = 'list'
         self.aliases['ll'] = 'listsig'
         self.quote_char = quote_char
         self.verbose = verbose
         self.is_looping = False # True when the cmdloop is running
-        os.umask(UMASK)
+        self.rc = 0
+
+    def precmd(self, line):
+        self.rc = 0
+        return line
+
+    def run(self, args=None):
+        rc = super(GPGKeys, self).run(args)
+        if rc != 0:
+            return rc
+        return self.rc
 
     # Setup custom completions
 
