@@ -53,14 +53,14 @@ class GPGKeys(kmd.Kmd):
     prompt = 'gpgkeys> '
     shell_escape_chars = '!.'
     history_file = '~/.gpgkeys_history'
-    history_max_entries = 300
+    history_max_entries = 200
 
     intro = 'gpgkeys %s (type help for help)\n' % __version__
     nohelp = "gpgkeys: no help on '%s'"
     doc_header = 'Available commands (type help <topic>):'
     alias_header = 'Shortcut commands (type help <topic>):'
 
-    def __init__(self, completekey='tab', stdin=None, stdout=None, stderr=None,
+    def __init__(self, completekey='TAB', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
         os.umask(UMASK)
