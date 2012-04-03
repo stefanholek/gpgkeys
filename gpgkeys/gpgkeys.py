@@ -99,7 +99,7 @@ class GPGKeys(kmd.Kmd):
 
     def run(self, args=None):
         rc = super(GPGKeys, self).run(args)
-        if rc != 0:
+        if rc != 0: # KeyboardInterrupt
             return rc
         return self.rc
 
