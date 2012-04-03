@@ -7,6 +7,9 @@ Changelog
 - Include command aliases in help screens.
   [stefan]
 
+- Return useful exit codes when gpgkeys is invoked with arguments.
+  [stefan]
+
 
 1.18 - 2011-11-05
 -----------------
