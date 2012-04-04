@@ -24,10 +24,7 @@ class InfiniteString(str):
 
 
 class Token(str):
-    """A string with additional attributes
-
-    Turns into plain str when mutated.
-    """
+    """A string with additional attributes"""
 
     def __new__(cls, string, start, end, type):
         s = str.__new__(cls, string)
@@ -42,7 +39,7 @@ class Token(str):
 
 
 def split(line):
-    """Return a tuple of tokens found in line.
+    """Return a tuple of Tokens found in line.
     """
     skip_next = False
     quote_char = ''
