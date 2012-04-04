@@ -12,7 +12,7 @@ Introduction
 and keyrings from the command line. Its main UI feature is end-to-end
 TAB completion.
 
-gpgkeys also serves as a testbed for the development of the kmd_ and rl_ Python
+gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
 
 .. _GnuPG: http://www.gnupg.org/
@@ -25,7 +25,7 @@ Motivation
 The GnuPG CLI is very powerful - and with great power comes
 great incomprehensibility.
 
-**gpgkeys** makes key management easy by:
+gpgkeys makes key management easy by:
 
 1. Providing a sensible subset of GnuPG commands, and
 
@@ -104,12 +104,22 @@ the command loop::
     $ ls
     alice.asc             stefan.asc
 
+For the send, recv, etc. commands to work, at least one keyserver
+must be configured in gpg.conf, e.g.::
+
+    keyserver ldap://keyserver.pgp.com
+    keyserver hkp://pgp.surfnet.nl
+
+The last keyserver in gpg.conf becomes the default keyserver.
+All keyservers become available for completion after the --keyserver option.
+
 Repository Access
 -----------------
 
-gpgkeys development is hosted on GitHub_.
+gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 
-.. _GitHub: http://github.com/stefanholek/gpgkeys
+.. _GitHub: https://github.com/stefanholek/gpgkeys
+.. _`issue tracker`: https://github.com/stefanholek/gpgkeys/issues
 
 Installation
 ============
