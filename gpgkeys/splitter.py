@@ -14,7 +14,7 @@ T_WORD = 1
 T_SHELL = 2
 
 
-class InfiniteStr(str):
+class InfiniteString(str):
     """A string without IndexErrors"""
 
     def __getitem__(self, index):
@@ -48,7 +48,7 @@ def split(line):
     quote_char = ''
     tokens = []
     end = len(line)
-    s = InfiniteStr(line)
+    s = InfiniteString(line)
     i = j = 0
 
     def append(start, end, type):
