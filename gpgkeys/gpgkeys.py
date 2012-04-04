@@ -126,16 +126,16 @@ class GPGKeys(kmd.Kmd):
             return 1, None
 
     def system(self, *args, **kw):
-        kw = kw.copy()
-        kw.setdefault('verbose', True)
         if self.should_ignore_signals(args):
             with ignoresignals():
                 return self.popen(*args, **kw)[0]
         else:
             return self.popen(*args, **kw)[0]
 
-    def gnupg(self, *args):
-        return self.system(GNUPGEXE, *args)
+    def gnupg(self, *args, **kw):
+        kw = kw.copy()
+        kw.setdefault('verbose', True)
+        return self.system(GNUPGEXE, *args, **kw)
 
     # Commands
 
