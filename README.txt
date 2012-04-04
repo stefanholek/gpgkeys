@@ -72,8 +72,8 @@ topics, user ids, key ids, file names, shell commands, and keyserver URLs.
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-Details
--------
+Some Details
+------------
 
 gpgkeys understands shell pipes and input/output redirects. This
 allows command lines like::
