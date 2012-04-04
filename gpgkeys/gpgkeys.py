@@ -105,6 +105,11 @@ class GPGKeys(kmd.Kmd):
 
     # Execute subprocesses
 
+    def should_ignore_signals(self, args):
+        for x in ('less', 'more', 'most', 'view', 'man'):
+            if x in args:
+                return True
+
     def popen(self, *args, **kw):
         command = ' '.join(args)
         verbose = kw.get('verbose', False)
@@ -128,12 +133,6 @@ class GPGKeys(kmd.Kmd):
                 return self.popen(*args, **kw)[0]
         else:
             return self.popen(*args, **kw)[0]
-
-    def should_ignore_signals(self, args):
-        # This is lame
-        for x in ('less', 'more', 'most', 'view', 'man'):
-            if x in args:
-                return True
 
     def gnupg(self, *args):
         return self.system(GNUPGEXE, *args)
