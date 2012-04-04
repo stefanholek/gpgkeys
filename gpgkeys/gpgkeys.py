@@ -406,7 +406,7 @@ class GPGKeys(kmd.Kmd):
     # Shell commands
 
     def getdir(self, dir):
-        rc, stdout = self.popen('cd %s; pwd' % dir, stdout=subprocess.PIPE)
+        rc, stdout = self.popen('cd "%s"; pwd' % dir, stdout=subprocess.PIPE)
         if rc == 0:
             if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
