@@ -10,7 +10,6 @@ __version__ = pkg_resources.get_distribution('gpgkeys').version
 import os
 import sys
 import getopt
-import signal
 import subprocess
 import kmd
 
