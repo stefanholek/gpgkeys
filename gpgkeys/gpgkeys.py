@@ -679,12 +679,13 @@ def main(args=None):
     quote_char = '\\'
     verbose = False
     help = False
+    version = False
 
     if args is None:
         args = sys.argv[1:]
 
     try:
-        options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose'))
+        options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose', 'version'))
     except getopt.GetoptError, e:
         print >>sys.stderr, 'gpgkeys:', e
         return 1
@@ -696,12 +697,17 @@ def main(args=None):
             verbose = True
         elif name in ('-h', '--help'):
             help = True
+        elif name in ('--version',):
+            version = True
 
     shell = GPGKeys(quote_char=quote_char, verbose=verbose)
 
     if help:
         shell.help()
         print "Type 'gpgkeys' to start the interactive shell.\n"
+        return 0
+    if version:
+        print 'gpgkeys', __version__
         return 0
 
     return shell.run(args)
