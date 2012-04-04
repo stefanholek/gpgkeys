@@ -2,8 +2,8 @@ import os
 import sys
 import getopt
 
-from scanner import scan_unquoted
-from scanner import rscan_unquoted
+from scanner import find_unquoted
+from scanner import rfind_unquoted
 
 from splitter import split
 from splitter import splitpipe
@@ -178,18 +178,18 @@ class Word(object):
 
     @property
     def pipepos(self):
-        idx = rscan_unquoted(self.line, self.begidx, ('|', ';'))
+        idx = rfind_unquoted(self.line, self.begidx, ('|', ';'))
         if idx >= 0:
             delta = self.line[idx+1:self.begidx]
             if delta.strip() in ('"', "'", ''):
                 # '>|' is not a pipe but an output redirect
                 if idx > 0 and self.line[idx] == '|':
-                    if rscan_unquoted(self.line, self.begidx, ('>',)) == idx-1:
+                    if rfind_unquoted(self.line, self.begidx, ('>',)) == idx-1:
                         return False
                 return True
         return False
 
     @property
     def filepos(self):
-        return scan_unquoted(self.line, self.begidx, ('|', '>', '<')) >= 0
+        return find_unquoted(self.line, self.begidx, ('|', '>', '<')) >= 0
 

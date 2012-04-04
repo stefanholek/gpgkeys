@@ -25,7 +25,7 @@ def char_is_quoted(s, x):
     return bool(quote_char)
 
 
-def scan_unquoted(s, lx, chars):
+def find_unquoted(s, lx, chars):
     """Find any one of the characters in chars before lx.
     """
     # Doesn't find quote characters
@@ -47,7 +47,7 @@ def scan_unquoted(s, lx, chars):
     return -1
 
 
-def rscan_unquoted(s, lx, chars):
+def rfind_unquoted(s, lx, chars):
     """Find any one of the characters in chars before lx, starting
     at the end of the string.
     """
