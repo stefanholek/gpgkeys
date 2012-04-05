@@ -149,7 +149,8 @@ class GPGKeys(kmd.Kmd):
         return self.system(GNUPGEXE, *args, **kw)
 
     def crlf(self):
-        self.system(os.path.join(os.path.dirname(__file__), 'crlf.sh'))
+        self.system(os.path.join(os.path.dirname(__file__), 'crlf.sh'),
+                    stderr=subprocess.PIPE)
 
     # Commands
 
