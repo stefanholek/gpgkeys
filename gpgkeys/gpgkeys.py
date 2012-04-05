@@ -149,7 +149,6 @@ class GPGKeys(kmd.Kmd):
         return self.system(GNUPGEXE, *args, **kw)
 
     def crlf(self):
-        # XXX: May hang if the terminal does not support \E[6n
         self.system(os.path.join(os.path.dirname(__file__), 'crlf.sh'))
 
     # Commands
