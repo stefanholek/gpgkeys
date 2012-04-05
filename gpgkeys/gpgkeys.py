@@ -119,7 +119,7 @@ class GPGKeys(kmd.Kmd):
             stderr = kw.get('stderr')
             process = subprocess.Popen(command,
                 shell=True, stdout=stdout, stderr=stderr)
-            stdout, stderr = process.communicate()
+            stdout, ignored = process.communicate()
             return process.returncode, stdout
         except KeyboardInterrupt:
             return 1, None
@@ -131,8 +131,21 @@ class GPGKeys(kmd.Kmd):
         else:
             return self.popen(*args, **kw)[0]
 
+    def pipe(self, *args, **kw):
+        kw = dict(kw)
+        kw.setdefault('stdout', subprocess.PIPE)
+        kw.setdefault('stderr', subprocess.PIPE)
+        rc, stdout = self.popen(*args, **kw)
+        if rc == 0:
+            if sys.version_info[0] >= 3:
+                stdout = decode(stdout)
+            if stdout.strip():
+                stdout = stdout.replace('\r', '\n')
+                return stdout.rstrip('\n').split('\n', 1)[0]
+        return ''
+
     def gnupg(self, *args, **kw):
-        kw = kw.copy()
+        kw = dict(kw)
         kw.setdefault('verbose', True)
         return self.system(GNUPGEXE, *args, **kw)
 
@@ -404,14 +417,6 @@ class GPGKeys(kmd.Kmd):
 
     # Shell commands
 
-    def getdir(self, dir):
-        rc, stdout = self.popen('cd "%s"; pwd' % dir, stdout=subprocess.PIPE)
-        if rc == 0:
-            if sys.version_info[0] >= 3:
-                stdout = decode(stdout)
-            for line in stdout.strip().split('\n'):
-                return line
-
     def shelldefault(self, *args):
         self.system(*args)
 
@@ -423,7 +428,7 @@ class GPGKeys(kmd.Kmd):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.getdir(args[0])
+            dir = self.pipe('cd "%s"; pwd' % args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
