@@ -1,5 +1,5 @@
 #!/bin/bash
-echo -en "\033[6n" > /dev/tty &
+printf "\033[6n" &
 read -sdR -t1 POS
 rc=$?
 if [ $rc -eq 0 ]; then
