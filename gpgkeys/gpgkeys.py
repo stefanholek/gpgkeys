@@ -136,7 +136,7 @@ class GPGKeys(kmd.Kmd):
         kw.setdefault('stdout', subprocess.PIPE)
         kw.setdefault('stderr', subprocess.PIPE)
         rc, stdout = self.popen(*args, **kw)
-        if rc == 0:
+        if rc == 0 and stdout is not None:
             if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
             if stdout.strip():
