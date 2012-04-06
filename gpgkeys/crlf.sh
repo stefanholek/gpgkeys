@@ -1,4 +1,5 @@
 #!/bin/bash
+# Ask terminal for cursor pos. Response format is "\033[2;62R".
 printf "\033[6n" > /dev/tty &
 read -sdR -t1 POS
 RC=$?
