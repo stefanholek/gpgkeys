@@ -149,8 +149,11 @@ class GPGKeys(kmd.Kmd):
         return self.system(GNUPGEXE, *args, **kw)
 
     def crlf(self):
-        self.system(os.path.join(os.path.dirname(__file__), 'crlf.sh'),
-                    stderr=subprocess.PIPE)
+        # Emit '\n' if curser is not at column 1
+        shell = os.environ.get('SHELL')
+        if os.path.basename(shell).startswith(('bash', 'zsh', 'ksh')):
+            script = os.path.join(os.path.dirname(__file__), 'crlf.sh')
+            self.system('"%s" "%s"' % (shell, script), stderr=subprocess.PIPE)
 
     # Commands
 
