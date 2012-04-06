@@ -141,7 +141,7 @@ class GPGKeys(kmd.Kmd):
                 stdout = decode(stdout)
             if stdout.strip():
                 stdout = stdout.replace('\r', '\n')
-                return stdout.rstrip('\n').split('\n', 1)[0]
+                return stdout.split('\n', 1)[0]
         return ''
 
     def gnupg(self, *args, **kw):
