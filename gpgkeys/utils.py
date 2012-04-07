@@ -1,6 +1,9 @@
 import sys
 import signal
 
+from termios import *
+from tty import LFLAG, CC
+
 
 def decode(text):
     """Decode from the charset of the current locale."""
@@ -57,4 +60,24 @@ class surrogateescape(object):
         import io
         sys.stdin = io.TextIOWrapper(
             sys.stdin.detach(), sys.stdin.encoding, self.saved)
+
+
+class cbreak(object):
+    """Context manager to put the terminal in 'cbreak' mode.
+    Note that this is not the same as tty.setcbreak would give us.
+    """
+
+    def __init__(self, fd):
+        self.fd = fd
+
+    def __enter__(self):
+        self.saved = tcgetattr(self.fd)
+        mode = tcgetattr(self.fd)
+        mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON)
+        mode[CC][VMIN] = 0
+        mode[CC][VTIME] = 1
+        tcsetattr(self.fd, TCSANOW, mode)
+
+    def __exit__(self, *ignored):
+        tcsetattr(self.fd, TCSAFLUSH, self.saved)
 
