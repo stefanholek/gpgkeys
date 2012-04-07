@@ -89,11 +89,13 @@ def getyx():
         sys.stdout.write('\033[6n')
         p = ''
         c = sys.stdin.read(1)
-        while c and c != 'R':
+        while c:
             p += c
+            if c == 'R':
+                break
             c = sys.stdin.read(1)
         if p:
-            m = re.search(r'\[(\d+);(\d+)$', p)
+            m = re.search(r'\[(\d+);(\d+)R', p)
             if m is not None:
                 return int(m.group(1), 10), int(m.group(2), 10)
     return 0, 0
