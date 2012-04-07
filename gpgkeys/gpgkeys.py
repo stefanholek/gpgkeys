@@ -11,7 +11,6 @@ import os
 import sys
 import getopt
 import subprocess
-import re
 import kmd
 
 from parser import splitargs
@@ -19,9 +18,9 @@ from parser import parseargs
 from parser import parseword
 
 from utils import decode
+from utils import getyx
 from utils import surrogateescape
 from utils import ignoresignals
-from utils import cbreak
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -150,25 +149,8 @@ class GPGKeys(kmd.Kmd):
         kw.setdefault('verbose', True)
         return self.system(GNUPGEXE, *args, **kw)
 
-    def getyx(self):
-        # Ask the terminal for the cursor position;
-        # response format is '\033[2;62R'.
-        with cbreak(self.stdin):
-            self.stdout.write('\033[6n')
-            p = ''
-            c = self.stdin.read(1)
-            while c and c != 'R':
-                p += c
-                c = self.stdin.read(1)
-            if p:
-                m = re.search('\[(\d+);(\d+)$', p)
-                if m is not None:
-                    return int(m.group(1), 10), int(m.group(2), 10)
-            return 0, 0
-
     def crlf(self):
-        # Emit '\n' if the cursor is not in column 1
-        row, col = self.getyx()
+        row, col = getyx()
         if col > 1:
             self.stdout.write('\n')
 

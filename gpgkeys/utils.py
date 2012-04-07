@@ -1,5 +1,6 @@
 import sys
 import signal
+import re
 
 from termios import *
 from tty import LFLAG, CC
@@ -62,22 +63,38 @@ class surrogateescape(object):
             sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
-class cbreak(object):
+class cbreakmode(object):
     """Context manager to put the terminal in 'cbreak' mode.
-    Note that this is not the same as tty.setcbreak would give us.
+    Note that this is not the same as tty.setcbreak would give us!
     """
 
-    def __init__(self, fd):
-        self.fd = fd
-
     def __enter__(self):
-        self.saved = tcgetattr(self.fd)
-        mode = tcgetattr(self.fd)
+        self.saved = tcgetattr(sys.stdin)
+        mode = tcgetattr(sys.stdin)
         mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON)
-        mode[CC][VMIN] = 0
-        mode[CC][VTIME] = 1
-        tcsetattr(self.fd, TCSANOW, mode)
+        mode[CC][VMIN] = 0  # Zero chars is a valid result
+        mode[CC][VTIME] = 1 # Wait for input
+        tcsetattr(sys.stdin, TCSANOW, mode)
 
     def __exit__(self, *ignored):
-        tcsetattr(self.fd, TCSAFLUSH, self.saved)
+        tcsetattr(sys.stdin, TCSAFLUSH, self.saved)
+
+
+def getyx():
+    """Return the cursor position as 1-based (row, col) tuple.
+    Row and col are 0 if the terminal does not support '\033[6n'.
+    """
+    # Ask terminal for cursor pos. Response format is '\033[2;62R'.
+    with cbreakmode():
+        sys.stdout.write('\033[6n')
+        p = ''
+        c = sys.stdin.read(1)
+        while c and c != 'R':
+            p += c
+            c = sys.stdin.read(1)
+        if p:
+            m = re.search(r'\[(\d+);(\d+)$', p)
+            if m is not None:
+                return int(m.group(1), 10), int(m.group(2), 10)
+    return 0, 0
 
