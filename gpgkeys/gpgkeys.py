@@ -140,7 +140,6 @@ class GPGKeys(kmd.Kmd):
             if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
             if stdout.strip():
-                stdout = stdout.replace('\r', '\n')
                 return stdout.split('\n', 1)[0]
         return ''
 
