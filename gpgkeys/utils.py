@@ -81,7 +81,7 @@ class cbreakmode(object):
 
 
 def _readyx():
-    """Read a '\033[2;62R' formatted response from sys.stdin.
+    """Read a CSI R formatted response from sys.stdin.
     """
     p = ''
     c = sys.stdin.read(1)
@@ -99,7 +99,7 @@ def _readyx():
 
 def getyx():
     """Return the cursor position as 1-based (row, col) tuple.
-    Row and col are 0 if the terminal does not support '\033[6n'.
+    Row and col are 0 if the terminal does not support DSR 6.
     """
     with cbreakmode():
         sys.stdout.write('\033[6n')
@@ -108,7 +108,7 @@ def getyx():
 
 def getmaxyx():
     """Return the terminal window dimensions as (maxrow, maxcol) tuple.
-    Maxrow and maxcol are 0 if the terminal does not support '\033[6n'.
+    Maxrow and maxcol are 0 if the terminal does not support DSR 6.
     """
     with cbreakmode():
         row, col = getyx()
