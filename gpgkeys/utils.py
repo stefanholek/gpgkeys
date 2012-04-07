@@ -80,23 +80,41 @@ class cbreakmode(object):
         tcsetattr(sys.stdin, TCSAFLUSH, self.saved)
 
 
+def _readyx():
+    """Read a '\033[2;62R' formatted response from sys.stdin.
+    """
+    p = ''
+    c = sys.stdin.read(1)
+    while c:
+        p += c
+        if c == 'R':
+            break
+        c = sys.stdin.read(1)
+    if p:
+        m = re.search(r'\[(\d+);(\d+)R', p)
+        if m is not None:
+            return int(m.group(1), 10), int(m.group(2), 10)
+    return 0, 0
+
+
 def getyx():
     """Return the cursor position as 1-based (row, col) tuple.
     Row and col are 0 if the terminal does not support '\033[6n'.
     """
-    # Ask terminal for cursor pos. Response format is '\033[2;62R'.
     with cbreakmode():
         sys.stdout.write('\033[6n')
-        p = ''
-        c = sys.stdin.read(1)
-        while c:
-            p += c
-            if c == 'R':
-                break
-            c = sys.stdin.read(1)
-        if p:
-            m = re.search(r'\[(\d+);(\d+)R', p)
-            if m is not None:
-                return int(m.group(1), 10), int(m.group(2), 10)
-    return 0, 0
+        return _readyx()
+
+
+def getmaxyx():
+    """Return the terminal window dimensions as (maxrow, maxcol) tuple.
+    Maxrow and maxcol are 0 if the terminal does not support '\033[6n'.
+    """
+    with cbreakmode():
+        row, col = getyx()
+        try:
+            sys.stdout.write('\033[10000;10000f\033[6n')
+            return _readyx()
+        finally:
+            sys.stdout.write('\033[%d;%df' % (row, col))
 
