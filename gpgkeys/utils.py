@@ -65,15 +65,19 @@ class surrogateescape(object):
 
 class cbreakmode(object):
     """Context manager to put the terminal in 'cbreak' mode.
-    Note that this is not the same as tty.setcbreak would give us!
+    By default, this is the same as tty.setcbreak would give us.
     """
+
+    def __init__(self, min=1, time=0):
+        self.min = min
+        self.time = time
 
     def __enter__(self):
         self.saved = tcgetattr(sys.stdin)
         mode = tcgetattr(sys.stdin)
         mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON)
-        mode[CC][VMIN] = 0  # Zero chars is a valid result
-        mode[CC][VTIME] = 1 # Wait for input
+        mode[CC][VMIN] = self.min
+        mode[CC][VTIME] = self.time
         tcsetattr(sys.stdin, TCSAFLUSH, mode)
 
     def __exit__(self, *ignored):
@@ -101,7 +105,7 @@ def getyx():
     """Return the cursor position as 1-based (row, col) tuple.
     Row and col are 0 if the terminal does not support DSR 6.
     """
-    with cbreakmode():
+    with cbreakmode(0, 1):
         sys.stdout.write('\033[6n')
         return _readyx()
 
@@ -110,7 +114,7 @@ def getmaxyx():
     """Return the terminal window dimensions as (maxrow, maxcol) tuple.
     Maxrow and maxcol are 0 if the terminal does not support DSR 6.
     """
-    with cbreakmode():
+    with cbreakmode(0, 1):
         row, col = getyx()
         try:
             sys.stdout.write('\033[10000;10000f\033[6n')
