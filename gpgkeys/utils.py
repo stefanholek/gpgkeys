@@ -1,9 +1,5 @@
 import sys
 import signal
-import re
-
-from termios import *
-from tty import LFLAG, CC
 
 
 def decode(text):
@@ -61,64 +57,4 @@ class surrogateescape(object):
         import io
         sys.stdin = io.TextIOWrapper(
             sys.stdin.detach(), sys.stdin.encoding, self.saved)
-
-
-class cbreakmode(object):
-    """Context manager to put the terminal in 'cbreak' mode.
-    By default, this is the same as tty.setcbreak would give us.
-    """
-
-    def __init__(self, min=1, time=0):
-        self.min = min
-        self.time = time
-
-    def __enter__(self):
-        self.saved = tcgetattr(sys.stdin)
-        mode = tcgetattr(sys.stdin)
-        mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON)
-        mode[CC][VMIN] = self.min
-        mode[CC][VTIME] = self.time
-        tcsetattr(sys.stdin, TCSAFLUSH, mode)
-
-    def __exit__(self, *ignored):
-        tcsetattr(sys.stdin, TCSAFLUSH, self.saved)
-
-
-def _readyx():
-    """Read a CSI R formatted response from sys.stdin.
-    """
-    p = ''
-    c = sys.stdin.read(1)
-    while c:
-        p += c
-        if c == 'R':
-            break
-        c = sys.stdin.read(1)
-    if p:
-        m = re.search(r'\[(\d+);(\d+)R', p)
-        if m is not None:
-            return int(m.group(1), 10), int(m.group(2), 10)
-    return 0, 0
-
-
-def getyx():
-    """Return the cursor position as 1-based (row, col) tuple.
-    Row and col are 0 if the terminal does not support DSR 6.
-    """
-    with cbreakmode(0, 1):
-        sys.stdout.write('\033[6n')
-        return _readyx()
-
-
-def getmaxyx():
-    """Return the terminal window dimensions as (maxrow, maxcol) tuple.
-    Maxrow and maxcol are 0 if the terminal does not support DSR 6.
-    """
-    with cbreakmode(0, 1):
-        row, col = getyx()
-        try:
-            sys.stdout.write('\033[10000;10000f\033[6n')
-            return _readyx()
-        finally:
-            sys.stdout.write('\033[%d;%df' % (row, col))
 

@@ -30,6 +30,7 @@ setup(name='gpgkeys',
           'setuptools',
           'rl > 2.0',
           'kmd > 2.0',
+          'term > 0.99',
       ],
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',

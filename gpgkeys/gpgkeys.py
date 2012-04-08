@@ -12,13 +12,13 @@ import sys
 import getopt
 import subprocess
 import kmd
+import term
 
 from parser import splitargs
 from parser import parseargs
 from parser import parseword
 
 from utils import decode
-from utils import getyx
 from utils import surrogateescape
 from utils import ignoresignals
 
@@ -151,10 +151,10 @@ class GPGKeys(kmd.Kmd):
     # Helpers
 
     def cursor_row(self):
-        return getyx()[0]
+        return term.getyx()[0]
 
     def cursor_col(self):
-        return getyx()[1]
+        return term.getyx()[1]
 
     # Commands
 
