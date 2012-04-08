@@ -74,7 +74,7 @@ class cbreakmode(object):
         mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON)
         mode[CC][VMIN] = 0  # Zero chars is a valid result
         mode[CC][VTIME] = 1 # Wait for input
-        tcsetattr(sys.stdin, TCSANOW, mode)
+        tcsetattr(sys.stdin, TCSAFLUSH, mode)
 
     def __exit__(self, *ignored):
         tcsetattr(sys.stdin, TCSAFLUSH, self.saved)
