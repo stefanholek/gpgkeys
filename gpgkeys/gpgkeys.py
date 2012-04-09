@@ -12,6 +12,7 @@ import sys
 import getopt
 import subprocess
 import kmd
+import term
 
 from parser import splitargs
 from parser import parseargs
@@ -139,7 +140,6 @@ class GPGKeys(kmd.Kmd):
             if sys.version_info[0] >= 3:
                 stdout = decode(stdout)
             if stdout.strip():
-                stdout = stdout.replace('\r', '\n')
                 return stdout.split('\n', 1)[0]
         return ''
 
@@ -262,6 +262,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--edit-key', *args.tuple)
+                if term.getyx()[1] > 1:
+                    self.stdout.write('\n')
             else:
                 self.do_help('edit')
         else:
