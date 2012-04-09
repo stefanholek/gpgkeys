@@ -148,14 +148,6 @@ class GPGKeys(kmd.Kmd):
         kw.setdefault('verbose', True)
         return self.system(GNUPGEXE, *args, **kw)
 
-    # Helpers
-
-    def cursor_row(self):
-        return term.getyx()[0]
-
-    def cursor_col(self):
-        return term.getyx()[1]
-
     # Commands
 
     def emptyline(self):
@@ -270,7 +262,7 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--edit-key', *args.tuple)
-                if self.cursor_col() > 1:
+                if term.getyx()[1] > 1:
                     self.stdout.write('\n')
             else:
                 self.do_help('edit')
