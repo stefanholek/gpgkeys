@@ -81,7 +81,7 @@ allows command lines like::
     gpgkeys> export 355A2D28 | pgpdump | less
 
 To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
--v option::
+``-v`` option::
 
     $ gpgkeys -v
     gpgkeys 1.19 (type help for help)
@@ -104,14 +104,14 @@ the command loop::
     $ ls
     alice.asc             stefan.asc
 
-For the send, recv, etc. commands to work, at least one keyserver
-must be configured in gpg.conf, e.g.::
+For the recv, refresh, search, and send commands to work, at least one
+keyserver must be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
     keyserver hkp://pgp.surfnet.nl
 
 The last keyserver in gpg.conf becomes the default keyserver.
-All keyservers become available for completion after the --keyserver option.
+All keyservers become available for completion after the ``--keyserver`` option.
 
 Repository Access
 -----------------
