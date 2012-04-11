@@ -2,21 +2,20 @@ import sys
 import signal
 import locale
 
+if sys.version_info[0] >= 3:
+    errors = 'surrogateescape'
+else:
+    errors = 'replace'
+
 
 def decode(text):
     """Decode from the charset of the current locale."""
-    if sys.version_info[0] >= 3:
-        return text.decode(locale.getlocale()[1], 'surrogateescape')
-    else:
-        return text.decode(locale.getlocale()[1], 'replace')
+    return text.decode(locale.getlocale()[1], errors)
 
 
 def encode(text):
     """Encode to the charset of the current locale."""
-    if sys.version_info[0] >= 3:
-        return text.encode(locale.getlocale()[1], 'surrogateescape')
-    else:
-        return text.encode(locale.getlocale()[1], 'replace')
+    return text.encode(locale.getlocale()[1], errors)
 
 
 def char(int):

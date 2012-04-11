@@ -19,6 +19,11 @@ keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
 unescape_re = re.compile(br'([\\]x[0-9a-f]{2})')
 
+if sys.version_info[0] >= 3:
+    errors = 'surrogateescape'
+else:
+    errors = 'replace'
+
 
 def unescape(text):
     """Convert ``gpg --with-colons`` output to a byte string.
@@ -49,10 +54,7 @@ def gpgdecode(text):
             text = text.decode(encoding)
         except UnicodeDecodeError:
             encoding = 'utf-8'
-            if sys.version_info[0] >= 3:
-                text = text.decode(encoding, 'surrogateescape')
-            else:
-                text = text.decode(encoding, 'replace')
+            text = text.decode(encoding, errors)
     return text, encoding
 
 
