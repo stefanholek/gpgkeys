@@ -132,7 +132,7 @@ class KeyCompletion(object):
 
     def parse_keys(self, stdout):
         # Process stdout as byte string since we must run
-        # unescape before decoding
+        # unescape before decoding.
         for line in stdout.strip().split(b'\n'):
             if line[:3] == b'pub':
                 fields = line.split(b':')
@@ -143,8 +143,7 @@ class KeyCompletion(object):
                 if sys.version_info[0] < 3:
                     keyid = encode(keyid)
                     userid = encode(userid)
-                self.encodings[keyid] = key_enc
-                self.encodings[userid] = user_enc
+                self.encodings.setdefault(userid.lower(), user_enc)
                 yield (keyid, userid)
 
     def parse_names(self, userid):
@@ -152,11 +151,13 @@ class KeyCompletion(object):
         if m is not None:
             for name in m.group(1).split():
                 if len(name) > 1 and not (len(name) == 2 and name[-1] == '.'):
-                    self.encodings[name] = self.encodings[userid]
+                    self.encodings.setdefault(name.lower(), self.encodings[userid.lower()])
                     yield name
 
     def recode(self, text):
-        encoding = self.encodings[text]
+        encoding = self.encodings.get(text.lower())
+        if encoding is None:
+            return text
         if sys.version_info[0] >= 3:
             return decode(text.encode(encoding))
         else:
