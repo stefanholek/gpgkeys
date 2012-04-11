@@ -1,21 +1,22 @@
 import sys
 import signal
+import locale
 
 
 def decode(text):
     """Decode from the charset of the current locale."""
     if sys.version_info[0] >= 3:
-        return text.decode(sys.getfilesystemencoding(), 'surrogateescape')
+        return text.decode(locale.getlocale()[1], 'surrogateescape')
     else:
-        return text.decode(sys.getfilesystemencoding(), 'replace')
+        return text.decode(locale.getlocale()[1], 'replace')
 
 
 def encode(text):
     """Encode to the charset of the current locale."""
     if sys.version_info[0] >= 3:
-        return text.encode(sys.getfilesystemencoding(), 'surrogateescape')
+        return text.encode(locale.getlocale()[1], 'surrogateescape')
     else:
-        return text.encode(sys.getfilesystemencoding(), 'replace')
+        return text.encode(locale.getlocale()[1], 'replace')
 
 
 def char(int):
