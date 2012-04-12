@@ -143,7 +143,7 @@ class KeyCompletion(object):
                 if sys.version_info[0] < 3:
                     keyid = encode(keyid)
                     userid = encode(userid)
-                self.encodings.setdefault(userid.lower(), user_enc)
+                self.encodings.setdefault(userid, user_enc)
                 yield (keyid, userid)
 
     def parse_names(self, userid):
@@ -151,11 +151,11 @@ class KeyCompletion(object):
         if m is not None:
             for name in m.group(1).split():
                 if len(name) > 1 and not (len(name) == 2 and name[-1] == '.'):
-                    self.encodings.setdefault(name.lower(), self.encodings[userid.lower()])
+                    self.encodings.setdefault(name, self.encodings[userid])
                     yield name
 
     def recode(self, text):
-        encoding = self.encodings.get(text.lower())
+        encoding = self.encodings.get(text)
         if encoding is None:
             return text
         if sys.version_info[0] >= 3:
