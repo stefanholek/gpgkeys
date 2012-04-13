@@ -431,7 +431,7 @@ class GPGKeys(kmd.Kmd):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.pipe('cd "%s"; pwd' % args[0])
+            dir = self.pipe('cd %s; pwd' % args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
