@@ -5,14 +5,14 @@ import getopt
 from scanner import find_unquoted
 from scanner import rfind_unquoted
 
-from splitter import split
-from splitter import splitpipe
+from splitter import shellsplit
 from splitter import closequote
+from splitter import splitpipe
 
 
 def splitargs(args):
     """Split the command line into tokens."""
-    return closequote(split(args))
+    return closequote(shellsplit(args))
 
 
 def parseargs(args):
