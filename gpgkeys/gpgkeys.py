@@ -18,9 +18,9 @@ from parser import splitargs
 from parser import parseargs
 from parser import parseword
 
-from utils import decode
 from utils import surrogateescape
 from utils import ignoresignals
+from utils import decode
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
