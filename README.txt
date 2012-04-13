@@ -102,8 +102,6 @@ gpgkeys can be invoked with arguments, in which case it does not enter
 the command loop::
 
     $ gpgkeys export --armor 355A2D28 > stefan.asc
-    $ ls
-    alice.asc             stefan.asc
 
 Keyservers
 ----------
@@ -121,7 +119,7 @@ Unicode
 -------
 
 The OpenPGP standard allows user IDs to be either Latin-1 or UTF-8 encoded.
-In order to locate a key via a non-ASCII name, GnuPG expects the
+In order to locate a key via a non-ASCII name, GnuPG requires the
 search string to be encoded correctly. In other words, to match a Latin-1 name
 the search string must itself be Latin-1.
 
@@ -130,8 +128,8 @@ you TAB complete is automatically encoded to match GnuPG's expectations.
 You may sometimes see ? characters in place of non-ASCII characters on the
 command line, which are the result of the above and no reason for concern.
 
-Repository Access
------------------
+Development
+===========
 
 gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 

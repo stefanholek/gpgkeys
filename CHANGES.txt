@@ -7,10 +7,13 @@ Changelog
 - Include command aliases in help screens.
   [stefan]
 
+- Return useful exit codes when gpgkeys is invoked with arguments.
+  [stefan]
+
 - Fix "double prompt" issue when the edit menu was exited with ^D.
   [stefan]
 
-- Return useful exit codes when gpgkeys is invoked with arguments.
+- The import and fdump commands now support input redirection via '<'.
   [stefan]
 
 
