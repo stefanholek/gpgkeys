@@ -9,8 +9,10 @@ Introduction
 ============
 
 **gpgkeys** is a Python program that allows to conveniently manage GnuPG_ keys
-and keyrings from the command line. Its main UI feature is end-to-end
-TAB completion.
+and keyrings from the command line.
+It comes in the form of a shell, with commands resembling GnuPG CLI commands and
+their options.
+Its main feature is end-to-end TAB completion.
 
 gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
@@ -35,8 +37,8 @@ gpgkeys makes key management easy by:
 Example Session
 ---------------
 
-Everything in gpgkeys can be TAB completed: commands, option flags, help
-topics, user ids, key ids, file names, shell commands, and keyserver URLs.
+Everything in gpgkeys can be TAB completed: commands, help topics, option flags,
+key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
@@ -96,7 +98,6 @@ For everything you ever wanted to know about GnuPG commands, type::
 
     gpgkeys> .man gpg
 
-
 gpgkeys can be invoked with arguments, in which case it does not enter
 the command loop::
 
@@ -104,14 +105,30 @@ the command loop::
     $ ls
     alice.asc             stefan.asc
 
-For the recv, refresh, search, and send commands to work, at least one
-keyserver must be configured in gpg.conf. For example::
+Keyservers
+----------
+
+For the recv, refresh, search, and send commands to work nicely, at least one
+keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
     keyserver hkp://pgp.surfnet.nl
 
 The last keyserver in gpg.conf becomes the default keyserver.
 All keyservers become available for completion after the ``--keyserver`` option.
+
+Unicode
+-------
+
+The OpenPGP standard allows user IDs to be either Latin-1 or UTF-8 encoded.
+In order to locate a key via a non-ASCII name, GnuPG expects the
+search string to be encoded correctly. In other words, to match a Latin-1 name
+the search string must itself be Latin-1.
+
+gpgkeys' key completion keeps track of the original encodings, and every name
+you TAB complete is automatically encoded to match GnuPG's expectations.
+You may sometimes see ? characters in place of non-ASCII characters on the
+command line, which are the result of the above and no reason for concern.
 
 Repository Access
 -----------------

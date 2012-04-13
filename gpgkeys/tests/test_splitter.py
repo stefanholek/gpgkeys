@@ -145,151 +145,160 @@ class CharIsQuotedTests(unittest.TestCase):
 
 class SplitTests(unittest.TestCase):
 
+    def split(self, line):
+        return split(line)
+
     def test_simple(self):
-        self.assertEqual(split('foo bar'), ('foo', 'bar'))
+        self.assertEqual(self.split('foo bar'), ('foo', 'bar'))
 
     def test_more_spaces(self):
-        self.assertEqual(split('foo bar baz peng'), ('foo', 'bar', 'baz', 'peng'))
+        self.assertEqual(self.split('foo bar baz peng'), ('foo', 'bar', 'baz', 'peng'))
 
     def test_startswith_space(self):
-        self.assertEqual(split(' foo'), ('foo',))
+        self.assertEqual(self.split(' foo'), ('foo',))
 
     def test_endswith_space(self):
-        self.assertEqual(split('foo '), ('foo',))
+        self.assertEqual(self.split('foo '), ('foo',))
 
     def test_double_space(self):
-        self.assertEqual(split('foo  bar'), ('foo', 'bar'))
+        self.assertEqual(self.split('foo  bar'), ('foo', 'bar'))
 
     def test_triple_space(self):
-        self.assertEqual(split('foo   bar'), ('foo', 'bar'))
+        self.assertEqual(self.split('foo   bar'), ('foo', 'bar'))
 
     def test_no_split_escaped(self):
-        self.assertEqual(split('foo\\ bar'), ('foo\\ bar',))
+        self.assertEqual(self.split('foo\\ bar'), ('foo\\ bar',))
 
     def test_no_split_escaped_more_spaces(self):
-        self.assertEqual(split('foo bar\\ baz peng'), ('foo', 'bar\\ baz', 'peng'))
+        self.assertEqual(self.split('foo bar\\ baz peng'), ('foo', 'bar\\ baz', 'peng'))
 
     def test_no_split_escaped_more_escapes(self):
-        self.assertEqual(split('foo bar\\ baz fred\\ barney\\ wilma\\ \\ betty'),
-                              ('foo', 'bar\\ baz', 'fred\\ barney\\ wilma\\ \\ betty'))
+        self.assertEqual(self.split('foo bar\\ baz fred\\ barney\\ wilma\\ \\ betty'),
+                                   ('foo', 'bar\\ baz', 'fred\\ barney\\ wilma\\ \\ betty'))
 
 
-class DoubleQuoteSplitTests(unittest.TestCase):
+class SplitDoubleQuoteTests(unittest.TestCase):
+
+    def split(self, line):
+        return split(line)
 
     def test_simple(self):
-        self.assertEqual(split('"foo bar"'), ('"foo bar"',))
+        self.assertEqual(self.split('"foo bar"'), ('"foo bar"',))
 
     def test_more_spaces(self):
-        self.assertEqual(split('"foo bar baz peng"'), ('"foo bar baz peng"',))
+        self.assertEqual(self.split('"foo bar baz peng"'), ('"foo bar baz peng"',))
 
     def test_startswith_space(self):
-        self.assertEqual(split('" foo"'), ('" foo"',))
+        self.assertEqual(self.split('" foo"'), ('" foo"',))
 
     def test_endswith_space(self):
-        self.assertEqual(split('"foo "'), ('"foo "',))
+        self.assertEqual(self.split('"foo "'), ('"foo "',))
 
     def test_double_space(self):
-        self.assertEqual(split('"foo  bar"'), ('"foo  bar"',))
+        self.assertEqual(self.split('"foo  bar"'), ('"foo  bar"',))
 
     def test_substring(self):
-        self.assertEqual(split('foo bar "baz peng"'), ('foo', 'bar', '"baz peng"',))
+        self.assertEqual(self.split('foo bar "baz peng"'), ('foo', 'bar', '"baz peng"',))
 
     def test_substring_double_space(self):
-        self.assertEqual(split('foo "bar baz"  peng'), ('foo', '"bar baz"', 'peng',))
+        self.assertEqual(self.split('foo "bar baz"  peng'), ('foo', '"bar baz"', 'peng',))
 
     def test_substring_triple_space(self):
-        self.assertEqual(split('foo   "bar baz" peng'), ('foo', '"bar baz"', 'peng',))
+        self.assertEqual(self.split('foo   "bar baz" peng'), ('foo', '"bar baz"', 'peng',))
 
     def test_no_split_single_quote(self):
-        self.assertEqual(split('foo "bar \'baz" peng'), ('foo', '"bar \'baz"', 'peng',))
+        self.assertEqual(self.split('foo "bar \'baz" peng'), ('foo', '"bar \'baz"', 'peng',))
 
     def test_startswith_escaped_single_quote(self):
-        self.assertEqual(split('\\\'"foo bar "quux " baz peng'),
-                              ("\\'", '"foo bar "', 'quux', '" baz peng'))
+        self.assertEqual(self.split('\\\'"foo bar "quux " baz peng'),
+                                   ("\\'", '"foo bar "', 'quux', '" baz peng'))
 
     def test_endswith_escaped_single_quote(self):
-        self.assertEqual(split('"foo bar "quux " baz peng\\\''),
-                              ('"foo bar "', 'quux', '" baz peng\\\'',))
+        self.assertEqual(self.split('"foo bar "quux " baz peng\\\''),
+                                   ('"foo bar "', 'quux', '" baz peng\\\'',))
 
     def test_no_split_escaped(self):
-        self.assertEqual(split('foo "bar \\"quux\\" baz" peng'),
-                              ('foo', '"bar \\"quux\\" baz"', 'peng',))
+        self.assertEqual(self.split('foo "bar \\"quux\\" baz" peng'),
+                                   ('foo', '"bar \\"quux\\" baz"', 'peng',))
 
     def test_no_split_escaped_more_spaces(self):
-        self.assertEqual(split('foo " bar \\"quux \\" baz" peng'),
-                              ('foo', '" bar \\"quux \\" baz"', 'peng',))
+        self.assertEqual(self.split('foo " bar \\"quux \\" baz" peng'),
+                                   ('foo', '" bar \\"quux \\" baz"', 'peng',))
 
     def test_startswith_escaped(self):
-        self.assertEqual(split('\\"foo bar "quux " baz peng'),
-                              ('\\"foo', 'bar', '"quux "', 'baz', 'peng',))
+        self.assertEqual(self.split('\\"foo bar "quux " baz peng'),
+                                   ('\\"foo', 'bar', '"quux "', 'baz', 'peng',))
 
     def test_unquoted_spaces(self):
-        self.assertEqual(split('\\"foo \\" bar " quux "'),
-                              ('\\"foo', '\\"', 'bar', '" quux "',))
+        self.assertEqual(self.split('\\"foo \\" bar " quux "'),
+                                   ('\\"foo', '\\"', 'bar', '" quux "',))
 
     def test_no_split_escaped_more_escapes(self):
-        self.assertEqual(split('"foo "   "bar "" quux" baz " peng"""'),
-                              ('"foo "', '"bar "', '" quux"', 'baz', '" peng"', '""'))
+        self.assertEqual(self.split('"foo "   "bar "" quux" baz " peng"""'),
+                                   ('"foo "', '"bar "', '" quux"', 'baz', '" peng"', '""'))
 
 
-class SingleQuoteSplitTests(unittest.TestCase):
+class SplitSingleQuoteTests(unittest.TestCase):
+
+    def split(self, line):
+        return split(line)
 
     def test_simple(self):
-        self.assertEqual(split("'foo bar'"), ("'foo bar'",))
+        self.assertEqual(self.split("'foo bar'"), ("'foo bar'",))
 
     def test_more_spaces(self):
-        self.assertEqual(split("'foo bar baz peng'"), ("'foo bar baz peng'",))
+        self.assertEqual(self.split("'foo bar baz peng'"), ("'foo bar baz peng'",))
 
     def test_startswith_space(self):
-        self.assertEqual(split("' foo'"), ("' foo'",))
+        self.assertEqual(self.split("' foo'"), ("' foo'",))
 
     def test_endswith_space(self):
-        self.assertEqual(split("'foo '"), ("'foo '",))
+        self.assertEqual(self.split("'foo '"), ("'foo '",))
 
     def test_double_space(self):
-        self.assertEqual(split("'foo  bar'"), ("'foo  bar'",))
+        self.assertEqual(self.split("'foo  bar'"), ("'foo  bar'",))
 
     def test_substring(self):
-        self.assertEqual(split("foo bar 'baz peng'"), ("foo", "bar", "'baz peng'",))
+        self.assertEqual(self.split("foo bar 'baz peng'"), ("foo", "bar", "'baz peng'",))
 
     def test_substring_double_space(self):
-        self.assertEqual(split("foo 'bar baz'  peng"), ("foo", "'bar baz'", "peng",))
+        self.assertEqual(self.split("foo 'bar baz'  peng"), ("foo", "'bar baz'", "peng",))
 
     def test_substring_triple_space(self):
-        self.assertEqual(split("foo   'bar baz' peng"), ("foo", "'bar baz'", "peng",))
+        self.assertEqual(self.split("foo   'bar baz' peng"), ("foo", "'bar baz'", "peng",))
 
     def test_no_split_double_quote(self):
-        self.assertEqual(split("foo 'bar \"baz' peng"), ("foo", "'bar \"baz'", "peng",))
+        self.assertEqual(self.split("foo 'bar \"baz' peng"), ("foo", "'bar \"baz'", "peng",))
 
     def test_startswith_escaped_double_quote(self):
-        self.assertEqual(split("\\\"'foo bar 'quux ' baz peng"),
-                              ('\\"', "'foo bar '", 'quux', "' baz peng"))
+        self.assertEqual(self.split("\\\"'foo bar 'quux ' baz peng"),
+                                   ('\\"', "'foo bar '", 'quux', "' baz peng"))
 
     def test_endswith_escaped_double_quote(self):
-        self.assertEqual(split("'foo bar 'quux ' baz peng\\\""),
-                              ("'foo bar '", 'quux', '\' baz peng\\"'))
+        self.assertEqual(self.split("'foo bar 'quux ' baz peng\\\""),
+                                   ("'foo bar '", 'quux', '\' baz peng\\"'))
 
     def test_no_split_escaped(self):
-        self.assertEqual(split("foo 'bar \\'quux\\' baz' peng"),
-                              ('foo', "'bar \\'", "quux\\'", 'baz', "' peng"))
+        self.assertEqual(self.split("foo 'bar \\'quux\\' baz' peng"),
+                                   ('foo', "'bar \\'", "quux\\'", 'baz', "' peng"))
 
     def test_no_split_escaped_more_spaces(self):
-        self.assertEqual(split("foo ' bar \\'quux \\' baz' peng"),
-                              ('foo', "' bar \\'", 'quux', "\\'", 'baz', "' peng"))
+        self.assertEqual(self.split("foo ' bar \\'quux \\' baz' peng"),
+                                   ('foo', "' bar \\'", 'quux', "\\'", 'baz', "' peng"))
 
     def test_startswith_escaped(self):
-        self.assertEqual(split("\\'foo bar 'quux ' baz peng"),
-                              ("\\'foo", "bar", "'quux '", "baz", "peng",))
+        self.assertEqual(self.split("\\'foo bar 'quux ' baz peng"),
+                                   ("\\'foo", "bar", "'quux '", "baz", "peng",))
 
     def test_unquoted_spaces(self):
-        self.assertEqual(split("\\'foo \\' bar ' quux '"),
-                              ("\\'foo", "\\'", "bar", "' quux '",))
+        self.assertEqual(self.split("\\'foo \\' bar ' quux '"),
+                                   ("\\'foo", "\\'", "bar", "' quux '",))
 
     def test_no_split_escaped_more_escapes(self):
-        self.assertEqual(split("'foo '   'bar '' quux' baz ' peng'''"),
-                              ("'foo '", "'bar '", "' quux'", 'baz', "' peng'", "''"))
+        self.assertEqual(self.split("'foo '   'bar '' quux' baz ' peng'''"),
+                                   ("'foo '", "'bar '", "' quux'", 'baz', "' peng'", "''"))
 
     def test_evil_quoting(self):
-        self.assertEqual(split("'foo bar'\\''baz ' peng"),
-                              ("'foo bar'\\''baz '", 'peng'))
+        self.assertEqual(self.split("'foo bar'\\''baz ' peng"),
+                                   ("'foo bar'\\''baz '", 'peng'))
 

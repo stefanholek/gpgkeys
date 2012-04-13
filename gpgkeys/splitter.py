@@ -15,7 +15,7 @@ T_SHELL = 2
 
 
 class InfiniteString(str):
-    """A string without IndexErrors"""
+    """A string without IndexErrors."""
 
     def __getitem__(self, index):
         if index < 0 or index >= len(self):
@@ -24,7 +24,11 @@ class InfiniteString(str):
 
 
 class Token(str):
-    """A string with additional attributes"""
+    """A string with additional attributes.
+
+    Tokens can be added and appended using the + and += operators.
+    All other operations turn Tokens into plain strings.
+    """
 
     def __new__(cls, string, start, end, type):
         s = str.__new__(cls, string)
@@ -40,18 +44,22 @@ class Token(str):
 
 def split(line):
     """Return a tuple of Tokens found in line.
+
+    Splits the line on whitespace, quote characters, and shell tokens.
+    Strings enclosed in quotes are treated as single tokens; enclosing
+    quotes are not removed.
     """
+    tokens = []
     skip_next = False
     quote_char = ''
-    tokens = []
-    end = len(line)
+    eol = len(line)
     s = InfiniteString(line)
     i = j = 0
 
     def append(start, end, type):
         tokens.append(Token(line[start:end], start, end, type))
 
-    while i < end:
+    while i < eol:
         c = s[i]
         if skip_next:
             skip_next = False
@@ -168,8 +176,8 @@ def split(line):
                     j = i+1
         i = i+1
 
-    if end > j:
-        append(j, end, T_WORD)
+    if eol > j:
+        append(j, eol, T_WORD)
     return tuple(tokens)
 
 
@@ -193,4 +201,10 @@ def splitpipe(tokens):
         if token.type == T_SHELL:
             return tokens[:i], tokens[i:]
     return tokens, ()
+
+
+def filtertokens(tokens, type):
+    """Return only tokens of type 'type'.
+    """
+    return tuple(x for x in tokens if x.type == type)
 

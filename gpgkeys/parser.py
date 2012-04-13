@@ -6,8 +6,8 @@ from scanner import find_unquoted
 from scanner import rfind_unquoted
 
 from splitter import split
-from splitter import splitpipe
 from splitter import closequote
+from splitter import splitpipe
 
 
 def splitargs(args):
