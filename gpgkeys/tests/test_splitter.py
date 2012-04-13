@@ -5,8 +5,7 @@ from kmd.completions import quoting
 
 from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import Token, T_WORD
-from gpgkeys.splitter import simplesplit
-from gpgkeys.splitter import shellsplit
+from gpgkeys.splitter import split
 from gpgkeys.testing import reset
 
 
@@ -144,10 +143,10 @@ class CharIsQuotedTests(unittest.TestCase):
             self.assertEqual(quoting.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
-class SimpleSplitTests(unittest.TestCase):
+class SplitTests(unittest.TestCase):
 
     def split(self, line):
-        return simplesplit(line)
+        return split(line)
 
     def test_simple(self):
         self.assertEqual(self.split('foo bar'), ('foo', 'bar'))
@@ -178,10 +177,10 @@ class SimpleSplitTests(unittest.TestCase):
                                    ('foo', 'bar\\ baz', 'fred\\ barney\\ wilma\\ \\ betty'))
 
 
-class SimpleSplitDoubleQuoteTests(unittest.TestCase):
+class SplitDoubleQuoteTests(unittest.TestCase):
 
     def split(self, line):
-        return simplesplit(line)
+        return split(line)
 
     def test_simple(self):
         self.assertEqual(self.split('"foo bar"'), ('"foo bar"',))
@@ -239,10 +238,10 @@ class SimpleSplitDoubleQuoteTests(unittest.TestCase):
                                    ('"foo "', '"bar "', '" quux"', 'baz', '" peng"', '""'))
 
 
-class SimpleSplitSingleQuoteTests(unittest.TestCase):
+class SplitSingleQuoteTests(unittest.TestCase):
 
     def split(self, line):
-        return simplesplit(line)
+        return split(line)
 
     def test_simple(self):
         self.assertEqual(self.split("'foo bar'"), ("'foo bar'",))
@@ -302,22 +301,4 @@ class SimpleSplitSingleQuoteTests(unittest.TestCase):
     def test_evil_quoting(self):
         self.assertEqual(self.split("'foo bar'\\''baz ' peng"),
                                    ("'foo bar'\\''baz '", 'peng'))
-
-
-class ShellSplitTests(SimpleSplitTests):
-
-    def split(self, line):
-        return shellsplit(line)
-
-
-class ShellSplitDoubleQuoteTests(SimpleSplitDoubleQuoteTests):
-
-    def split(self, line):
-        return shellsplit(line)
-
-
-class ShellSplitSingleQuoteTests(SimpleSplitSingleQuoteTests):
-
-    def split(self, line):
-        return shellsplit(line)
 
