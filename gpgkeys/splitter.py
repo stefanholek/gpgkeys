@@ -15,7 +15,7 @@ T_SHELL = 2
 
 
 class InfiniteString(str):
-    """A string without IndexErrors"""
+    """A string without IndexErrors."""
 
     def __getitem__(self, index):
         if index < 0 or index >= len(self):
@@ -24,7 +24,11 @@ class InfiniteString(str):
 
 
 class Token(str):
-    """A string with additional attributes"""
+    """A string with additional attributes.
+
+    Tokens can be added and appended using the + and += operators.
+    All other operations turn Tokens into plain strings.
+    """
 
     def __new__(cls, string, start, end, type):
         s = str.__new__(cls, string)
@@ -38,20 +42,78 @@ class Token(str):
         return Token(s, self.start, self.end, self.type)
 
 
-def split(line):
-    """Return a tuple of Tokens found in line.
+def simplesplit(line):
+    """Return a tuple of T_WORD Tokens found in line.
+
+    Splits the line on whitespace and quote characters. Strings
+    enclosed in quotes are treated as single tokens; enclosing
+    quotes are not removed.
     """
+    tokens = []
     skip_next = False
     quote_char = ''
-    tokens = []
-    end = len(line)
+    eol = len(line)
     s = InfiniteString(line)
     i = j = 0
 
     def append(start, end, type):
         tokens.append(Token(line[start:end], start, end, type))
 
-    while i < end:
+    while i < eol:
+        c = s[i]
+        if skip_next:
+            skip_next = False
+        elif quote_char != "'" and c == '\\':
+            skip_next = True
+        elif quote_char != '':
+            if c == quote_char:
+                # Don't close the token if this is a backslash-
+                # quoted single quote.
+                if c in ("'",):
+                    if s[i+1] in ('\\',):
+                        if s[i+2] in ("'",):
+                            if s[i+3] in ("'",):
+                                i = i+5
+                                continue
+                quote_char = ''
+                append(j, i+1, T_WORD)
+                j = i+1
+        elif c in QUOTECHARS:
+            if i > j:
+                append(j, i, T_WORD)
+            j = i
+            quote_char = c
+        elif c in WHITESPACE:
+            if i > j:
+                append(j, i, T_WORD)
+                j = i+1
+            else:
+                j = j+1
+        i = i+1
+
+    if eol > j:
+        append(j, eol, T_WORD)
+    return tuple(tokens)
+
+
+def shellsplit(line):
+    """Return a tuple of T_WORD and T_SHELL Tokens found in line.
+
+    Splits the line on whitespace, quote characters, and shell tokens.
+    Strings enclosed in quotes are treated as single tokens; enclosing
+    quotes are not removed.
+    """
+    tokens = []
+    skip_next = False
+    quote_char = ''
+    eol = len(line)
+    s = InfiniteString(line)
+    i = j = 0
+
+    def append(start, end, type):
+        tokens.append(Token(line[start:end], start, end, type))
+
+    while i < eol:
         c = s[i]
         if skip_next:
             skip_next = False
@@ -168,8 +230,8 @@ def split(line):
                     j = i+1
         i = i+1
 
-    if end > j:
-        append(j, end, T_WORD)
+    if eol > j:
+        append(j, eol, T_WORD)
     return tuple(tokens)
 
 
@@ -193,4 +255,8 @@ def splitpipe(tokens):
         if token.type == T_SHELL:
             return tokens[:i], tokens[i:]
     return tokens, ()
+
+
+# BBB
+split = shellsplit
 
