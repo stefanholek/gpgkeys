@@ -112,8 +112,8 @@ class GPGKeys(kmd.Kmd):
 
     def popen(self, *args, **kw):
         command = ' '.join(args)
-        stdout = kw.get('stdout')
-        stderr = kw.get('stderr')
+        stdout = kw.get('stdout', None)
+        stderr = kw.get('stderr', None)
         verbose = kw.get('verbose', False)
         if self.verbose and verbose:
             self.stdout.write('gpgkeys: %s\n' % command)
