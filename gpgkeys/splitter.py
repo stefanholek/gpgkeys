@@ -42,12 +42,12 @@ class Token(str):
         return Token(s, self.start, self.end, self.type)
 
 
-def split(line):
+def split(line, strip_quotes=False):
     """Return a tuple of Tokens found in line.
 
     Splits the line on whitespace, quote characters, and shell tokens.
     Strings enclosed in quotes are treated as single tokens; enclosing
-    quotes are not removed.
+    quotes are not removed unless 'strip_quotes' is True.
     """
     tokens = []
     skip_next = False
@@ -76,7 +76,10 @@ def split(line):
                                 i = i+5
                                 continue
                 quote_char = ''
-                append(j, i+1, T_WORD)
+                if strip_quotes:
+                    append(j+1, i, T_WORD)
+                else:
+                    append(j, i+1, T_WORD)
                 j = i+1
         elif c in QUOTECHARS:
             if i > j:
