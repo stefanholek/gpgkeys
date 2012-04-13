@@ -1,9 +1,5 @@
 import unittest
 
-from rl import completer
-from kmd.completions import quoting
-
-from gpgkeys.scanner import char_is_quoted
 from gpgkeys.splitter import Token, T_WORD
 from gpgkeys.splitter import split
 from gpgkeys.testing import reset
@@ -60,87 +56,6 @@ class TokenTests(unittest.TestCase):
         s = t.lower()
         self.assertFalse(isinstance(s, Token))
         self.assertTrue(isinstance(s, str))
-
-
-class CharIsQuotedTests(unittest.TestCase):
-
-    TRUE = (
-        '" ',
-        '"foo ',
-        'f"oo ',
-        'fo"o ',
-        'foo" ',
-        '\' ',
-        '\'foo ',
-        'f\'oo ',
-        'fo\'o ',
-        'foo\' ',
-        '\\ ',
-        'foo\\ ',
-        '"foo\\ ',
-        '"foo\\" ',
-        '"foo\\"\\ ',
-        '"foo"\\ ',
-        '"foo\' ',
-        '"foo\\\' ',
-        '\'foo\\ ',
-        '\'foo\\\'\\ ',
-        '\'foo" ',
-        '\'foo\\" ',
-        '"foo \'bar\' ',
-        '\'foo "bar" ',
-        '"foo \'bar\'',
-        '\'foo "bar"',
-        '"foo \'bar\'\'',
-        '\'foo "bar""',
-        '\'foo\\\'"\'',
-        '\'foo"\'"\'',
-    )
-
-    FALSE = (
-        'foo ',
-        'fo\\o ',
-        'foo\\\\ ',
-        '"" ',
-        '"foo" ',
-        '"foo\'" ',
-        '\'\' ',
-        '\'foo\' ',
-        '\'foo\\\' ',
-        '\'foo"\' ',
-        '\'foo\'\'',
-        '\'foo\\\'\'',
-        '\'foo"\'\'',
-        '\'foo\\\'\'\'',
-        # The closing quote character is NOT quoted
-        '\'foo"\'\'\'',
-        '"foo \'bar\'"',
-        '\'foo "bar"\'',
-    )
-
-    def setUp(self):
-        reset()
-        completer.quote_characters = '"\''
-
-    def test_true(self):
-        # Expect the last character in s to be quoted
-        for s in self.TRUE:
-            self.assertEqual(char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
-
-    def test_false(self):
-        # Expect the last character in s to be unquoted
-        for s in self.FALSE:
-            self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
-
-    def test_true_quoting(self):
-        # Expect the last character in s to be quoted
-        for s in self.TRUE:
-            self.assertEqual(quoting.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
-
-    def test_false_quoting(self):
-        # Expect the last character in s to be unquoted
-        for s in self.FALSE:
-            self.assertEqual(quoting.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
 class SplitTests(unittest.TestCase):
