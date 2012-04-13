@@ -99,8 +99,8 @@ class GPGKeys(kmd.Kmd):
 
     def run(self, args=None):
         rc = super(GPGKeys, self).run(args)
-        if rc != 0: # KeyboardInterrupt
-            return rc
+        if rc == 1: # KeyboardInterrupt
+            self.rc = rc
         return self.rc
 
     # Execute subprocesses
