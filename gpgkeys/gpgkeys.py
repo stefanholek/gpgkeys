@@ -205,6 +205,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--import', *args.tuple)
+            elif args.pipe and args.pipe[0] == '<':
+                self.rc = self.gnupg('--import', *args.tuple)
             elif not self.is_looping:
                 args.args = ('-',)
                 self.rc = self.gnupg('--import', *args.tuple)
@@ -388,6 +390,8 @@ class GPGKeys(kmd.Kmd):
         args = parseargs(args)
         if args.ok:
             if args.args:
+                self.rc = self.gnupg('--list-packets', *args.tuple)
+            elif args.pipe and args.pipe[0] == '<':
                 self.rc = self.gnupg('--list-packets', *args.tuple)
             elif not self.is_looping:
                 args.args = ('-',)
