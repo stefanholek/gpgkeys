@@ -257,6 +257,12 @@ def splitpipe(tokens):
     return tokens, ()
 
 
+def filtertokens(tokens, type):
+    """Return only tokens of type 'type'.
+    """
+    return tuple(x for x in tokens if x.type == type)
+
+
 # BBB
 split = shellsplit
 
