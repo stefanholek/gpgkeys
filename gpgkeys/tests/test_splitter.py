@@ -231,12 +231,12 @@ class SplitDoubleQuoteTests(unittest.TestCase):
         self.assertEqual(split('"foo "   "bar "" quux" baz " peng"""'),
                               ('"foo "', '"bar "', '" quux"', 'baz', '" peng"', '""'))
 
-    def test_strip_quotes(self):
-        self.assertEqual(split('"foo bar"', True), ('foo bar',))
+    #def test_strip_quotes(self):
+    #    self.assertEqual(split('"foo bar"', True), ('foo bar',))
 
-    def test_strip_quotes_more_quotes(self):
-        self.assertEqual(split('"foo "   "bar "" quux" baz " peng"""', True),
-                              ('foo ', 'bar ', ' quux', 'baz', ' peng', ''))
+    #def test_strip_quotes_more_quotes(self):
+    #    self.assertEqual(split('"foo "   "bar "" quux" baz " peng"""', True),
+    #                          ('foo ', 'bar ', ' quux', 'baz', ' peng', ''))
 
 
 class SplitSingleQuoteTests(unittest.TestCase):
@@ -300,10 +300,10 @@ class SplitSingleQuoteTests(unittest.TestCase):
         self.assertEqual(split("'foo bar'\\''baz ' peng"),
                               ("'foo bar'\\''baz '", 'peng'))
 
-    def test_strip_quotes(self):
-        self.assertEqual(split("'foo bar'", True), ("foo bar",))
+    #def test_strip_quotes(self):
+    #    self.assertEqual(split("'foo bar'", True), ("foo bar",))
 
-    def test_strip_quotes_more_quotes(self):
-        self.assertEqual(split("'foo '   'bar '' quux' baz ' peng'''", True),
-                              ("foo ", "bar ", " quux", 'baz', " peng", ""))
+    #def test_strip_quotes_more_quotes(self):
+    #    self.assertEqual(split("'foo '   'bar '' quux' baz ' peng'''", True),
+    #                          ("foo ", "bar ", " quux", 'baz', " peng", ""))
 
