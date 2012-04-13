@@ -233,7 +233,7 @@ Produce ASCII-armored output.
 
 ::
 
-  Usage: export --armor 355A2D28
+  Example: export --armor 355A2D28
 
 :index:`clean`
 --------------
@@ -241,7 +241,7 @@ Remove expired signatures and signatures by keys not on the keyring.
 
 ::
 
-  Usage: import --clean some-keys.asc
+  Example: import --clean some-keys.asc
 
 :index:`expert`
 ---------------
@@ -249,7 +249,7 @@ Enable expert mode, thereby unlocking more algorithm choices.
 
 ::
 
-  Usage: edit --expert 355A2D28
+  Example: edit --expert 355A2D28
 
 :index:`fingerprint`
 --------------------
@@ -258,7 +258,7 @@ to include fingerprints of subkeys.
 
 ::
 
-  Usage: ls --fingerprint 355A2D28
+  Example: ls --fingerprint 355A2D28
 
 :index:`keyserver`
 ------------------
@@ -266,7 +266,7 @@ Specify the keyserver to use.
 
 ::
 
-  Usage: send --keyserver hkp://pgp.surfnet.nl 355A2D28
+  Example: send --keyserver hkp://pgp.surfnet.nl 355A2D28
 
 :index:`local-user`
 -------------------
@@ -274,7 +274,7 @@ Select the identity to use for signing.
 
 ::
 
-  Usage: sign --local-user F848941B 355A2D28
+  Example: sign --local-user F848941B 355A2D28
 
 :index:`merge-only`
 -------------------
@@ -282,7 +282,7 @@ Never add new keys to the keyring, only update existing ones.
 
 ::
 
-  Usage: fetch --merge-only http://somewhere.net/some-keys.asc
+  Example: fetch --merge-only http://somewhere.net/some-keys.asc
 
 :index:`minimal`
 ----------------
@@ -290,7 +290,7 @@ Remove all signatures except the most recent self-signatures.
 
 ::
 
-  Usage: export --minimal 355A2D28
+  Example: export --minimal 355A2D28
 
 :index:`openpgp`
 ----------------
@@ -298,7 +298,7 @@ Constrain algorithms to OpenPGP defined ones.
 
 ::
 
-  Usage: genkey --openpgp
+  Example: genkey --openpgp
 
 :index:`output`
 ---------------
@@ -306,7 +306,7 @@ Specify the output file.
 
 ::
 
-  Usage: export --output stefan.asc 355A2D28
+  Example: export --output stefan.asc 355A2D28
 
 :index:`secret`
 ---------------
@@ -314,7 +314,7 @@ Operate on the secret key part.
 
 ::
 
-  Usage: dump --secret 355A2D28
+  Example: dump --secret 355A2D28
 
 :index:`secret-and-public`
 --------------------------
@@ -322,7 +322,7 @@ Operate on both secret and public key parts.
 
 ::
 
-  Usage: del --secret-and-public 355A2D28
+  Example: del --secret-and-public 355A2D28
 
 :index:`with-colons`
 --------------------
@@ -330,7 +330,7 @@ Print output fields in colon-separated format.
 
 ::
 
-  Usage: listsig --with-colons 355A2D28
+  Example: listsig --with-colons 355A2D28
 
 
 Indices and Tables
