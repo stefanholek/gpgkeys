@@ -46,6 +46,15 @@ class TokenTests(unittest.TestCase):
         self.assertEqual(t.end, 3)
         self.assertEqual(t.type, T_WORD)
 
+    def test_add_assign_token(self):
+        t = Token('foo', 0, 3, T_WORD)
+        t += Token('bar', 12, 15, T_WORD)
+        self.assertTrue(isinstance(t, Token))
+        self.assertEqual(t, 'foobar')
+        self.assertEqual(t.start, 0)
+        self.assertEqual(t.end, 3)
+        self.assertEqual(t.type, T_WORD)
+
     def test_turns_into_str_otherwise(self):
         t = Token('foo', 0, 3, T_WORD)
         s = t.lower()
