@@ -76,7 +76,7 @@ class GPGKeys(kmd.Kmd):
         super(GPGKeys, self).preloop()
         self.completefilename = FilenameCompletion(self.quote_char)
         self.completecommand = CommandCompletion()
-        self.completekeyspec = KeyCompletion()
+        self.completekeyid = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
         self.is_looping = True
 
@@ -500,7 +500,7 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + KEY + OUTPUT)
         if word.follows('--output'):
             return self.completefilename(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_import(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -514,55 +514,55 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + OUTPUT + SECRET + CLEAN + MINIMAL)
         if word.follows('--output'):
             return self.completefilename(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_list(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST + SECRET)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_listsig(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_checksig(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + LIST)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_edit(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN + EXPERT)
         if word.follows('--local-user'):
-            return self.completekeyspec(word.text)
-        return self.completebase(word, self.completekeyspec)
+            return self.completekeyid(word.text)
+        return self.completebase(word, self.completekeyid)
 
     def complete_lsign(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN)
         if word.follows('--local-user'):
-            return self.completekeyspec(word.text)
-        return self.completebase(word, self.completekeyspec)
+            return self.completekeyid(word.text)
+        return self.completebase(word, self.completekeyid)
 
     def complete_sign(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + KEY + SIGN)
         if word.follows('--local-user'):
-            return self.completekeyspec(word.text)
-        return self.completebase(word, self.completekeyspec)
+            return self.completekeyid(word.text)
+        return self.completebase(word, self.completekeyid)
 
     def complete_del(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + DELETE + SECRET)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_search(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -570,7 +570,7 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
         if word.follows('--keyserver'):
             return self.completekeyserver(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_recv(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -578,7 +578,7 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + SERVER + INPUT + CLEAN)
         if word.follows('--keyserver'):
             return self.completekeyserver(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_send(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -586,7 +586,7 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
         if word.follows('--keyserver'):
             return self.completekeyserver(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_refresh(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -594,7 +594,7 @@ class GPGKeys(kmd.Kmd):
             return self.completeoption(word.text, GLOBAL + SERVER + CLEAN)
         if word.follows('--keyserver'):
             return self.completekeyserver(word.text)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_fetch(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
@@ -606,7 +606,7 @@ class GPGKeys(kmd.Kmd):
         word = parseword(line, begidx, endidx)
         if word.isoption:
             return self.completeoption(word.text, GLOBAL + SECRET + CLEAN + MINIMAL)
-        return self.completebase(word, self.completekeyspec)
+        return self.completebase(word, self.completekeyid)
 
     def complete_fdump(self, text, line, begidx, endidx):
         word = parseword(line, begidx, endidx)
