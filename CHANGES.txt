@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.19 - Unreleased
+1.19 - 2012-04-14
 -----------------
 
 - Include command aliases in help screens.
