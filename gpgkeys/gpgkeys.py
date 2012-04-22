@@ -269,8 +269,9 @@ class GPGKeys(kmd.Kmd):
                 self.rc = self.gnupg('--edit-key', *args.tuple)
                 # When the submenu was exited with ^D the cursor
                 # is left in column 6; fix that.
-                if term.getyx()[1] > 1:
-                    self.stdout.write('\n')
+                if self.rc == 0:
+                    if term.getyx()[1] > 1:
+                        self.stdout.write('\n')
             else:
                 self.do_help('edit')
         else:
