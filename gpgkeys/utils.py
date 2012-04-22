@@ -40,9 +40,9 @@ def b(text, encoding='ascii'):
 class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
+    signums = (signal.SIGINT, signal.SIGQUIT)
 
     def __enter__(self):
-        self.signums = (signal.SIGINT, signal.SIGQUIT)
         self.saved = {}
         for signum in self.signums:
             self.saved[signum] = signal.getsignal(signum)
