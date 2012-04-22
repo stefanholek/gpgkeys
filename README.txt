@@ -118,7 +118,7 @@ All keyservers become available for completion after the ``--keyserver`` option.
 Unicode
 -------
 
-The OpenPGP standard allows user IDs to be either Latin-1 or UTF-8 encoded.
+OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
 In order to locate a key via a non-ASCII name, GnuPG requires the
 search string to be encoded correctly. In other words, to match a Latin-1 name
 the search string must itself be Latin-1.
