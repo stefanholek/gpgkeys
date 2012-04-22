@@ -469,7 +469,7 @@ class GPGKeys(kmd.Kmd):
 
     def shell_man(self, *args):
         if args:
-            if self.system('man', *args, stderr=subprocess.PIPE) == 1:
+            if self.system('man', *args, **{'stderr': subprocess.PIPE}) == 1:
                 args = ' '.join(args)
                 self.stderr.write('No manual entry for %s\n' % args)
                 self.rc = 1
