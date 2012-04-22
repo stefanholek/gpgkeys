@@ -129,14 +129,7 @@ class GPGKeys(kmd.Kmd):
             except KeyboardInterrupt:
                 return 1, None
 
-    def system(self, *args, **kw):
-        if self.should_ignore_signals(args):
-            with ignoresignals():
-                return self.popen(*args, **kw)[0]
-        else:
-            return self.popen(*args, **kw)[0]
-
-    def pipe(self, *args, **kw):
+    def getoutput(self, *args, **kw):
         kw = dict(kw)
         kw.setdefault('stdout', subprocess.PIPE)
         rc, stdout = self.popen(*args, **kw)
@@ -146,6 +139,13 @@ class GPGKeys(kmd.Kmd):
             if stdout.strip():
                 return stdout.split('\n', 1)[0]
         return ''
+
+    def system(self, *args, **kw):
+        if self.should_ignore_signals(args):
+            with ignoresignals():
+                return self.popen(*args, **kw)[0]
+        else:
+            return self.popen(*args, **kw)[0]
 
     def gnupg(self, *args, **kw):
         kw = dict(kw)
@@ -439,7 +439,7 @@ class GPGKeys(kmd.Kmd):
 
     def shell_chdir(self, *args):
         if args:
-            dir = self.pipe('cd %s; pwd' % args[0])
+            dir = self.getoutput('cd %s; pwd' % args[0])
         else:
             dir = os.path.expanduser('~')
         if dir:
