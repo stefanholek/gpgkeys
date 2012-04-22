@@ -66,13 +66,13 @@ class GPGKeys(kmd.Kmd):
     def __init__(self, completekey='TAB', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
+        self.quote_char = quote_char
+        self.verbose = verbose
         os.umask(UMASK)
         self.aliases['e'] = 'edit'
         self.aliases['ls'] = 'list'
         self.aliases['ll'] = 'listsig'
-        self.quote_char = quote_char
-        self.verbose = verbose
-        self.is_looping = False # True when the cmd loop is running
+        self.is_looping = False
         self.rc = 0
 
     def preloop(self):
@@ -108,22 +108,16 @@ class GPGKeys(kmd.Kmd):
 
     # Execute subprocesses
 
-    def should_ignore_signals(self, args):
-        for x in ('less', 'more', 'most', 'view', 'man'):
-            if x in args:
-                return True
-
     def popen(self, *args, **kw):
         command = ' '.join(args)
         stdout = kw.get('stdout', None)
         stderr = kw.get('stderr', None)
         verbose = kw.get('verbose', False)
         if self.verbose and verbose:
-            self.stdout.write('gpgkeys: %s\n' % command)
+            self.stderr.write('gpgkeys: %s\n' % command)
         with savetty():
             try:
-                process = subprocess.Popen(command,
-                    shell=True, stdout=stdout, stderr=stderr)
+                process = subprocess.Popen(command, shell=True, stdout=stdout, stderr=stderr)
                 stdout, ignored = process.communicate()
                 return process.returncode, stdout
             except KeyboardInterrupt:
@@ -146,6 +140,11 @@ class GPGKeys(kmd.Kmd):
                 return self.popen(*args, **kw)[0]
         else:
             return self.popen(*args, **kw)[0]
+
+    def should_ignore_signals(self, args):
+        for x in ('less', 'more', 'most', 'view', 'man'):
+            if x in args:
+                return True
 
     def gnupg(self, *args, **kw):
         kw = dict(kw)
@@ -268,7 +267,7 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--edit-key', *args.tuple)
-                # When the submenu is exited with ^D the cursor
+                # When the submenu was exited with ^D the cursor
                 # is left in column 6; fix that.
                 if term.getyx()[1] > 1:
                     self.stdout.write('\n')
