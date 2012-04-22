@@ -22,7 +22,7 @@ from parser import parseword
 
 from utils import surrogateescape
 from utils import ignoresignals
-from utils import savettystate
+from utils import savetty
 from utils import decode
 
 from kmd.completions.filename import FilenameCompletion
@@ -120,7 +120,7 @@ class GPGKeys(kmd.Kmd):
         verbose = kw.get('verbose', False)
         if self.verbose and verbose:
             self.stdout.write('gpgkeys: %s\n' % command)
-        with savettystate():
+        with savetty():
             try:
                 process = subprocess.Popen(command,
                     shell=True, stdout=stdout, stderr=stderr)
