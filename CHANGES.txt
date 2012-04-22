@@ -4,6 +4,15 @@ Changelog
 1.20 - Unreleased
 -----------------
 
+- Save the tty state before executing subprocesses, restore afterwards.
+  [stefan]
+
+- Support Python 2.5.
+  [stefan]
+
+- Require term >= 1.1.
+  [stefan]
+
 
 1.19 - 2012-04-14
 -----------------

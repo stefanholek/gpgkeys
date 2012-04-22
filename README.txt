@@ -139,7 +139,7 @@ gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 Installation
 ============
 
-Installation requires Python 2.6 or higher.
+Installation requires Python 2.5 or higher.
 
 gpgkeys depends on kmd_, which in turn uses the rl_ library. Since rl
 contains a C extension, it is a good idea to review its `installation
