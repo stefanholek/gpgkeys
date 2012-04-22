@@ -1,6 +1,8 @@
 # gpgkeys
 #
 
+from __future__ import with_statement
+
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
