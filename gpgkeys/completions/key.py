@@ -11,13 +11,14 @@ from gpgkeys.config import GNUPGHOME
 from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
+from gpgkeys.utils import b
 
 from kmd.completions.quoting import dequote_string
 from kmd.completions.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-unescape_re = re.compile(br'([\\]x[0-9a-f]{2})')
+unescape_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
 
 if sys.version_info[0] >= 3:
     errors = 'surrogateescape'
@@ -133,9 +134,9 @@ class KeyCompletion(object):
     def parse_keys(self, stdout):
         # Process stdout as byte string since we must run
         # unescape before decoding.
-        for line in stdout.strip().split(b'\n'):
-            if line[:3] == b'pub':
-                fields = line.split(b':')
+        for line in stdout.strip().split(b('\n')):
+            if line[:3] == b('pub'):
+                fields = line.split(b(':'))
                 keyid = fields[4][8:]
                 userid = unescape(fields[9])
                 keyid, key_enc = gpgdecode(keyid)
