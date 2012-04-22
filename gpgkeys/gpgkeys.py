@@ -20,6 +20,7 @@ from parser import parseword
 
 from utils import surrogateescape
 from utils import ignoresignals
+from utils import savettystate
 from utils import decode
 
 from kmd.completions.filename import FilenameCompletion
@@ -117,13 +118,14 @@ class GPGKeys(kmd.Kmd):
         verbose = kw.get('verbose', False)
         if self.verbose and verbose:
             self.stdout.write('gpgkeys: %s\n' % command)
-        try:
-            process = subprocess.Popen(command,
-                shell=True, stdout=stdout, stderr=stderr)
-            stdout, ignored = process.communicate()
-            return process.returncode, stdout
-        except KeyboardInterrupt:
-            return 1, None
+        with savettystate():
+            try:
+                process = subprocess.Popen(command,
+                    shell=True, stdout=stdout, stderr=stderr)
+                stdout, ignored = process.communicate()
+                return process.returncode, stdout
+            except KeyboardInterrupt:
+                return 1, None
 
     def system(self, *args, **kw):
         if self.should_ignore_signals(args):

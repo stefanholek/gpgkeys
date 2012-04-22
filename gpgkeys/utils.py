@@ -1,6 +1,7 @@
 import sys
 import signal
 import locale
+import termios
 
 if sys.version_info[0] >= 3:
     errors = 'surrogateescape'
@@ -57,4 +58,20 @@ class surrogateescape(object):
         import io
         sys.stdin = io.TextIOWrapper(
             sys.stdin.detach(), sys.stdin.encoding, self.saved)
+
+
+class savettystate(object):
+    """Context manager to save and restore the terminal state.
+    Has no effect if sys.stdin is not a tty.
+    """
+
+    def __enter__(self):
+        try:
+            self.saved = termios.tcgetattr(sys.stdin)
+        except termios.error:
+            self.saved = None
+
+    def __exit__(self, *ignored):
+        if self.saved is not None:
+            termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.saved)
 
