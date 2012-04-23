@@ -20,10 +20,11 @@ from parser import splitargs
 from parser import parseargs
 from parser import parseword
 
+from utils import decode
 from utils import surrogateescape
 from utils import ignoresignals
 from utils import savetty
-from utils import decode
+from utils import conditional
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
@@ -88,12 +89,9 @@ class GPGKeys(kmd.Kmd):
         super(GPGKeys, self).postloop()
 
     def input(self, prompt):
-        if sys.version_info[0] >= 3:
-            # Allow surrogates in input
-            # See http://bugs.python.org/issue13342
-            with surrogateescape():
-                return super(GPGKeys, self).input(prompt)
-        else:
+        # Allow surrogates in input
+        # See http://bugs.python.org/issue13342
+        with conditional(sys.version_info[0] >= 3, surrogateescape()):
             return super(GPGKeys, self).input(prompt)
 
     def onecmd(self, line):
@@ -135,10 +133,7 @@ class GPGKeys(kmd.Kmd):
         return ''
 
     def system(self, *args, **kw):
-        if self.should_ignore_signals(args):
-            with ignoresignals():
-                return self.popen(*args, **kw)[0]
-        else:
+        with conditional(self.should_ignore_signals(args), ignoresignals()):
             return self.popen(*args, **kw)[0]
 
     def should_ignore_signals(self, args):

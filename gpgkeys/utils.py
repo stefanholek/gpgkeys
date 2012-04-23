@@ -37,6 +37,24 @@ def b(text, encoding='ascii'):
     return text
 
 
+class conditional(object):
+    """Context manager that wraps a client context manager and
+    enters it only if the condition is true.
+    """
+
+    def __init__(self, condition, client):
+        self.condition = condition
+        self.client = client
+
+    def __enter__(self):
+        if self.condition:
+            return self.client.__enter__()
+
+    def __exit__(self, *ignored):
+        if self.condition:
+            return self.client.__exit__(*ignored)
+
+
 class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
