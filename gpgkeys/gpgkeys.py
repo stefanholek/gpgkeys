@@ -107,7 +107,7 @@ class GPGKeys(kmd.Kmd):
 
     # Execute subprocesses
 
-    def should_ignore_signals(self, args):
+    def has_pager(self, args):
         for x in ('less', 'more', 'most', 'view', 'man'):
             if x in args:
                 return True
@@ -134,7 +134,7 @@ class GPGKeys(kmd.Kmd):
         return ''
 
     def system(self, *args, **kw):
-        with conditional(self.should_ignore_signals(args), ignoresignals()):
+        with conditional(self.has_pager(args), ignoresignals()):
             return self.popen(*args, **kw)[0]
 
     def gnupg(self, *args, **kw):
@@ -258,7 +258,7 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--edit-key', *args.tuple)
-                # When the submenu was exited with ^D the cursor
+                # When the edit menu is exited with ^D the cursor
                 # is left in column 6; fix that.
                 if self.rc == 0:
                     if term.getyx()[1] > 1:
