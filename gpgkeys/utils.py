@@ -90,7 +90,7 @@ class surrogateescape(object):
                 sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
-class savetty(object):
+class savettystate(object):
     """Context manager to save and restore the terminal state.
     Has no effect if sys.stdin is not a tty.
     """
