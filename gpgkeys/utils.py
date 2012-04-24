@@ -38,8 +38,8 @@ def b(text, encoding='ascii'):
 
 
 class conditional(object):
-    """Context manager that wraps a client context manager and
-    enters it only if the condition is true.
+    """Context manager that wraps another context manager,
+    entering it only if the condition is true.
     """
 
     def __init__(self, condition, client):
@@ -73,19 +73,21 @@ class ignoresignals(object):
 
 class surrogateescape(object):
     """Context manager to switch sys.stdin to 'surrogateescape'
-    error handling. Requires Python 3.
+    error handling. Has no effect in Python 2.
     """
 
     def __enter__(self):
-        import io
-        self.saved = sys.stdin.errors
-        sys.stdin = io.TextIOWrapper(
-            sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
+        if sys.version_info[0] >= 3:
+            import io
+            self.saved = sys.stdin.errors
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
 
     def __exit__(self, *ignored):
-        import io
-        sys.stdin = io.TextIOWrapper(
-            sys.stdin.detach(), sys.stdin.encoding, self.saved)
+        if sys.version_info[0] >= 3:
+            import io
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
 class savetty(object):
@@ -94,10 +96,11 @@ class savetty(object):
     """
 
     def __enter__(self):
+        self.saved = None
         try:
             self.saved = termios.tcgetattr(sys.stdin)
         except termios.error:
-            self.saved = None
+            pass
 
     def __exit__(self, *ignored):
         if self.saved is not None:

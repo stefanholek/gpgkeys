@@ -91,7 +91,7 @@ class GPGKeys(kmd.Kmd):
     def input(self, prompt):
         # Allow surrogates in input
         # See http://bugs.python.org/issue13342
-        with conditional(sys.version_info[0] >= 3, surrogateescape()):
+        with surrogateescape():
             return super(GPGKeys, self).input(prompt)
 
     def onecmd(self, line):
