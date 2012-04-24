@@ -38,21 +38,20 @@ def b(text, encoding='ascii'):
 
 
 class conditional(object):
-    """Context manager that wraps another context manager,
-    entering it only if the condition is true.
+    """Wrap another context manager and enter it only if condition is true.
     """
 
-    def __init__(self, condition, client):
+    def __init__(self, condition, contextmanager):
         self.condition = condition
-        self.client = client
+        self.contextmanager = contextmanager
 
     def __enter__(self):
         if self.condition:
-            return self.client.__enter__()
+            return self.contextmanager.__enter__()
 
-    def __exit__(self, *ignored):
+    def __exit__(self, *args):
         if self.condition:
-            return self.client.__exit__(*ignored)
+            return self.contextmanager.__exit__(*args)
 
 
 class ignoresignals(object):
@@ -72,8 +71,9 @@ class ignoresignals(object):
 
 
 class surrogateescape(object):
-    """Context manager to switch sys.stdin to 'surrogateescape'
-    error handling. Has no effect in Python 2.
+    """Context manager to switch sys.stdin to surrogateescape error handling.
+
+    Has no effect under Python 2.
     """
 
     def __enter__(self):
@@ -92,6 +92,7 @@ class surrogateescape(object):
 
 class savettystate(object):
     """Context manager to save and restore the terminal state.
+
     Has no effect if sys.stdin is not a tty.
     """
 
