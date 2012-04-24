@@ -69,20 +69,21 @@ class GPGKeys(kmd.Kmd):
         super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
         self.quote_char = quote_char
         self.verbose = verbose
-        os.umask(UMASK)
+        self.is_looping = False
+        self.rc = 0
         self.aliases['e'] = 'edit'
         self.aliases['ls'] = 'list'
         self.aliases['ll'] = 'listsig'
-        self.is_looping = False
-        self.rc = 0
+        os.umask(UMASK)
 
     def preloop(self):
         super(GPGKeys, self).preloop()
+        self.is_looping = True
+        # Setup completions
         self.completefilename = FilenameCompletion(self.quote_char)
         self.completecommand = CommandCompletion()
         self.completekeyid = KeyCompletion()
         self.completekeyserver = KeyserverCompletion()
-        self.is_looping = True
 
     def postloop(self):
         self.is_looping = False
@@ -106,44 +107,39 @@ class GPGKeys(kmd.Kmd):
 
     # Execute subprocesses
 
+    def should_ignore_signals(self, args):
+        for x in ('less', 'more', 'most', 'view', 'man'):
+            if x in args:
+                return True
+
     def popen(self, *args, **kw):
         command = ' '.join(args)
         stdout = kw.get('stdout', None)
         stderr = kw.get('stderr', None)
-        verbose = kw.get('verbose', False)
-        if self.verbose and verbose:
-            self.stderr.write('gpgkeys: %s\n' % command)
         with savettystate():
             try:
                 process = subprocess.Popen(command, shell=True, stdout=stdout, stderr=stderr)
-                stdout, ignored = process.communicate()
-                return process.returncode, stdout
+                output, ignored = process.communicate()
+                return process.returncode, output
             except KeyboardInterrupt:
                 return 1, None
 
     def getoutput(self, *args, **kw):
-        kw = dict(kw)
-        kw.setdefault('stdout', subprocess.PIPE)
-        rc, stdout = self.popen(*args, **kw)
-        if rc == 0 and stdout is not None:
+        rc, output = self.popen(*args, **dict(kw, stdout=subprocess.PIPE))
+        if rc == 0 and output is not None:
             if sys.version_info[0] >= 3:
-                stdout = decode(stdout)
-            if stdout.strip():
-                return stdout.split('\n', 1)[0]
+                output = decode(output)
+            if output.strip():
+                return output.split('\n', 1)[0]
         return ''
 
     def system(self, *args, **kw):
         with conditional(self.should_ignore_signals(args), ignoresignals()):
             return self.popen(*args, **kw)[0]
 
-    def should_ignore_signals(self, args):
-        for x in ('less', 'more', 'most', 'view', 'man'):
-            if x in args:
-                return True
-
     def gnupg(self, *args, **kw):
-        kw = dict(kw)
-        kw.setdefault('verbose', True)
+        if self.verbose:
+            self.stderr.write('gpgkeys: %s\n' % ' '.join(args))
         return self.system(GNUPGEXE, *args, **kw)
 
     # Commands
