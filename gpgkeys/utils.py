@@ -37,12 +37,29 @@ def b(text, encoding='ascii'):
     return text
 
 
+class conditional(object):
+    """Wrap another context manager and enter it only if condition is true.
+    """
+
+    def __init__(self, condition, contextmanager):
+        self.condition = condition
+        self.contextmanager = contextmanager
+
+    def __enter__(self):
+        if self.condition:
+            return self.contextmanager.__enter__()
+
+    def __exit__(self, *args):
+        if self.condition:
+            return self.contextmanager.__exit__(*args)
+
+
 class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
-    signums = (signal.SIGINT, signal.SIGQUIT)
 
     def __enter__(self):
+        self.signums = (signal.SIGINT, signal.SIGQUIT)
         self.saved = {}
         for signum in self.signums:
             self.saved[signum] = signal.getsignal(signum)
@@ -54,32 +71,37 @@ class ignoresignals(object):
 
 
 class surrogateescape(object):
-    """Context manager to switch sys.stdin to 'surrogateescape'
-    error handling. Requires Python 3.
+    """Context manager to switch sys.stdin to surrogateescape error handling.
+
+    Has no effect under Python 2.
     """
 
     def __enter__(self):
-        import io
-        self.saved = sys.stdin.errors
-        sys.stdin = io.TextIOWrapper(
-            sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
+        if sys.version_info[0] >= 3:
+            import io
+            self.saved = sys.stdin.errors
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
 
     def __exit__(self, *ignored):
-        import io
-        sys.stdin = io.TextIOWrapper(
-            sys.stdin.detach(), sys.stdin.encoding, self.saved)
+        if sys.version_info[0] >= 3:
+            import io
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
-class savetty(object):
+class savettystate(object):
     """Context manager to save and restore the terminal state.
+
     Has no effect if sys.stdin is not a tty.
     """
 
     def __enter__(self):
+        self.saved = None
         try:
             self.saved = termios.tcgetattr(sys.stdin)
         except termios.error:
-            self.saved = None
+            pass
 
     def __exit__(self, *ignored):
         if self.saved is not None:
