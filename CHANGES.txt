@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.20 - Unreleased
+1.20 - 2012-04-27
 -----------------
 
 - Save the tty state before executing subprocesses, restore afterwards.
