@@ -10,7 +10,7 @@ Changelog
 - Support Python 2.5.
   [stefan]
 
-- Require term >= 1.1.
+- Require term >= 2.0.
   [stefan]
 
 
