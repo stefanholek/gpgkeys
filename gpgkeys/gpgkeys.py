@@ -139,7 +139,7 @@ class GPGKeys(kmd.Kmd):
 
     def gnupg(self, *args, **kw):
         if self.verbose:
-            self.stderr.write('gpgkeys: %s\n' % ' '.join(args))
+            self.stderr.write('gpgkeys: %s %s\n' % (GNUPGEXE, ' '.join(args)))
         return self.system(GNUPGEXE, *args, **kw)
 
     # Commands
