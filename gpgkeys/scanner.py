@@ -4,13 +4,14 @@ WHITESPACE = (' ', '\t', '\n')
 QUOTECHARS = ('"', "'")
 
 
-def find_unquoted(s, lx, chars):
-    """Find any one of the characters in chars before lx.
+def find_unquoted(s, end, chars):
+    """Find any one of the characters in 'chars' before 'end'.
+
+    Does not find quote characters.
     """
-    # Doesn't find quote characters
     skip_next = False
     quote_char = ''
-    for i in range(lx):
+    for i in range(end):
         c = s[i]
         if skip_next:
             skip_next = False
@@ -26,15 +27,16 @@ def find_unquoted(s, lx, chars):
     return -1
 
 
-def rfind_unquoted(s, lx, chars):
-    """Find any one of the characters in chars before lx, starting
-    at the end of the string.
+def rfind_unquoted(s, end, chars):
+    """Find any one of the characters in 'chars' before 'end',
+    starting at 'end'.
+
+    Does not find quote characters.
     """
-    # Doesn't find quote characters
     skip_next = False
     quote_char = ''
     result = -1
-    for i in range(lx):
+    for i in range(end):
         c = s[i]
         if skip_next:
             skip_next = False
