@@ -4,6 +4,9 @@ Changelog
 1.21 - Unreleased
 -----------------
 
+- Fix verbose output.
+  [stefan]
+
 
 1.20 - 2012-04-27
 -----------------
