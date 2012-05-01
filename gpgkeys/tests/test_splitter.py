@@ -2,7 +2,7 @@ import unittest
 
 from gpgkeys.splitter import Token, T_WORD
 from gpgkeys.splitter import split
-from gpgkeys.testing import reset
+from gpgkeys.splitter import closequote
 
 
 class TokenTests(unittest.TestCase):
@@ -221,4 +221,23 @@ class SplitSingleQuoteTests(unittest.TestCase):
     #def test_strip_quotes_more_quotes(self):
     #    self.assertEqual(split("'foo '   'bar '' quux' baz ' peng'''", True),
     #                          ("foo ", "bar ", " quux", 'baz', " peng", ""))
+
+
+class CloseQuoteTests(unittest.TestCase):
+
+    def test_close_single_quote(self):
+        t = Token("'foo", 0, 5, T_WORD)
+        self.assertEqual(closequote((t,)), ("'foo'",))
+
+    def test_close_double_quote(self):
+        t = Token('"foo', 0, 5, T_WORD)
+        self.assertEqual(closequote((t,)), ('"foo"',))
+
+    def test_close_last_only(self):
+        t = Token('"foo', 0, 5, T_WORD)
+        self.assertEqual(closequote((t, t)), ('"foo', '"foo"'))
+
+    def test_no_quotes(self):
+        t = Token('foo', 0, 5, T_WORD)
+        self.assertEqual(closequote((t,)), ('foo',))
 
