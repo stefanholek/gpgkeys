@@ -1,6 +1,7 @@
+from kmd.completions.quoting import char_is_quoted
+
 from scanner import WHITESPACE
 from scanner import QUOTECHARS
-from scanner import char_is_quoted
 
 DIGITS = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 SHELL1 = ('>', '<', '|', '&', ';')

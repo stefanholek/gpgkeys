@@ -1,5 +1,3 @@
-from kmd.completions.quoting import char_is_quoted
-
 WHITESPACE = (' ', '\t', '\n')
 QUOTECHARS = ('"', "'")
 
