@@ -1,5 +1,6 @@
-WHITESPACE = (' ', '\t', '\n')
-QUOTECHARS = ('"', "'")
+from kmd.completions.quoting import QUOTE_CHARACTERS
+
+QUOTECHARS = tuple(QUOTE_CHARACTERS)
 
 
 def find_unquoted(s, end, chars):

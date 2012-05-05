@@ -1,14 +1,16 @@
+from kmd.completions.quoting import QUOTE_CHARACTERS
+from kmd.completions.quoting import WHITESPACE_CHARACTERS
 from kmd.completions.quoting import char_is_quoted
 
-from scanner import WHITESPACE
-from scanner import QUOTECHARS
+QUOTECHARS = tuple(QUOTE_CHARACTERS)
+WHITESPACE = tuple(WHITESPACE_CHARACTERS)
 
 DIGITS = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 SHELL1 = ('>', '<', '|', '&', ';')
 SHELL2 = ('>>', '>|', '>&', '&>', '<&', '<>', '<<')
 SHELL3 = ('<<-', '<<<')
 
-WORDBREAKCHARS = WHITESPACE + QUOTECHARS + SHELL1
+WORDBREAKCHARS = QUOTECHARS + WHITESPACE + SHELL1
 
 # Token types
 T_WORD = 1
