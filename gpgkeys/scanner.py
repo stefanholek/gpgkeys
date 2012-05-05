@@ -1,6 +1,9 @@
 from kmd.completions.quoting import QUOTE_CHARACTERS
+from kmd.completions.quoting import WHITESPACE_CHARACTERS
+from kmd.completions.quoting import char_is_quoted
 
 QUOTECHARS = tuple(QUOTE_CHARACTERS)
+WHITESPACE = tuple(WHITESPACE_CHARACTERS)
 
 
 def find_unquoted(s, end, chars):
