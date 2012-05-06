@@ -11,6 +11,7 @@ from rl import print_exc
 from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
+from gpgkeys import scanner
 
 from kmd.completions.quoting import backslash_dequote
 from kmd.completions.quoting import backslash_quote
@@ -183,6 +184,16 @@ class CharIsQuotedTests(unittest.TestCase):
         # Expect the last character in s to not be quoted
         for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
+
+    def test_scanner_true(self):
+        # Expect the last character in s to be quoted
+        for s in self.TRUE:
+            self.assertEqual(scanner.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
+
+    def test_scanner_false(self):
+        # Expect the last character in s to not be quoted
+        for s in self.FALSE:
+            self.assertEqual(scanner.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
 
 
 class DequoteStringTests(FileSetup):
