@@ -149,7 +149,7 @@ To install the ``gpgkeys`` script, type::
 
     easy_install gpgkeys
 
-Then put it on your system PATH by e.g.  symlinking it to ``/usr/local/bin``.
+Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
 
 .. _`installation instructions`: http://pypi.python.org/pypi/rl#installation
 
