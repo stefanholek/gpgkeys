@@ -12,7 +12,7 @@ Introduction
 and keyrings from the command line.
 It comes in the form of a shell, with commands resembling GnuPG CLI commands and
 their options.
-Its main feature is end-to-end TAB completion.
+Its main feature is end-to-end tab completion.
 
 gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
@@ -31,13 +31,13 @@ gpgkeys makes key management easy by:
 
 1. Providing a sensible subset of GnuPG commands, and
 
-2. Using TAB completion to streamline the input process and guide the user
+2. Using tab completion to streamline the input process and guide the user
    through key management tasks.
 
 Example Session
 ---------------
 
-Everything in gpgkeys can be TAB completed: commands, help topics, option flags,
+Everything in gpgkeys can be tab completed: commands, help topics, option flags,
 key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
@@ -124,12 +124,12 @@ search string to be encoded correctly. In other words, to match a Latin-1 name
 the search string must itself be Latin-1.
 
 gpgkeys' key completion keeps track of the original encodings, and every name
-you TAB complete is automatically encoded to match GnuPG's expectations.
-You may sometimes see ? characters in place of non-ASCII characters on the
+you tab-complete is automatically encoded to match GnuPG's expectations.
+You may sometimes see '?' characters in place of non-ASCII characters on the
 command line, which are the result of the above and no reason for concern.
 
 Development
-===========
+-----------
 
 gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 
