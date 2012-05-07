@@ -1,5 +1,5 @@
 =========================================================
-gpgkeys |version| -- GnuPG Frontend
+gpgkeys |version| -- GnuPG Front-end
 =========================================================
 
 .. toctree::
@@ -9,7 +9,7 @@ Usage
 ==================
 ::
 
-    $ gpgkeys [command [options] [args]]
+    $ gpgkeys command [options] [args]
 
 Or to enter the interactive shell::
 
