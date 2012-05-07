@@ -77,12 +77,18 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 Some Details
 ------------
 
-gpgkeys understands shell pipes and input/output redirects. This
-allows command lines like::
+You can use ``cd`` to change the current directory,
+``umask`` to change the umask::
+
+    gpgkeys> .cd subdir/
+    gpgkeys> .pwd
+    /home/stefan/subdir
+
+You can use input/output redirects and pipes::
 
     gpgkeys> export 355A2D28 | pgpdump | less
 
-To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
+To see the commands sent to GnuPG, run gpgkeys with the
 ``-v`` option::
 
     $ gpgkeys -v
@@ -106,7 +112,7 @@ the command loop::
 Keyservers
 ----------
 
-For the recv, refresh, search, and send commands to work nicely, at least one
+For the send, recv, search, and refresh commands to work, at least one
 keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
@@ -119,14 +125,13 @@ Unicode
 -------
 
 OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
-In order to locate a key via a non-ASCII name, GnuPG requires the
-search string to be encoded correctly. In other words, to match a Latin-1 name
-the search string must itself be Latin-1.
+To find keys with non-ASCII IDs, GnuPG requires search strings to be
+encoded accordingly.
 
 gpgkeys' key completion keeps track of the original encodings, and every name
-you tab-complete is automatically encoded to match GnuPG's expectations.
+you tab-complete will automatically be encoded the way GnuPG expects.
 You may sometimes see '?' characters in place of non-ASCII characters on the
-command line, which are the result of the above and no reason for concern.
+command line, which are a result of the above and no reason for concern.
 
 Development
 -----------
