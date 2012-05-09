@@ -7,6 +7,9 @@ Changelog
 - Fix verbose output.
   [stefan]
 
+- Switch to a happier looking Sphinx theme.
+  [stefan]
+
 
 1.20 - 2012-04-27
 -----------------
