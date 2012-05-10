@@ -1,9 +1,19 @@
 =========================================================
-:mod:`gpgkeys` -- A GnuPG front-end
+gpgkeys |version| -- GnuPG front-end
 =========================================================
 
 .. toctree::
    :maxdepth: 2
+
+Usage
+==================
+::
+
+    $ gpgkeys command [options] [args]
+
+Or to enter the interactive shell::
+
+    $ gpgkeys
 
 Commands
 ==================

@@ -413,14 +413,11 @@ class GPGKeys(kmd.Kmd):
             elif cmd == 'man':
                 self.shell_man(*args[1:])
             else:
-                self.shelldefault(*args)
+                self.system(*args)
         else:
             self.system(os.environ.get('SHELL'))
 
     # Shell commands
-
-    def shelldefault(self, *args):
-        self.system(*args)
 
     def shell_ls(self, *args):
         self.system('ls', '-F', *args)
@@ -461,8 +458,7 @@ class GPGKeys(kmd.Kmd):
     def shell_man(self, *args):
         if args:
             if self.system('man', *args, **dict(stderr=subprocess.PIPE)) == 1:
-                args = ' '.join(args)
-                self.stderr.write('No manual entry for %s\n' % args)
+                self.stderr.write('No manual entry for %s\n' % ' '.join(args))
                 self.rc = 1
         else:
             self.stderr.write('What manual page do you want?\n')

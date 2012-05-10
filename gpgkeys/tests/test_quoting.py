@@ -11,6 +11,7 @@ from rl import print_exc
 from gpgkeys.gpgkeys import GPGKeys
 from gpgkeys.testing import JailSetup
 from gpgkeys.testing import reset
+from gpgkeys import scanner
 
 from kmd.completions.quoting import backslash_dequote
 from kmd.completions.quoting import backslash_quote
@@ -183,6 +184,54 @@ class CharIsQuotedTests(unittest.TestCase):
         # Expect the last character in s to not be quoted
         for s in self.FALSE:
             self.assertEqual(char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
+
+    def test_scanner_true(self):
+        # Expect the last character in s to be quoted
+        for s in self.TRUE:
+            self.assertEqual(scanner.char_is_quoted(s, len(s)-1), True, 'not True: %r' % s)
+
+    def test_scanner_false(self):
+        # Expect the last character in s to not be quoted
+        for s in self.FALSE:
+            self.assertEqual(scanner.char_is_quoted(s, len(s)-1), False, 'not False: %r' % s)
+
+
+class FindUnquotedTests(unittest.TestCase):
+
+    def test_find_unquoted(self):
+        s = 'abc > def >'
+        self.assertEqual(scanner.find_unquoted(s, len(s), '>'), 4)
+
+    def test_find_quoted(self):
+        s = 'abc ">" def >'
+        self.assertEqual(scanner.find_unquoted(s, len(s), '>'), 12)
+
+    def test_find_backslash_quoted(self):
+        s = 'abc \\> def >'
+        self.assertEqual(scanner.find_unquoted(s, len(s), '>'), 11)
+
+    def test_find_one_of(self):
+        s = 'abc \\> def | ghi >'
+        self.assertEqual(scanner.find_unquoted(s, len(s), '|>'), 11)
+
+
+class ReverseFindUnquotedTests(unittest.TestCase):
+
+    def test_rfind_unquoted(self):
+        s = 'abc > def >'
+        self.assertEqual(scanner.rfind_unquoted(s, len(s), '>'), 10)
+
+    def test_rfind_quoted(self):
+        s = 'abc > def ">"'
+        self.assertEqual(scanner.rfind_unquoted(s, len(s), '>'), 4)
+
+    def test_rfind_backslash_quoted(self):
+        s = 'abc > def \\>'
+        self.assertEqual(scanner.rfind_unquoted(s, len(s), '>'), 4)
+
+    def test_rfind_one_of(self):
+        s = 'abc > def | ghi >'
+        self.assertEqual(scanner.rfind_unquoted(s, len(s), '|>'), 16)
 
 
 class DequoteStringTests(FileSetup):
