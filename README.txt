@@ -12,7 +12,7 @@ Introduction
 and keyrings from the command line.
 It comes in the form of a shell, with commands resembling GnuPG CLI commands and
 their options.
-Its main feature is end-to-end TAB completion.
+Its main feature is end-to-end tab completion.
 
 gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
@@ -31,13 +31,13 @@ gpgkeys makes key management easy by:
 
 1. Providing a sensible subset of GnuPG commands, and
 
-2. Using TAB completion to streamline the input process and guide the user
+2. Using tab completion to streamline the input process and guide the user
    through key management tasks.
 
 Example Session
 ---------------
 
-Everything in gpgkeys can be TAB completed: commands, help topics, option flags,
+Everything in gpgkeys can be tab completed: commands, help topics, option flags,
 key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
@@ -77,12 +77,18 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 Some Details
 ------------
 
-gpgkeys understands shell pipes and input/output redirects. This
-allows command lines like::
+You can use ``cd`` to change the current directory,
+``umask`` to change the umask::
+
+    gpgkeys> .cd subdir/
+    gpgkeys> .pwd
+    /home/stefan/subdir
+
+You can use input/output redirects and pipes::
 
     gpgkeys> export 355A2D28 | pgpdump | less
 
-To see the commands gpgkeys sends to GnuPG, run gpgkeys with the
+To see the commands sent to GnuPG, run gpgkeys with the
 ``-v`` option::
 
     $ gpgkeys -v
@@ -106,7 +112,7 @@ the command loop::
 Keyservers
 ----------
 
-For the recv, refresh, search, and send commands to work nicely, at least one
+For the send, recv, search, and refresh commands to work, at least one
 keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
@@ -119,17 +125,16 @@ Unicode
 -------
 
 OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
-In order to locate a key via a non-ASCII name, GnuPG requires the
-search string to be encoded correctly. In other words, to match a Latin-1 name
-the search string must itself be Latin-1.
+To find keys with non-ASCII IDs, GnuPG requires search strings to be
+encoded accordingly.
 
 gpgkeys' key completion keeps track of the original encodings, and every name
-you TAB complete is automatically encoded to match GnuPG's expectations.
-You may sometimes see ? characters in place of non-ASCII characters on the
-command line, which are the result of the above and no reason for concern.
+you tab-complete will automatically be encoded the way GnuPG expects.
+You may sometimes see '?' characters in place of non-ASCII characters on the
+command line, which are a result of the above and no reason for concern.
 
 Development
-===========
+-----------
 
 gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 
@@ -149,7 +154,7 @@ To install the ``gpgkeys`` script, type::
 
     easy_install gpgkeys
 
-Then put it on your system PATH by e.g.  symlinking it to ``/usr/local/bin``.
+Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
 
 .. _`installation instructions`: http://pypi.python.org/pypi/rl#installation
 
