@@ -1,7 +1,11 @@
 Changelog
 =========
 
-1.21 - Unreleased
+1.22 - Unreleased
+-----------------
+
+
+1.21 - 2012-05-10
 -----------------
 
 - Fix verbose output.
