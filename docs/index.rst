@@ -108,7 +108,7 @@ Generate a new key pair and certificate.
 
 :index:`genrevoke`
 ------------------
-Generate a revocation certificate for a key pair.
+Generate a revocation certificate for a key.
 
 ::
 

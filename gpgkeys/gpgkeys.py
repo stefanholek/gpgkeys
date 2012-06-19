@@ -182,7 +182,7 @@ class GPGKeys(kmd.Kmd):
             self.rc = 1
 
     def do_genrevoke(self, args):
-        """Generate a revocation certificate for a key pair (Usage: genrevoke <keyspec>)"""
+        """Generate a revocation certificate for a key (Usage: genrevoke <keyspec>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
