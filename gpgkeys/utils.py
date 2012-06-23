@@ -74,19 +74,18 @@ class surrogateescape(object):
 
     Has no effect under Python 2.
     """
+    errors = 'surrogateescape'
 
     def __enter__(self):
         if sys.version_info[0] >= 3:
             import io
             self.saved = sys.stdin.errors
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
+            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.errors)
 
     def __exit__(self, *ignored):
         if sys.version_info[0] >= 3:
             import io
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), sys.stdin.encoding, self.saved)
+            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
 class savettystate(object):
