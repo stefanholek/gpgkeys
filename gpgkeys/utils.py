@@ -9,14 +9,14 @@ else:
     errors = 'replace'
 
 
-def decode(text):
+def decode(string):
     """Decode from the charset of the current locale."""
-    return text.decode(locale.getlocale()[1], errors)
+    return string.decode(locale.getlocale()[1], errors)
 
 
-def encode(text):
+def encode(string):
     """Encode to the charset of the current locale."""
-    return text.encode(locale.getlocale()[1], errors)
+    return string.encode(locale.getlocale()[1], errors)
 
 
 def char(int):
@@ -27,14 +27,14 @@ def char(int):
         return chr(int)
 
 
-def b(text, encoding='ascii'):
+def b(string, encoding='ascii'):
     """Used instead of b'' literals to stay Python 2.5 compatible.
 
     ``encoding`` should match the encoding of the source file.
     """
-    if isinstance(text, unicode):
-        return text.encode(encoding)
-    return text
+    if isinstance(string, unicode):
+        return string.encode(encoding)
+    return string
 
 
 class conditional(object):
