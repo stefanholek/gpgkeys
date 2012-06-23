@@ -59,14 +59,13 @@ class ignoresignals(object):
     """
 
     def __enter__(self):
-        self.signums = (signal.SIGINT, signal.SIGQUIT)
         self.saved = {}
-        for signum in self.signums:
+        for signum in (signal.SIGINT, signal.SIGQUIT):
             self.saved[signum] = signal.getsignal(signum)
             signal.signal(signum, signal.SIG_IGN)
 
     def __exit__(self, *ignored):
-        for signum in self.signums:
+        for signum in (signal.SIGINT, signal.SIGQUIT):
             signal.signal(signum, self.saved[signum])
 
 
