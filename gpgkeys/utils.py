@@ -9,14 +9,14 @@ else:
     errors = 'replace'
 
 
-def decode(text):
+def decode(string):
     """Decode from the charset of the current locale."""
-    return text.decode(locale.getlocale()[1], errors)
+    return string.decode(locale.getlocale()[1], errors)
 
 
-def encode(text):
+def encode(string):
     """Encode to the charset of the current locale."""
-    return text.encode(locale.getlocale()[1], errors)
+    return string.encode(locale.getlocale()[1], errors)
 
 
 def char(int):
@@ -27,14 +27,14 @@ def char(int):
         return chr(int)
 
 
-def b(text, encoding='ascii'):
+def b(string, encoding='utf-8'):
     """Used instead of b'' literals to stay Python 2.5 compatible.
 
     ``encoding`` should match the encoding of the source file.
     """
-    if isinstance(text, unicode):
-        return text.encode(encoding)
-    return text
+    if isinstance(string, unicode):
+        return string.encode(encoding)
+    return string
 
 
 class conditional(object):
@@ -59,14 +59,13 @@ class ignoresignals(object):
     """
 
     def __enter__(self):
-        self.signums = (signal.SIGINT, signal.SIGQUIT)
         self.saved = {}
-        for signum in self.signums:
+        for signum in (signal.SIGINT, signal.SIGQUIT):
             self.saved[signum] = signal.getsignal(signum)
             signal.signal(signum, signal.SIG_IGN)
 
     def __exit__(self, *ignored):
-        for signum in self.signums:
+        for signum in (signal.SIGINT, signal.SIGQUIT):
             signal.signal(signum, self.saved[signum])
 
 
@@ -75,19 +74,18 @@ class surrogateescape(object):
 
     Has no effect under Python 2.
     """
+    errors = 'surrogateescape'
 
     def __enter__(self):
         if sys.version_info[0] >= 3:
             import io
             self.saved = sys.stdin.errors
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), sys.stdin.encoding, 'surrogateescape')
+            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.errors)
 
     def __exit__(self, *ignored):
         if sys.version_info[0] >= 3:
             import io
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), sys.stdin.encoding, self.saved)
+            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
 class savettystate(object):

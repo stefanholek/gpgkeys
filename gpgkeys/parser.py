@@ -123,6 +123,7 @@ class Args(object):
             options.append('--output %s' % self.output)
         if self.keyserver:
             options.append('--keyserver %s' % self.keyserver)
+            options.append('--keyserver-options no-honor-keyserver-url')
         if self.expert:
             options.append('--expert')
         if self.merge_only:
