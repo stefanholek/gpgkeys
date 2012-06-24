@@ -42,7 +42,7 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.22 (type help for help)
+    gpgkeys 1.23 (type help for help)
 
     gpgkeys> help
 
@@ -92,7 +92,7 @@ To see the commands sent to GnuPG, run gpgkeys with the
 ``-v`` option::
 
     $ gpgkeys -v
-    gpgkeys 1.22 (type help for help)
+    gpgkeys 1.23 (type help for help)
 
     gpgkeys> ls 355A2D28
     gpgkeys: gpg --list-keys 355A2D28
