@@ -4,6 +4,10 @@ Changelog
 1.22 - Unreleased
 -----------------
 
+- The ``--keyserver`` option now overrides any preferred keyserver
+  configured for a key.
+  [stefan]
+
 
 1.21 - 2012-05-10
 -----------------
