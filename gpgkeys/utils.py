@@ -57,15 +57,16 @@ class conditional(object):
 class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
+    signums = (signal.SIGINT, signal.SIGQUIT)
 
     def __enter__(self):
         self.saved = {}
-        for signum in (signal.SIGINT, signal.SIGQUIT):
+        for signum in self.signums:
             self.saved[signum] = signal.getsignal(signum)
             signal.signal(signum, signal.SIG_IGN)
 
     def __exit__(self, *ignored):
-        for signum in (signal.SIGINT, signal.SIGQUIT):
+        for signum in self.signums:
             signal.signal(signum, self.saved[signum])
 
 
