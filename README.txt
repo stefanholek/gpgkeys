@@ -116,7 +116,7 @@ For the send, recv, search, and refresh commands to work, at least one
 keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
-    keyserver hkp://pgp.surfnet.nl
+    keyserver hkp://pool.sks-keyservers.net
 
 The last keyserver in gpg.conf becomes the default keyserver.
 All keyservers become available for completion after the ``--keyserver`` option.
