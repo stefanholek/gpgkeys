@@ -648,7 +648,7 @@ class GPGKeys(kmd.Kmd):
                         if compfunc is not None:
                             options = compfunc('-', '-', 0, 1)
 
-                        aliases = [k for (k, v) in self.aliases.items() if v == cmd]
+                        aliases = [k for (k, v) in self.aliases.iteritems() if v == cmd]
                         if cmd in ('shell', 'help'):
                             aliases = [x for x in aliases if x != topic]
                         if topic == 'shell':
