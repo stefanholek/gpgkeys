@@ -19,6 +19,18 @@ def encode(string):
     return string.encode(locale.getlocale()[1], errors)
 
 
+def contentdecode(string, strict=True):
+    """Decode from the preferred charset."""
+    return string.decode(locale.getpreferredencoding(False),
+        'strict' if strict else errors)
+
+
+def contentencode(string, strict=True):
+    """Encode to the preferred charset."""
+    return string.encode(locale.getpreferredencoding(False),
+        'strict' if strict else errors)
+
+
 def char(int):
     """Create a one-character byte string from the ordinal ``int``."""
     if sys.version_info[0] >= 3:
