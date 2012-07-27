@@ -4,6 +4,9 @@ Changelog
 1.23 - Unreleased
 -----------------
 
+- Improve code for the benefit of 2to3.
+  [stefan]
+
 
 1.22 - 2012-06-24
 -----------------
