@@ -32,9 +32,10 @@ def b(string, encoding='utf-8'):
 
     ``encoding`` should match the encoding of the source file.
     """
-    if isinstance(string, unicode):
+    if sys.version_info[0] >= 3:
         return string.encode(encoding)
-    return string
+    else:
+        return string
 
 
 class conditional(object):
