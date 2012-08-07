@@ -1,34 +1,87 @@
 import sys
-import signal
 import locale
+import signal
 import termios
-
-if sys.version_info[0] >= 3:
-    errors = 'surrogateescape'
-else:
-    errors = 'replace'
+import functools
 
 
-def decode(string):
-    """Decode from the charset of the current locale."""
-    return string.decode(locale.getlocale()[1], errors)
+def memoize(func):
+    """Cache forever."""
+    cache = {}
+    def memoizer():
+        if 0 not in cache:
+            cache[0] = func()
+        return cache[0]
+    return functools.wraps(func)(memoizer)
 
 
-def encode(string):
-    """Encode to the charset of the current locale."""
-    return string.encode(locale.getlocale()[1], errors)
+@memoize
+def getpreferredencoding():
+    """Return preferred encoding for text I/O."""
+    encoding = locale.getpreferredencoding(False)
+    if sys.platform == 'darwin' and encoding.startswith('mac-'):
+        # Upgrade ancient MacOS encodings in Python < 2.7
+        encoding = 'utf-8'
+    return encoding
 
 
-def contentdecode(string, strict=True):
-    """Decode from the preferred charset."""
-    return string.decode(locale.getpreferredencoding(False),
-        'strict' if strict else errors)
+def getpreferrederrors():
+    """Return preferred error handler (currently 'replace')."""
+    return 'replace'
 
 
-def contentencode(string, strict=True):
-    """Encode to the preferred charset."""
-    return string.encode(locale.getpreferredencoding(False),
-        'strict' if strict else errors)
+def getinputencoding(stream=None):
+    """Return preferred encoding for reading from ``stream``.
+
+    ``stream`` defaults to sys.stdin.
+    """
+    if stream is None:
+        stream = sys.stdin
+    encoding = stream.encoding
+    if not encoding:
+        # We are reading from a pipe
+        encoding = getpreferredencoding()
+    return encoding
+
+
+def getoutputencoding(stream=None):
+    """Return preferred encoding for writing to ``stream``.
+
+    ``stream`` defaults to sys.stdout.
+    """
+    if stream is None:
+        stream = sys.stdout
+    encoding = stream.encoding
+    if not encoding:
+        # We are writing to a pipe
+        encoding = getpreferredencoding()
+    return encoding
+
+
+def decode(string, encoding=None, errors=None):
+    """Decode from specified encoding.
+
+    ``encoding`` defaults to the preferred encoding.
+    ``errors`` defaults to 'replace'.
+    """
+    if encoding is None:
+        encoding = getpreferredencoding()
+    if errors is None:
+        errors = getpreferrederrors()
+    return string.decode(encoding, errors)
+
+
+def encode(string, encoding=None, errors=None):
+    """Encode to specified encoding.
+
+    ``encoding`` defaults to the preferred encoding.
+    ``errors`` defaults to 'replace'.
+    """
+    if encoding is None:
+        encoding = getpreferredencoding()
+    if errors is None:
+        errors = getpreferrederrors()
+    return string.encode(encoding, errors)
 
 
 def char(int):
