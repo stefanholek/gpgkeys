@@ -119,8 +119,8 @@ class GPGKeys(kmd.Kmd):
         with savettystate():
             try:
                 process = subprocess.Popen(command, shell=True, stdout=stdout, stderr=stderr)
-                output, ignored = process.communicate()
-                return process.returncode, output
+                stdoutdata, stderrdata = process.communicate()
+                return process.returncode, stdoutdata
             except KeyboardInterrupt:
                 return 1, None
 
@@ -130,6 +130,7 @@ class GPGKeys(kmd.Kmd):
             if sys.version_info[0] >= 3:
                 output = decode(output)
             if output.strip():
+                # Return first line only
                 return output.split('\n', 1)[0]
         return ''
 
