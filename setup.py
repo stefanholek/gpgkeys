@@ -1,6 +1,12 @@
+import sys
+import functools
+
 from setuptools import setup, find_packages
 
 version = '1.23'
+
+if sys.version_info[0] >= 3:
+    open = functools.partial(open, encoding='utf-8')
 
 
 setup(name='gpgkeys',
@@ -38,4 +44,3 @@ setup(name='gpgkeys',
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
       },
 )
-
