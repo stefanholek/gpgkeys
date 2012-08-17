@@ -136,27 +136,6 @@ class ignoresignals(object):
             signal.signal(signum, self.saved[signum])
 
 
-class surrogateescape(object):
-    """Context manager to switch sys.stdin to surrogateescape error handling.
-
-    Has no effect under Python 2.
-    """
-
-    def __enter__(self):
-        if sys.version_info[0] >= 3:
-            import io
-            self.saved_encoding = sys.stdin.encoding
-            self.saved_errors = sys.stdin.errors
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), self.saved_encoding, 'surrogateescape')
-
-    def __exit__(self, *ignored):
-        if sys.version_info[0] >= 3:
-            import io
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), self.saved_encoding, self.saved_errors)
-
-
 class savettystate(object):
     """Context manager to save and restore the terminal state.
 
@@ -173,4 +152,29 @@ class savettystate(object):
     def __exit__(self, *ignored):
         if self.saved is not None:
             termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.saved)
+
+
+class surrogateescape(object):
+    """Context manager to switch sys.stdin to surrogateescape error handling.
+
+    Has no effect under Python 2.
+    """
+
+    def __enter__(self):
+        if sys.version_info[0] >= 3:
+            import io
+            self.encoding = sys.stdin.encoding
+            self.errors = sys.stdin.errors
+            self.newline = None if sys.platform == 'win32' else '\n'
+            self.line_buffering = sys.stdin.line_buffering
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), self.encoding, 'surrogateescape',
+                self.newline, self.line_buffering)
+
+    def __exit__(self, *ignored):
+        if sys.version_info[0] >= 3:
+            import io
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), self.encoding, self.errors,
+                self.newline, self.line_buffering)
 
