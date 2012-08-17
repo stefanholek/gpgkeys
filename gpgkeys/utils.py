@@ -4,6 +4,8 @@ import signal
 import termios
 import functools
 
+preferrederrors = 'replace'
+
 
 def memoize(func):
     """Cache forever."""
@@ -27,7 +29,7 @@ def getpreferredencoding():
 
 def getpreferrederrors():
     """Return preferred error handler (currently 'replace')."""
-    return 'replace'
+    return preferrederrors
 
 
 def getinputencoding(stream=None):
