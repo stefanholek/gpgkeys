@@ -7,6 +7,9 @@ Changelog
 - Improve code for the benefit of 2to3.
   [stefan]
 
+- Rewrite Unicode support.
+  [stefan]
+
 
 1.22 - 2012-06-24
 -----------------
