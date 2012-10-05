@@ -126,7 +126,7 @@ Unicode
 
 OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
 To find keys with non-ASCII IDs, GnuPG requires search strings to be
-encoded accordingly.
+encoded the right way.
 
 gpgkeys' key completion keeps track of the original encodings, and every name
 you tab-complete will automatically be encoded the way GnuPG expects.
