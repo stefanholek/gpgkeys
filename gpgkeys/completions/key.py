@@ -8,6 +8,7 @@ from rl import completion
 from gpgkeys.config import GNUPGEXE
 from gpgkeys.config import GNUPGHOME
 
+from gpgkeys.utils import getpreferredencoding
 from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
@@ -19,11 +20,6 @@ from kmd.completions.quoting import quote_string
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
 unescape_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
-
-if sys.version_info[0] >= 3:
-    errors = 'surrogateescape'
-else:
-    errors = 'replace'
 
 
 def unescape(text):
@@ -48,14 +44,14 @@ def gpgdecode(text):
     """
     try:
         encoding = 'utf-8'
-        text = text.decode(encoding)
+        text = decode(text, encoding, errors='strict')
     except UnicodeDecodeError:
         try:
             encoding = 'latin-1'
-            text = text.decode(encoding)
+            text = decode(text, encoding, errors='strict')
         except UnicodeDecodeError:
-            encoding = 'utf-8'
-            text = text.decode(encoding, errors)
+            encoding = getpreferredencoding()
+            text = decode(text, encoding)
     return text, encoding
 
 
@@ -128,13 +124,13 @@ class KeyCompletion(object):
     def read_keys(self):
         process = subprocess.Popen(GNUPGEXE+' --list-keys --with-colons',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        return self.parse_keys(stdout)
+        stdoutdata, stderrdata = process.communicate()
+        return self.parse_keys(stdoutdata)
 
-    def parse_keys(self, stdout):
-        # Process stdout as byte string since we must run
+    def parse_keys(self, stdoutdata):
+        # Process stdoutdata as byte string since we must run
         # unescape before decoding.
-        for line in stdout.strip().split(b('\n')):
+        for line in stdoutdata.strip().split(b('\n')):
             if line[:3] == b('pub'):
                 fields = line.split(b(':'))
                 keyid = fields[4][8:]
@@ -160,7 +156,8 @@ class KeyCompletion(object):
         if encoding is None:
             return text
         if sys.version_info[0] >= 3:
-            return decode(text.encode(encoding))
+            # sys.stdin is set up for surrogates in GPGKeys.input()
+            return decode(encode(text, encoding), errors='surrogateescape')
         else:
-            return decode(text).encode(encoding)
+            return encode(decode(text), encoding)
 

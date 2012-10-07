@@ -2,7 +2,7 @@
 gpgkeys
 =======
 ---------------------
-A front-end for GnuPG
+A GnuPG Shell
 ---------------------
 
 Introduction
@@ -24,15 +24,14 @@ libraries.
 Motivation
 ----------
 
-The GnuPG CLI is very powerful - and with great power comes
+The GnuPG CLI is very powerful – and with great power comes
 great incomprehensibility.
 
 gpgkeys makes key management easy by:
 
 1. Providing a sensible subset of GnuPG commands, and
-
-2. Using tab completion to streamline the input process and guide the user
-   through key management tasks.
+2. Using tab completion to streamline the input process and
+   guide the user through key management tasks.
 
 Example Session
 ---------------
@@ -42,7 +41,7 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.22 (type help for help)
+    gpgkeys 1.23 (type help for help)
 
     gpgkeys> help
 
@@ -74,11 +73,12 @@ key ids, user names, file names, shell commands, and keyserver URLs.
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-Some Details
+Features
 ------------
 
+Command lines prefixed with '.' or '!' are executed by the shell.
 You can use ``cd`` to change the current directory,
-``umask`` to change the umask::
+``umask`` to change the umask, and of course everything else::
 
     gpgkeys> .cd subdir/
     gpgkeys> .pwd
@@ -92,7 +92,7 @@ To see the commands sent to GnuPG, run gpgkeys with the
 ``-v`` option::
 
     $ gpgkeys -v
-    gpgkeys 1.22 (type help for help)
+    gpgkeys 1.23 (type help for help)
 
     gpgkeys> ls 355A2D28
     gpgkeys: gpg --list-keys 355A2D28
@@ -116,7 +116,7 @@ For the send, recv, search, and refresh commands to work, at least one
 keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
-    keyserver hkp://pgp.surfnet.nl
+    keyserver hkp://pool.sks-keyservers.net
 
 The last keyserver in gpg.conf becomes the default keyserver.
 All keyservers become available for completion after the ``--keyserver`` option.
@@ -126,7 +126,7 @@ Unicode
 
 OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
 To find keys with non-ASCII IDs, GnuPG requires search strings to be
-encoded accordingly.
+encoded the right way.
 
 gpgkeys' key completion keeps track of the original encodings, and every name
 you tab-complete will automatically be encoded the way GnuPG expects.
@@ -144,7 +144,7 @@ gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 Installation
 ============
 
-Installation requires Python 2.5 or higher.
+Installation requires Python 2.5 or higher, including Python 3.3.
 
 gpgkeys depends on kmd_, which in turn uses the rl_ library. Since rl
 contains a C extension, it is a good idea to review its `installation

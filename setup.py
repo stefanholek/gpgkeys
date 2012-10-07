@@ -1,15 +1,24 @@
+import sys
+import functools
+
 from setuptools import setup, find_packages
 
-version = '1.22'
+version = '1.23'
+
+if sys.version_info[0] >= 3:
+    open = functools.partial(open, encoding='utf-8')
 
 
 setup(name='gpgkeys',
       version=version,
-      description='A front-end for GnuPG',
+      description='A GnuPG Shell',
       long_description=open('README.txt').read() + '\n' +
                        open('CHANGES.txt').read(),
       classifiers=[
           'Development Status :: 5 - Production/Stable',
+          'Environment :: Console',
+          'Intended Audience :: End Users/Desktop',
+          'Intended Audience :: System Administrators',
           'License :: OSI Approved :: GNU General Public License (GPL)',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: POSIX',
@@ -28,6 +37,7 @@ setup(name='gpgkeys',
       test_suite='gpgkeys.tests',
       install_requires=[
           'setuptools',
+          'rl >= 2.4',
           'kmd >= 2.2',
           'term >= 2.0',
       ],
@@ -35,4 +45,3 @@ setup(name='gpgkeys',
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
       },
 )
-

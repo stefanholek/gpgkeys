@@ -1,22 +1,87 @@
 import sys
-import signal
 import locale
+import signal
 import termios
+import functools
 
-if sys.version_info[0] >= 3:
-    errors = 'surrogateescape'
-else:
-    errors = 'replace'
+preferrederrors = 'replace'
 
 
-def decode(string):
-    """Decode from the charset of the current locale."""
-    return string.decode(locale.getlocale()[1], errors)
+def memoize(func):
+    """Cache forever."""
+    cache = {}
+    def memoizer():
+        if 0 not in cache:
+            cache[0] = func()
+        return cache[0]
+    return functools.wraps(func)(memoizer)
 
 
-def encode(string):
-    """Encode to the charset of the current locale."""
-    return string.encode(locale.getlocale()[1], errors)
+@memoize
+def getpreferredencoding():
+    """Return preferred encoding for text I/O."""
+    encoding = locale.getpreferredencoding(False)
+    if sys.platform == 'darwin' and encoding.startswith('mac-'):
+        # Upgrade ancient MacOS encodings in Python < 2.7
+        encoding = 'utf-8'
+    return encoding
+
+
+def getpreferrederrors():
+    """Return preferred error handler (currently 'replace')."""
+    return preferrederrors
+
+
+def getinputencoding(stream=None):
+    """Return preferred encoding for reading from ``stream``.
+
+    ``stream`` defaults to sys.stdin.
+    """
+    if stream is None:
+        stream = sys.stdin
+    encoding = stream.encoding
+    if not encoding:
+        encoding = getpreferredencoding()
+    return encoding
+
+
+def getoutputencoding(stream=None):
+    """Return preferred encoding for writing to ``stream``.
+
+    ``stream`` defaults to sys.stdout.
+    """
+    if stream is None:
+        stream = sys.stdout
+    encoding = stream.encoding
+    if not encoding:
+        encoding = getpreferredencoding()
+    return encoding
+
+
+def decode(string, encoding=None, errors=None):
+    """Decode from specified encoding.
+
+    ``encoding`` defaults to the preferred encoding.
+    ``errors`` defaults to the preferred error handler.
+    """
+    if encoding is None:
+        encoding = getpreferredencoding()
+    if errors is None:
+        errors = getpreferrederrors()
+    return string.decode(encoding, errors)
+
+
+def encode(string, encoding=None, errors=None):
+    """Encode to specified encoding.
+
+    ``encoding`` defaults to the preferred encoding.
+    ``errors`` defaults to the preferred error handler.
+    """
+    if encoding is None:
+        encoding = getpreferredencoding()
+    if errors is None:
+        errors = getpreferrederrors()
+    return string.encode(encoding, errors)
 
 
 def char(int):
@@ -32,9 +97,10 @@ def b(string, encoding='utf-8'):
 
     ``encoding`` should match the encoding of the source file.
     """
-    if isinstance(string, unicode):
+    if sys.version_info[0] >= 3:
         return string.encode(encoding)
-    return string
+    else:
+        return string
 
 
 class conditional(object):
@@ -57,35 +123,17 @@ class conditional(object):
 class ignoresignals(object):
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
+    signums = (signal.SIGINT, signal.SIGQUIT)
 
     def __enter__(self):
         self.saved = {}
-        for signum in (signal.SIGINT, signal.SIGQUIT):
+        for signum in self.signums:
             self.saved[signum] = signal.getsignal(signum)
             signal.signal(signum, signal.SIG_IGN)
 
     def __exit__(self, *ignored):
-        for signum in (signal.SIGINT, signal.SIGQUIT):
+        for signum in self.signums:
             signal.signal(signum, self.saved[signum])
-
-
-class surrogateescape(object):
-    """Context manager to switch sys.stdin to surrogateescape error handling.
-
-    Has no effect under Python 2.
-    """
-    errors = 'surrogateescape'
-
-    def __enter__(self):
-        if sys.version_info[0] >= 3:
-            import io
-            self.saved = sys.stdin.errors
-            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.errors)
-
-    def __exit__(self, *ignored):
-        if sys.version_info[0] >= 3:
-            import io
-            sys.stdin = io.TextIOWrapper(sys.stdin.detach(), sys.stdin.encoding, self.saved)
 
 
 class savettystate(object):
@@ -104,4 +152,29 @@ class savettystate(object):
     def __exit__(self, *ignored):
         if self.saved is not None:
             termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.saved)
+
+
+class surrogateescape(object):
+    """Context manager to switch sys.stdin to surrogateescape error handling.
+
+    Has no effect under Python 2.
+    """
+
+    def __enter__(self):
+        if sys.version_info[0] >= 3:
+            import io
+            self.encoding = sys.stdin.encoding
+            self.errors = sys.stdin.errors
+            self.newline = None if sys.platform == 'win32' else '\n'
+            self.line_buffering = sys.stdin.line_buffering
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), self.encoding, 'surrogateescape',
+                self.newline, self.line_buffering)
+
+    def __exit__(self, *ignored):
+        if sys.version_info[0] >= 3:
+            import io
+            sys.stdin = io.TextIOWrapper(
+                sys.stdin.detach(), self.encoding, self.errors,
+                self.newline, self.line_buffering)
 

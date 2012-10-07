@@ -1,6 +1,19 @@
 Changelog
 =========
 
+1.23 - 2012-10-07
+-----------------
+
+- Improve code for the benefit of 2to3.
+  [stefan]
+
+- Rewrite Unicode support.
+  [stefan]
+
+- Upgrade to rl 2.4 for Python 3.3 support.
+  [stefan]
+
+
 1.22 - 2012-06-24
 -----------------
 
