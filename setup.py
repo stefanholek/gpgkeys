@@ -11,7 +11,7 @@ if sys.version_info[0] >= 3:
 
 setup(name='gpgkeys',
       version=version,
-      description='A front-end for GnuPG',
+      description='A GnuPG Shell',
       long_description=open('README.txt').read() + '\n' +
                        open('CHANGES.txt').read(),
       classifiers=[

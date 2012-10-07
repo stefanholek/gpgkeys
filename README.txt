@@ -2,7 +2,7 @@
 gpgkeys
 =======
 ---------------------
-A front-end for GnuPG
+A GnuPG Shell
 ---------------------
 
 Introduction
