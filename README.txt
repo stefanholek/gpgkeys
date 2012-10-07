@@ -30,9 +30,8 @@ great incomprehensibility.
 gpgkeys makes key management easy by:
 
 1. Providing a sensible subset of GnuPG commands, and
-
-2. Using tab completion to streamline the input process and guide the user
-   through key management tasks.
+2. Using tab completion to streamline the input process and
+   guide the user through key management tasks.
 
 Example Session
 ---------------
@@ -74,11 +73,12 @@ key ids, user names, file names, shell commands, and keyserver URLs.
     gpgkeys> .ls
     alice.asc             stefan.asc
 
-Some Details
+Features
 ------------
 
+Command lines prefixed with '.' or '!' are executed by the shell.
 You can use ``cd`` to change the current directory,
-``umask`` to change the umask::
+``umask`` to change the umask, and of course everything else::
 
     gpgkeys> .cd subdir/
     gpgkeys> .pwd
@@ -144,7 +144,7 @@ gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 Installation
 ============
 
-Installation requires Python 2.5 or higher.
+Installation requires Python 2.5 or higher, including Python 3.3.
 
 gpgkeys depends on kmd_, which in turn uses the rl_ library. Since rl
 contains a C extension, it is a good idea to review its `installation
