@@ -3,7 +3,7 @@ import functools
 
 from setuptools import setup, find_packages
 
-version = '1.23'
+version = '1.24'
 
 if sys.version_info[0] >= 3:
     open = functools.partial(open, encoding='utf-8')
