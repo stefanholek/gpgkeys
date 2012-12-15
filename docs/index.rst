@@ -205,7 +205,7 @@ Send keys to a keyserver.
 
 ::
 
-  Usage: send <keyspec>
+  Usage: send <keyids>
   Options: --clean --keyserver
 
 :index:`shell`

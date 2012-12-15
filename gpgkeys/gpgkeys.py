@@ -336,7 +336,7 @@ class GPGKeys(kmd.Kmd):
             self.rc = 1
 
     def do_send(self, args):
-        """Send keys to a keyserver (Usage: send <keyspec>)"""
+        """Send keys to a keyserver (Usage: send <keyids>)"""
         args = parseargs(args)
         if args.ok:
             if args.args:
