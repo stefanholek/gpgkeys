@@ -76,6 +76,10 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 Features
 ------------
 
+The order of options and arguments on the command line is not important::
+
+    gpgkeys> export 355A2D28 --armor > stefan.asc
+
 Command lines prefixed with '.' or '!' are executed by the shell.
 You can use ``cd`` to change the current directory,
 ``umask`` to change the umask, and of course everything else::
