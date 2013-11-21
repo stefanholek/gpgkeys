@@ -18,8 +18,8 @@ gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
 
 .. _GnuPG: http://www.gnupg.org/
-.. _kmd: http://pypi.python.org/pypi/kmd
-.. _rl: http://pypi.python.org/pypi/rl
+.. _kmd: https://pypi.python.org/pypi/kmd
+.. _rl: https://pypi.python.org/pypi/rl
 
 Motivation
 ----------
@@ -160,7 +160,7 @@ To install the ``gpgkeys`` script, type::
 
 Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
 
-.. _`installation instructions`: http://pypi.python.org/pypi/rl#installation
+.. _`installation instructions`: https://pypi.python.org/pypi/rl#installation
 
 Requirements
 ============
