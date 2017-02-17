@@ -7,6 +7,9 @@ Changelog
 - Fix documentation bug: The send command only accepts key IDs.
   [stefan]
 
+- Fix newline glitch in sign and lsign commands.
+  [stefan]
+
 
 1.23 - 2012-10-07
 -----------------

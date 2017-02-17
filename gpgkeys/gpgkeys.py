@@ -259,11 +259,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--edit-key', *args.tuple)
-                # When the edit menu is exited with ^D the cursor
-                # is left in column 6; fix that.
                 if self.rc == 0:
-                    if term.getyx()[1] > 1:
-                        self.stdout.write('\n')
+                    self.newline()
             else:
                 self.do_help('edit')
         else:
@@ -276,6 +273,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--lsign-key', *args.tuple)
+                if self.rc == 0:
+                    self.newline()
             else:
                 self.do_help('lsign')
         else:
@@ -288,6 +287,8 @@ class GPGKeys(kmd.Kmd):
         if args.ok:
             if args.args:
                 self.rc = self.gnupg('--sign-key', *args.tuple)
+                if self.rc == 0:
+                    self.newline()
             else:
                 self.do_help('sign')
         else:
@@ -417,6 +418,12 @@ class GPGKeys(kmd.Kmd):
                 self.system(*args)
         else:
             self.system(os.environ.get('SHELL'))
+
+    def newline(self):
+        # When the edit menu is exited with ^D the cursor
+        # is left in column 6; fix that.
+        if term.getyx()[1] > 1:
+            self.stdout.write('\n')
 
     # Shell commands
 
