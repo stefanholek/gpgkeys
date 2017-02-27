@@ -1,13 +1,15 @@
+from __future__ import absolute_import
+
 import os
 import sys
 import getopt
 
-from scanner import find_unquoted
-from scanner import rfind_unquoted
+from .scanner import find_unquoted
+from .scanner import rfind_unquoted
 
-from splitter import split
-from splitter import closequote
-from splitter import splitpipe
+from .splitter import split
+from .splitter import closequote
+from .splitter import splitpipe
 
 
 def splitargs(args):
@@ -70,7 +72,7 @@ class Args(object):
     def parse(self, args):
         try:
             options, args = getopt.gnu_getopt(args, '', self.long_options)
-        except getopt.GetoptError, e:
+        except getopt.GetoptError as e:
             self.error = e
         else:
             for name, value in options:

@@ -2,6 +2,8 @@
 #
 
 from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
@@ -16,23 +18,23 @@ import subprocess
 import kmd
 import term
 
-from parser import splitargs
-from parser import parseargs
-from parser import parseword
+from .parser import splitargs
+from .parser import parseargs
+from .parser import parseword
 
-from utils import decode
-from utils import surrogateescape
-from utils import ignoresignals
-from utils import savettystate
-from utils import conditional
+from .utils import decode
+from .utils import surrogateescape
+from .utils import ignoresignals
+from .utils import savettystate
+from .utils import conditional
 
 from kmd.completions.filename import FilenameCompletion
 from kmd.completions.command import CommandCompletion
-from completions.key import KeyCompletion
-from completions.keyserver import KeyserverCompletion
+from .completions.key import KeyCompletion
+from .completions.keyserver import KeyserverCompletion
 
-from config import GNUPGEXE
-from config import UMASK
+from .config import GNUPGEXE
+from .config import UMASK
 
 GLOBAL  = []
 KEY     = ['--openpgp']
@@ -441,7 +443,7 @@ class GPGKeys(kmd.Kmd):
         if dir:
             try:
                 os.chdir(dir)
-            except OSError, e:
+            except OSError as e:
                 self.stderr.write('%s\n' % (e,))
                 self.rc = 1
 
@@ -450,14 +452,14 @@ class GPGKeys(kmd.Kmd):
             if self.system('umask', *args) == 0:
                 try:
                     mask = int(args[0], 8)
-                except ValueError, e:
+                except ValueError as e:
                     self.stderr.write('%s\n' % (e,))
                     self.rc = 1
                 else:
                     if mask < 512:
                         try:
                             os.umask(mask)
-                        except OSError, e:
+                        except OSError as e:
                             self.stderr.write('%s\n' % (e,))
                             self.rc = 1
         else:
@@ -656,7 +658,7 @@ class GPGKeys(kmd.Kmd):
                         if compfunc is not None:
                             options = compfunc('-', '-', 0, 1)
 
-                        aliases = [k for (k, v) in self.aliases.iteritems() if v == cmd]
+                        aliases = [k for (k, v) in self.aliases.items() if v == cmd]
                         if cmd in ('shell', 'help'):
                             aliases = [x for x in aliases if x != topic]
                         if topic == 'shell':
@@ -696,8 +698,8 @@ def main(args=None):
 
     try:
         options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose', 'version'))
-    except getopt.GetoptError, e:
-        print >>sys.stderr, 'gpgkeys:', e
+    except getopt.GetoptError as e:
+        print('gpgkeys:', e, file=sys.stderr)
         return 1
 
     for name, value in options:
@@ -714,10 +716,10 @@ def main(args=None):
 
     if help:
         shell.help()
-        print "Type 'gpgkeys' to start the interactive shell.\n"
+        print("Type 'gpgkeys' to start the interactive shell.\n")
         return 0
     if version:
-        print 'gpgkeys', __version__
+        print('gpgkeys', __version__)
         return 0
 
     return shell.run(args)

@@ -1,6 +1,8 @@
-from scanner import QUOTECHARS
-from scanner import WHITESPACE
-from scanner import char_is_quoted
+from __future__ import absolute_import
+
+from .scanner import QUOTECHARS
+from .scanner import WHITESPACE
+from .scanner import char_is_quoted
 
 DIGITS = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 SHELL1 = ('>', '<', '|', '&', ';')

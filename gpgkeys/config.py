@@ -1,6 +1,6 @@
 import os
 
-UMASK = 0077
+UMASK = 0o077
 
 GNUPGEXE = 'gpg2'
 
