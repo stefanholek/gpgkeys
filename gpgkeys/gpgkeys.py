@@ -28,8 +28,8 @@ from .utils import ignoresignals
 from .utils import savettystate
 from .utils import conditional
 
-from kmd.completions.filename import FilenameCompletion
-from kmd.completions.command import CommandCompletion
+from kmd.completions import FilenameCompletion
+from kmd.completions import CommandCompletion
 from .completions.key import KeyCompletion
 from .completions.keyserver import KeyserverCompletion
 

@@ -275,6 +275,7 @@ class DirectoryCompletionHookTests(JailSetup):
             called.append((text,))
             return text
 
+        completer.directory_rewrite_hook = None
         completer.directory_completion_hook = hook
         self.assertEqual(self.complete('fdump funny\\ dir/f'),
                                        'fdump funny\\ dir/foo.')

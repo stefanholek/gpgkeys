@@ -14,8 +14,8 @@ from gpgkeys.utils import encode
 from gpgkeys.utils import char
 from gpgkeys.utils import b
 
-from kmd.completions.quoting import dequote_string
-from kmd.completions.quoting import quote_string
+from kmd.quoting import dequote_string
+from kmd.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
