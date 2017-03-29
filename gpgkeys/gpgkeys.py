@@ -716,7 +716,7 @@ def main(args=None):
 
     if help:
         shell.help()
-        print("Type 'gpgkeys' to start the interactive shell.\n")
+        print("Type '%s' to start the interactive shell.\n" % sys.argv[0])
         return 0
     if version:
         print('gpgkeys', __version__)
