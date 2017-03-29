@@ -6,7 +6,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import locale
-locale.setlocale(locale.LC_ALL, '')
+try:
+    locale.setlocale(locale.LC_ALL, '')
+except locale.Error:
+    pass
 
 import pkg_resources
 __version__ = pkg_resources.get_distribution('gpgkeys').version
