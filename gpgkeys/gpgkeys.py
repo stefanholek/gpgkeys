@@ -33,8 +33,8 @@ from .utils import conditional
 
 from kmd.completions import FilenameCompletion
 from kmd.completions import CommandCompletion
-from .completions.key import KeyCompletion
-from .completions.keyserver import KeyserverCompletion
+from .completions import KeyCompletion
+from .completions import KeyserverCompletion
 
 from .config import GNUPGEXE
 from .config import UMASK
