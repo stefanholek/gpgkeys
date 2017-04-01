@@ -122,7 +122,7 @@ class KeyCompletion(object):
             self.mtimes = mtimes
 
     def read_keys(self):
-        process = subprocess.Popen(GNUPGEXE+' --list-keys --with-colons',
+        process = subprocess.Popen(GNUPGEXE+' --list-keys --with-colons --fixed-list-mode',
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdoutdata, stderrdata = process.communicate()
         return self.parse_keys(stdoutdata)
