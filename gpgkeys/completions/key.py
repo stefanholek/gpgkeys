@@ -130,15 +130,20 @@ class KeyCompletion(object):
     def parse_keys(self, stdoutdata):
         # Process stdoutdata as byte string since we must run
         # unescape before decoding.
+        keyid = ''
+        key_enc = ''
         for line in stdoutdata.strip().split(b('\n')):
             if line[:3] == b('pub'):
                 fields = line.split(b(':'))
                 keyid = fields[4][8:]
-                userid = unescape(fields[9])
                 keyid, key_enc = gpgdecode(keyid)
-                userid, user_enc = gpgdecode(userid)
                 if sys.version_info[0] < 3:
                     keyid = encode(keyid)
+            if line[:3] == b('uid'):
+                fields = line.split(b(':'))
+                userid = unescape(fields[9])
+                userid, user_enc = gpgdecode(userid)
+                if sys.version_info[0] < 3:
                     userid = encode(userid)
                 self.encodings.setdefault(userid, user_enc)
                 yield (keyid, userid)
