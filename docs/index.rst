@@ -68,7 +68,7 @@ Enter the key edit menu.
 ::
 
   Usage: edit <keyspec>
-  Options: --expert --local-user --openpgp
+  Options: --ask-cert-level --expert --local-user --openpgp
   Aliases: e
 
 :index:`export`
@@ -162,7 +162,7 @@ Sign a key with a local signature.
 ::
 
   Usage: lsign <keyspec>
-  Options: --local-user --openpgp
+  Options: --ask-cert-level --local-user --openpgp
 
 :index:`quit`
 -------------
@@ -224,7 +224,7 @@ Sign a key with an exportable signature.
 ::
 
   Usage: sign <keyspec>
-  Options: --local-user --openpgp
+  Options: --ask-cert-level --local-user --openpgp
 
 :index:`version`
 ----------------
@@ -244,6 +244,14 @@ Produce ASCII-armored output.
 ::
 
   Example: export --armor 355A2D28
+
+:index:`ask-cert-level`
+-----------------------
+Prompt for a certification level.
+
+::
+
+  Example: sign --ask-cert-level 355A2D28
 
 :index:`clean`
 --------------

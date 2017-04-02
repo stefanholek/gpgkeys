@@ -41,7 +41,7 @@ from .config import UMASK
 
 GLOBAL  = []
 KEY     = ['--openpgp']
-SIGN    = ['--local-user']
+SIGN    = ['--ask-cert-level', '--local-user']
 LIST    = ['--fingerprint', '--with-colons']
 INPUT   = ['--merge-only']
 OUTPUT  = ['--armor', '--output']

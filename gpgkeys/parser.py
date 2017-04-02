@@ -49,7 +49,8 @@ class Args(object):
                     'keyserver=',
                     'expert',
                     'secret',
-                    'secret-and-public')
+                    'secret-and-public',
+                    'ask-cert-level')
 
     def __init__(self):
         self.openpgp = False
@@ -65,6 +66,7 @@ class Args(object):
         self.expert = False
         self.secret = False
         self.secret_and_public = False
+        self.ask_cert_level = False
         self.args = ()
         self.pipe = ()
         self.error = None
@@ -102,6 +104,8 @@ class Args(object):
                     self.secret = True
                 elif name == '--secret-and-public':
                     self.secret_and_public = True
+                elif name == '--ask-cert-level':
+                    self.ask_cert_level = True
             self.args = tuple(args)
 
     @property
@@ -139,6 +143,12 @@ class Args(object):
         if self.minimal:
             options.append('--import-options import-minimal')
             options.append('--export-options export-minimal')
+        if self.secret:
+            options.append('--secret')
+        if self.secret_and_public:
+            options.append('--secret-and-public')
+        if self.ask_cert_level:
+            options.append('--ask-cert-level')
         return tuple(options)
 
     @property
