@@ -700,7 +700,7 @@ def main(args=None):
         args = sys.argv[1:]
 
     try:
-        options, args = getopt.getopt(args, 'hq:v', ('help', 'quote-char=', 'verbose', 'version'))
+        options, args = getopt.getopt(args, 'hq:vV', ('help', 'quote-char=', 'verbose', 'version'))
     except getopt.GetoptError as e:
         print('gpgkeys:', e, file=sys.stderr)
         return 1
@@ -712,19 +712,28 @@ def main(args=None):
             verbose = True
         elif name in ('-h', '--help'):
             help = True
-        elif name in ('--version',):
+        elif name in ('-V', '--version',):
             version = True
 
-    shell = GPGKeys(quote_char=quote_char, verbose=verbose)
-
     if help:
-        shell.help()
-        print("Type '%s' to start the interactive shell.\n" % sys.argv[0])
+        print("""\
+Usage: gpgkeys [options] [command [options] [args]]
+
+A GnuPG shell
+
+Options:
+  -q, --quote-char    Select the default quoting style.
+  -v, --verbose       Print gpg/gpg2 command lines.
+  -h, --help          Print this help message and exit.
+  -V, --version       Print the version string and exit.
+
+Type '%s' to start the interactive shell.\n""" % sys.argv[0], file=sys.stderr)
         return 0
     if version:
         print('gpgkeys', __version__)
         return 0
 
+    shell = GPGKeys(quote_char=quote_char, verbose=verbose)
     return shell.run(args)
 
 
