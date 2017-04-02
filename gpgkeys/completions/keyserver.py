@@ -1,6 +1,6 @@
 import os
 
-from gpgkeys.config import GNUPGHOME
+from gpgkeys.config import GNUPGCONF
 
 
 class KeyserverCompletion(object):
@@ -11,8 +11,7 @@ class KeyserverCompletion(object):
     """
 
     def __init__(self):
-        self.gpgconf = os.path.join(GNUPGHOME, 'gpg.conf')
-        self.options = os.path.join(GNUPGHOME, 'options')
+        self.gpgconf = GNUPGCONF
         self.mtime = 0
         self.servers = []
 
@@ -29,8 +28,6 @@ class KeyserverCompletion(object):
     def read_servers(self):
         if os.path.isfile(self.gpgconf):
             f = open(self.gpgconf, 'rt')
-        elif os.path.isfile(self.options):
-            f = open(self.options, 'rt')
         else:
             return []
         try:
