@@ -123,6 +123,7 @@ class Args(object):
             options.append('--with-fingerprint')
         if self.with_colons:
             options.append('--with-colons')
+            options.append('--fixed-list-mode')
         if self.armor:
             options.append('--armor')
         if self.output:
