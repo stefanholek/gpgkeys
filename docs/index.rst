@@ -5,6 +5,8 @@ gpgkeys |version| -- GnuPG Shell
 .. toctree::
    :maxdepth: 2
 
+.. highlight:: none
+
 Usage
 ==================
 ::
