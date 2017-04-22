@@ -278,7 +278,7 @@ to include fingerprints of subkeys.
 
 ::
 
-  Example: ls --fingerprint 355A2D28
+  Example: list --fingerprint 355A2D28
 
 :index:`keyserver`
 ------------------
