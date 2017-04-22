@@ -144,10 +144,6 @@ class Args(object):
         if self.minimal:
             options.append('--import-options import-minimal')
             options.append('--export-options export-minimal')
-        if self.secret:
-            options.append('--secret')
-        if self.secret_and_public:
-            options.append('--secret-and-public')
         if self.ask_cert_level:
             options.append('--ask-cert-level')
         return tuple(options)
