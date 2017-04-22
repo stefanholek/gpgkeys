@@ -688,6 +688,8 @@ class GPGKeys(kmd.Kmd):
                     helpfunc()
         else:
             self.help()
+            if self.is_looping:
+                self.stdout.write('Press TAB at any time for possible completions\n\n')
 
 
 def main(args=None):
