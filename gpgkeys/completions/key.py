@@ -14,7 +14,7 @@ from gpgkeys.utils import encode
 from gpgkeys.utils import char
 from gpgkeys.utils import b
 
-from kmd.quoting import dequote_string
+from kmd.quoting import backslash_dequote_string
 from kmd.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
@@ -79,7 +79,7 @@ class KeyCompletion(object):
             matches = self.complete(self.by_keyid, text.upper())
         if not matches:
             if completion.found_quote:
-                text = dequote_string(text, completion.quote_character)
+                text = backslash_dequote_string(text, completion.quote_character)
             if completion.quote_character:
                 matches = self.complete(self.by_userid, text.lower())
             if not matches:
