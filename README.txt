@@ -5,7 +5,7 @@ gpgkeys
 A GnuPG Shell
 ---------------------
 
-Introduction
+Overview
 ============
 
 **gpgkeys** is a Python program that allows to conveniently manage GnuPG_ keys
@@ -18,11 +18,11 @@ gpgkeys also serves as testbed for the development of the kmd_ and rl_ Python
 libraries.
 
 .. _GnuPG: http://www.gnupg.org/
-.. _kmd: https://pypi.python.org/pypi/kmd
-.. _rl: https://pypi.python.org/pypi/rl
+.. _kmd: https://github.com/stefanholek/kmd
+.. _rl: https://github.com/stefanholek/rl
 
 Motivation
-----------
+==========
 
 The GnuPG CLI is very powerful – and with great power comes
 great incomprehensibility.
@@ -34,7 +34,7 @@ gpgkeys makes key management easy by:
    guide the user through key management tasks.
 
 Example Session
----------------
+===============
 
 Everything in gpgkeys can be tab completed: commands, help topics, option flags,
 key ids, user names, file names, shell commands, and keyserver URLs.
@@ -74,7 +74,7 @@ key ids, user names, file names, shell commands, and keyserver URLs.
     alice.asc             stefan.asc
 
 Features
-------------
+============
 
 The order of options and arguments on the command line is not important::
 
@@ -114,19 +114,19 @@ the command loop::
     $ gpgkeys export --armor 355A2D28 > stefan.asc
 
 Keyservers
-----------
+==========
 
 For the send, recv, search, and refresh commands to work, at least one
 keyserver should be configured in gpg.conf. For example::
 
     keyserver ldap://keyserver.pgp.com
-    keyserver hkp://pool.sks-keyservers.net
+    keyserver hkps://hkps.pool.sks-keyservers.net
 
 The last keyserver in gpg.conf becomes the default keyserver.
 All keyservers become available for completion after the ``--keyserver`` option.
 
 Unicode
--------
+=======
 
 OpenPGP allows user IDs to be either Latin-1 or UTF-8 encoded.
 To find keys with non-ASCII IDs, GnuPG requires search strings to be
@@ -138,7 +138,7 @@ You may sometimes see '?' characters in place of non-ASCII characters on the
 command line, which are a result of the above and no reason for concern.
 
 Development
------------
+===========
 
 gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 
@@ -156,14 +156,14 @@ instructions`_ and make sure all dependencies are in place.
 
 To install the ``gpgkeys`` script, type::
 
-    easy_install gpgkeys
+    pip install gpgkeys
+
+.. _`installation instructions`: https://github.com/stefanholek/rl#installation
 
 Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
-
-.. _`installation instructions`: https://pypi.python.org/pypi/rl#installation
 
 Requirements
 ============
 
-The ``gpg`` command must be available on the system PATH.
+The ``gpg2`` or the ``gpg`` command must be available on the system PATH.
 
