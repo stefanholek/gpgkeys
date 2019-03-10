@@ -2,6 +2,8 @@
 gpgkeys |version| -- GnuPG Shell
 =========================================================
 
+.. module:: gpgkeys
+
 .. toctree::
    :maxdepth: 2
 
