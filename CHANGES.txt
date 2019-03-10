@@ -4,6 +4,18 @@ Changelog
 1.24 - Unreleased
 -----------------
 
+- Try ``gpg2`` binary first, if not found fall back to ``gpg``.
+  [stefan]
+
+- Always add ``--fixed-list-mode`` to ``--with-colons``.
+  [stefan]
+
+- Add ``--ask-cert-level`` option.
+  [stefan]
+
+- Stop using 2to3.
+  [stefan]
+
 - Fix documentation bug: The send command only accepts key IDs.
   [stefan]
 
