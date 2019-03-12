@@ -148,7 +148,7 @@ gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 Installation
 ============
 
-Installation requires Python 2.5 or higher, including Python 3.3.
+Installation requires Python 2.7 or higher.
 
 gpgkeys depends on kmd_, which in turn uses the rl_ library. Since rl
 contains a C extension, it is a good idea to review its `installation
@@ -165,5 +165,6 @@ Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
 Requirements
 ============
 
-The ``gpg2`` or the ``gpg`` command must be available on the system PATH.
+Either the ``gpg2`` command or the ``gpg`` command must be available on the
+system PATH.
 

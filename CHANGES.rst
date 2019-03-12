@@ -4,7 +4,7 @@ Changelog
 1.24 - Unreleased
 -----------------
 
-- Try ``gpg2`` binary first, if not found fall back to ``gpg``.
+- Try the ``gpg2`` binary first, if not found fall back to ``gpg``.
   [stefan]
 
 - Always add ``--fixed-list-mode`` to ``--with-colons``.
