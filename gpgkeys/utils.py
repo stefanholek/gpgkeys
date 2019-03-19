@@ -92,17 +92,6 @@ def char(int):
         return chr(int)
 
 
-def b(string, encoding='utf-8'):
-    """Used instead of b'' literals to stay Python 2.5 compatible.
-
-    ``encoding`` should match the encoding of the source file.
-    """
-    if sys.version_info[0] >= 3:
-        return string.encode(encoding)
-    else:
-        return string
-
-
 class conditional(object):
     """Wrap another context manager and enter it only if condition is true.
     """

@@ -19,7 +19,7 @@ from kmd.quoting import quote_string
 
 keyid_re = re.compile(r'^[0-9A-F]+$', re.I)
 userid_re = re.compile(r'^(.+?)\s*(?:\((.*)\))*\s*(?:<(.*)>)*$')
-unescape_re = re.compile(b(r'([\\]x[0-9a-f]{2})'))
+unescape_re = re.compile(br'([\\]x[0-9a-f]{2})')
 
 
 def unescape(text):
@@ -132,15 +132,15 @@ class KeyCompletion(object):
         # unescape before decoding.
         keyid = ''
         key_enc = ''
-        for line in stdoutdata.strip().split(b('\n')):
-            if line[:3] == b('pub'):
-                fields = line.split(b(':'))
+        for line in stdoutdata.strip().split(b'\n'):
+            if line[:3] == b'pub':
+                fields = line.split(b':')
                 keyid = fields[4][8:]
                 keyid, key_enc = gpgdecode(keyid)
                 if sys.version_info[0] < 3:
                     keyid = encode(keyid)
-            if line[:3] == b('uid'):
-                fields = line.split(b(':'))
+            if line[:3] == b'uid':
+                fields = line.split(b':')
                 userid = unescape(fields[9])
                 userid, user_enc = gpgdecode(userid)
                 if sys.version_info[0] < 3:
