@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0 - Unreleased
+2.0 - 2019-03-20
 ----------------
 
 - Try the ``gpg2`` binary first, if not found fall back to ``gpg``.
