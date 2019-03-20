@@ -1,8 +1,11 @@
 Changelog
 =========
 
-2.1 - Unreleased
+2.1 - 2019-03-20
 ----------------
+
+- Fix import error.
+  [stefan]
 
 
 2.0 - 2019-03-20

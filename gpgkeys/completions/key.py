@@ -12,7 +12,6 @@ from gpgkeys.utils import getpreferredencoding
 from gpgkeys.utils import decode
 from gpgkeys.utils import encode
 from gpgkeys.utils import char
-from gpgkeys.utils import b
 
 from kmd.quoting import backslash_dequote_string
 from kmd.quoting import quote_string
