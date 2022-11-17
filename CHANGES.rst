@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.2 - Unreleased
+2.2 - 2022-11-17
 ----------------
 
 - Upgrade to rl 3.1 and kmd 2.4.
