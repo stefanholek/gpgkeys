@@ -51,4 +51,10 @@ setup(name='gpgkeys',
       project_urls={
           'Documentation': 'https://gpgkeys.readthedocs.io/en/stable/',
       },
+      extras_require={
+          'docs': [
+              'sphinx == 5.3.0',
+              'sphinx-rtd-theme == 1.0.0',
+          ],
+      },
 )
