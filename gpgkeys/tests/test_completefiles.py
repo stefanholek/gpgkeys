@@ -263,21 +263,22 @@ class DirectoryCompletionHookTests(JailSetup):
     def test_no_dir_completion_hook(self):
         # The current implementation works without a
         # directory_completion_hook.
+        completer.directory_rewrite_hook = None
         completer.directory_completion_hook = None
         self.assertEqual(self.complete('fdump funny\\ dir/f'),
                                        'fdump funny\\ dir/foo.')
 
     def test_dir_completion_hook(self):
-        # Even if a hook is installed, it never receives a
+        # If a hook is installed, it receives a
         # quoted directory name.
         called = []
         def hook(text):
             called.append((text,))
-            return text
+            return text.replace('\\', '')
 
         completer.directory_rewrite_hook = None
         completer.directory_completion_hook = hook
         self.assertEqual(self.complete('fdump funny\\ dir/f'),
                                        'fdump funny\\ dir/foo.')
-        self.assertEqual(called, [('funny dir/',)])
+        self.assertEqual(called, [('funny\\ dir/',)])
 
