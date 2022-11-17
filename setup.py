@@ -45,6 +45,7 @@ setup(name='gpgkeys',
           'kmd >= 2.4',
           'term >= 2.4',
       ],
+      python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
       },
