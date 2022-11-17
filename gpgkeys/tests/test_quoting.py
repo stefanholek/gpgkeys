@@ -70,6 +70,7 @@ class BackslashDequoteTests(unittest.TestCase):
         self.assertEqual(backslash_dequote('\\ '), ' ')
         self.assertEqual(backslash_dequote('a'), 'a')
         self.assertEqual(backslash_dequote('\\@'), '@')
+        self.assertEqual(backslash_dequote('\\~'), '~')
 
     def test_backslash_backslash_dequote_string(self):
         self.assertEqual(backslash_dequote('\\ foo\\ bar\\#baz\\&'), ' foo bar#baz&')
@@ -90,6 +91,7 @@ class BackslashQuoteTests(unittest.TestCase):
         self.assertEqual(backslash_quote(' '), '\\ ')
         self.assertEqual(backslash_quote('a'), 'a')
         self.assertEqual(backslash_quote('@'), '\\@')
+        self.assertEqual(backslash_quote('~'), '~')
 
     def test_backslash_quote_string(self):
         self.assertEqual(backslash_quote(' foo bar#baz&'), '\\ foo\\ bar\\#baz\\&')
@@ -290,7 +292,7 @@ class QuoteStringTests(FileSetup):
         self.assertEqual(self.complete('"Hello '), '"Hello World.txt" ')
         self.assertEqual(self.complete("\"Al'"), '''"Al'Hambra.txt" ''')
         self.assertEqual(self.complete('"Foo\\\\\\"'), '"Foo\\\\\\"Peng\\\\\\".txt" ')
-        self.assertEqual(self.complete('"Tilde.tx\\~'), '"Tilde.tx~" ')
+        self.assertEqual(self.complete('"Tilde.tx~'), '"Tilde.tx~" ')
         self.assertEqual(self.complete('"~'), '"~StartsWithTilde.txt" ')
 
     def test_quote_directory(self):
@@ -328,7 +330,7 @@ class BackslashQuoteStringTests(FileSetup):
         self.assertEqual(self.complete('"Hello '), '"Hello World.txt" ')
         self.assertEqual(self.complete("\"Al'"), '''"Al'Hambra.txt" ''')
         self.assertEqual(self.complete('"Foo\\\\\\"'), '"Foo\\\\\\"Peng\\\\\\".txt" ')
-        self.assertEqual(self.complete('"Tilde.tx\\~'), '"Tilde.tx~" ')
+        self.assertEqual(self.complete('"Tilde.tx~'), '"Tilde.tx~" ')
         self.assertEqual(self.complete('"~'), '"~StartsWithTilde.txt" ')
 
     def test_backslash_quote_directory(self):
@@ -397,7 +399,7 @@ class QuoteFilenameTests(FileSetup):
         self.assertEqual(self.complete('"Hello '), '"Hello World.txt" ')
         self.assertEqual(self.complete("\"Al'"), '''"Al'Hambra.txt" ''')
         self.assertEqual(self.complete('"Foo\\\\\\"'), '"Foo\\\\\\"Peng\\\\\\".txt" ')
-        self.assertEqual(self.complete('"Tilde.tx\\~'), '"Tilde.tx~" ')
+        self.assertEqual(self.complete('"Tilde.tx~'), '"Tilde.tx~" ')
         self.assertEqual(self.complete('"~'), '"~StartsWithTilde.txt" ')
 
     def test_quote_directory(self):
@@ -435,7 +437,7 @@ class BackslashQuoteFilenameTests(FileSetup):
         self.assertEqual(self.complete('"Hello '), '"Hello World.txt" ')
         self.assertEqual(self.complete("\"Al'"), '''"Al'Hambra.txt" ''')
         self.assertEqual(self.complete('"Foo\\\\\\"'), '"Foo\\\\\\"Peng\\\\\\".txt" ')
-        self.assertEqual(self.complete('"Tilde.tx\\~'), '"Tilde.tx~" ')
+        self.assertEqual(self.complete('"Tilde.tx~'), '"Tilde.tx~" ')
         self.assertEqual(self.complete('"~'), '"~StartsWithTilde.txt" ')
 
     def test_backslash_quote_directory(self):

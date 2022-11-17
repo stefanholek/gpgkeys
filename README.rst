@@ -41,15 +41,15 @@ key ids, user names, file names, shell commands, and keyserver URLs.
 ::
 
     $ gpgkeys
-    gpgkeys 1.24 (type help for help)
+    gpgkeys 2.2 (type help for help)
 
     gpgkeys> help
 
     Available commands (type help <topic>):
     =======================================
-    EOF       del   export  genkey     import   lsign  refresh  shell
-    checksig  dump  fdump   genrevoke  list     quit   search   sign
-    clear     edit  fetch   help       listsig  recv   send     version
+    checksig  dump    fdump   genrevoke  list     quit     search  sign
+    clear     edit    fetch   help       listsig  recv     send    version
+    del       export  genkey  import     lsign    refresh  shell
 
     Shortcut commands (type help <topic>):
     ======================================
@@ -96,7 +96,7 @@ To see the commands sent to GnuPG, run gpgkeys with the
 ``-v`` option::
 
     $ gpgkeys -v
-    gpgkeys 1.24 (type help for help)
+    gpgkeys 2.2 (type help for help)
 
     gpgkeys> ls 355A2D28
     gpgkeys: gpg --list-keys 355A2D28
@@ -150,14 +150,15 @@ Installation
 
 Installation requires Python 2.7 or higher.
 
-gpgkeys depends on kmd_, which in turn uses the rl_ library. Since rl
-contains a C extension, it is a good idea to review its `installation
-instructions`_ and make sure all dependencies are in place.
+Note: gpgkeys uses the rl_ library which contains a C extension. It is a good
+idea to review its `installation instructions`_ and make sure all dependencies
+are in place.
 
 To install the ``gpgkeys`` script, type::
 
     pip install gpgkeys
 
+.. _rl: https://github.com/stefanholek/rl
 .. _`installation instructions`: https://github.com/stefanholek/rl#installation
 
 Then put it on your system PATH by e.g. symlinking it to ``/usr/local/bin``.
