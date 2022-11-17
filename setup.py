@@ -42,7 +42,7 @@ setup(name='gpgkeys',
       install_requires=[
           'setuptools',
           'rl >= 3.1',
-          'kmd >= 2.4.dev0',
+          'kmd >= 2.4',
           'term >= 2.4',
       ],
       entry_points = {
