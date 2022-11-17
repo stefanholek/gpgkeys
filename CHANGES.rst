@@ -4,6 +4,21 @@ Changelog
 2.2 - Unreleased
 ----------------
 
+- Upgrade to rl 3.1 and kmd 2.4.
+  [stefan]
+
+- Replace deprecated ``python setup.py test`` in tox.ini.
+  [stefan]
+
+- Remove deprecated ``test_suite`` from setup.py.
+  [stefan]
+
+- Add a pyproject.toml file.
+  [stefan]
+
+- Include tests in sdist but not in wheel.
+  [stefan]
+
 
 2.1 - 2019-03-20
 ----------------
