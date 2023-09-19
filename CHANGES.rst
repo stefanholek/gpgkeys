@@ -4,6 +4,9 @@ Changelog
 2.3 - Unreleased
 ----------------
 
+- Update tox.ini for latest tox.
+  [stefan]
+
 
 2.2 - 2022-11-17
 ----------------
