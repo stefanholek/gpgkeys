@@ -4,6 +4,12 @@ Changelog
 2.3 - Unreleased
 ----------------
 
+- Upgrade to rl 3.2 and term 2.5.
+  [stefan]
+
+- Add ``python_requires``.
+  [stefan]
+
 - Update tox.ini for latest tox.
   [stefan]
 
