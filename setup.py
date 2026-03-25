@@ -31,7 +31,7 @@ setup(name='gpgkeys',
       author='Stefan H. Holek',
       author_email='stefan@epy.co.at',
       url='https://github.com/stefanholek/gpgkeys',
-      license='GPLv3',
+      license='GPL-3.0-or-later',
       packages=find_packages(
           exclude=[
               'gpgkeys.tests',
