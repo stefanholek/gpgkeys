@@ -19,7 +19,7 @@ Changelog
 - Remove support for universal wheels.
   [stefan]
 
-- Remove deprecated license classifier.
+- Fix SPDX license identifier.
   [stefan]
 
 
