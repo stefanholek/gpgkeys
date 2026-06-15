@@ -16,10 +16,22 @@ Changelog
 - Replace deprecated ``python setup.py build_sphinx`` in tox.ini.
   [stefan]
 
+- Fix SPDX license identifier.
+  [stefan]
+
+- Remove deprecated license classifier.
+  [stefan]
+
 - Remove support for universal wheels.
   [stefan]
 
-- Fix SPDX license identifier.
+- Upgrade GitHub workflow.
+  [stefan]
+
+- Upgrade .readthedocs.yaml.
+  [stefan]
+
+- Upgrade sphinx and sphinx-rtd-theme in docs extra.
   [stefan]
 
 
