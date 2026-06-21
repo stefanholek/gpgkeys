@@ -1,12 +1,6 @@
-import sys
-import functools
-
 from setuptools import setup, find_packages
 
 version = '2.3'
-
-if sys.version_info[0] >= 3:
-    open = functools.partial(open, encoding='utf-8')
 
 
 setup(name='gpgkeys',
@@ -22,7 +16,6 @@ setup(name='gpgkeys',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: POSIX',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: Implementation :: CPython',
       ],
@@ -44,7 +37,7 @@ setup(name='gpgkeys',
           'kmd >= 2.4',
           'term >= 2.5',
       ],
-      python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+      python_requires='>=3.8',
       entry_points = {
           'console_scripts': 'gpgkeys=gpgkeys.gpgkeys:main',
       },

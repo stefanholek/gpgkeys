@@ -86,13 +86,10 @@ def encode(string, encoding=None, errors=None):
 
 def char(int):
     """Create a one-character byte string from the ordinal ``int``."""
-    if sys.version_info[0] >= 3:
-        return bytes((int,))
-    else:
-        return chr(int)
+    return bytes((int,))
 
 
-class conditional(object):
+class conditional():
     """Wrap another context manager and enter it only if condition is true.
     """
 
@@ -109,7 +106,7 @@ class conditional(object):
             return self.contextmanager.__exit__(*args)
 
 
-class ignoresignals(object):
+class ignoresignals():
     """Context manager to temporarily ignore SIGINT and SIGQUIT.
     """
     signums = (signal.SIGINT, signal.SIGQUIT)
@@ -125,7 +122,7 @@ class ignoresignals(object):
             signal.signal(signum, self.saved[signum])
 
 
-class savettystate(object):
+class savettystate():
     """Context manager to save and restore the terminal state.
 
     Has no effect if sys.stdin is not a tty.
@@ -143,27 +140,23 @@ class savettystate(object):
             termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, self.saved)
 
 
-class surrogateescape(object):
+class surrogateescape():
     """Context manager to switch sys.stdin to surrogateescape error handling.
-
-    Has no effect under Python 2.
     """
 
     def __enter__(self):
-        if sys.version_info[0] >= 3:
-            import io
-            self.encoding = sys.stdin.encoding
-            self.errors = sys.stdin.errors
-            self.newline = None if sys.platform == 'win32' else '\n'
-            self.line_buffering = sys.stdin.line_buffering
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), self.encoding, 'surrogateescape',
-                self.newline, self.line_buffering)
+        import io
+        self.encoding = sys.stdin.encoding
+        self.errors = sys.stdin.errors
+        self.newline = None if sys.platform == 'win32' else '\n'
+        self.line_buffering = sys.stdin.line_buffering
+        sys.stdin = io.TextIOWrapper(
+            sys.stdin.detach(), self.encoding, 'surrogateescape',
+            self.newline, self.line_buffering)
 
     def __exit__(self, *ignored):
-        if sys.version_info[0] >= 3:
-            import io
-            sys.stdin = io.TextIOWrapper(
-                sys.stdin.detach(), self.encoding, self.errors,
-                self.newline, self.line_buffering)
+        import io
+        sys.stdin = io.TextIOWrapper(
+            sys.stdin.detach(), self.encoding, self.errors,
+            self.newline, self.line_buffering)
 

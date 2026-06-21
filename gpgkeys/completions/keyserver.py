@@ -3,7 +3,7 @@ import os
 from gpgkeys.config import GNUPGCONF
 
 
-class KeyserverCompletion(object):
+class KeyserverCompletion():
     """Perform keyserver completion
 
     To become available for completion keyservers must be configured

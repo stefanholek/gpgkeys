@@ -54,7 +54,7 @@ def gpgdecode(text):
     return text, encoding
 
 
-class KeyCompletion(object):
+class KeyCompletion():
     """Perform key id and user name completion
 
     Watches the keyrings for changes and automatically refreshes
@@ -136,14 +136,10 @@ class KeyCompletion(object):
                 fields = line.split(b':')
                 keyid = fields[4][8:]
                 keyid, key_enc = gpgdecode(keyid)
-                if sys.version_info[0] < 3:
-                    keyid = encode(keyid)
             if line[:3] == b'uid':
                 fields = line.split(b':')
                 userid = unescape(fields[9])
                 userid, user_enc = gpgdecode(userid)
-                if sys.version_info[0] < 3:
-                    userid = encode(userid)
                 self.encodings.setdefault(userid, user_enc)
                 yield (keyid, userid)
 
@@ -159,9 +155,6 @@ class KeyCompletion(object):
         encoding = self.encodings.get(text)
         if encoding is None:
             return text
-        if sys.version_info[0] >= 3:
-            # sys.stdin is set up for surrogates in GPGKeys.input()
-            return decode(encode(text, encoding), errors='surrogateescape')
-        else:
-            return encode(decode(text), encoding)
+        # sys.stdin is set up for surrogates in GPGKeys.input()
+        return decode(encode(text, encoding), errors='surrogateescape')
 

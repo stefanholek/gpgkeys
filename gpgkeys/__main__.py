@@ -1,7 +1,5 @@
 # python -m gpgkeys
 
-from __future__ import absolute_import
-
 import sys
 
 from .gpgkeys import main

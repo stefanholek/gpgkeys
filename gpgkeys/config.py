@@ -1,5 +1,6 @@
 import os
 
+import setuptools # XXX
 from distutils.spawn import find_executable
 
 UMASK = 0o077

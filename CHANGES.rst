@@ -22,9 +22,6 @@ Changelog
 - Remove deprecated license classifier.
   [stefan]
 
-- Remove support for universal wheels.
-  [stefan]
-
 - Upgrade GitHub workflow.
   [stefan]
 
@@ -32,6 +29,9 @@ Changelog
   [stefan]
 
 - Upgrade sphinx and sphinx-rtd-theme in docs extra.
+  [stefan]
+
+- Require Python >= 3.8.
   [stefan]
 
 

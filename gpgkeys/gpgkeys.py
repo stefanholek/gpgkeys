@@ -1,18 +1,8 @@
 # gpgkeys
 #
 
-from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import print_function
-
-import locale
-try:
-    locale.setlocale(locale.LC_ALL, '')
-except locale.Error:
-    pass
-
-import pkg_resources
-__version__ = pkg_resources.get_distribution('gpgkeys').version
+from importlib.metadata import version
+__version__ = version('gpgkeys')
 
 import os
 import sys
@@ -132,8 +122,7 @@ class GPGKeys(kmd.Kmd):
     def getoutput(self, *args, **kw):
         rc, output = self.popen(*args, **dict(kw, stdout=subprocess.PIPE))
         if rc == 0 and output is not None:
-            if sys.version_info[0] >= 3:
-                output = decode(output)
+            output = decode(output)
             if output.strip():
                 # Return first line only
                 return output.split('\n', 1)[0]

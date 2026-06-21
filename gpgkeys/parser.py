@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import os
 import sys
 import getopt
@@ -33,7 +31,7 @@ def parseword(line, begidx, endidx):
     return word
 
 
-class Args(object):
+class Args():
     """Parse the command line with getopt.
     """
 
@@ -153,7 +151,7 @@ class Args(object):
         return self.options + self.args + self.pipe
 
 
-class Word(object):
+class Word():
     """Parse the completion word.
     """
 

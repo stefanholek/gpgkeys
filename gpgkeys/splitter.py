@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from .scanner import QUOTECHARS
 from .scanner import WHITESPACE
 from .scanner import char_is_quoted
