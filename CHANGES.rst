@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.3 - Unreleased
+3.0 - Unreleased
 ----------------
 
 - Upgrade to rl 3.2 and term 2.5.
