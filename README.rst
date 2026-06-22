@@ -148,7 +148,7 @@ gpgkeys development is hosted on GitHub_. It also has an `issue tracker`_ there.
 Installation
 ============
 
-Installation requires Python 2.7 or higher.
+Installation requires Python 3.8 or higher.
 
 Note: gpgkeys uses the rl_ library which contains a C extension. It is a good
 idea to review its `installation instructions`_ and make sure all dependencies
