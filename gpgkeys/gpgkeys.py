@@ -61,7 +61,7 @@ class GPGKeys(kmd.Kmd):
 
     def __init__(self, completekey='TAB', stdin=None, stdout=None, stderr=None,
                  quote_char='\\', verbose=False):
-        super(GPGKeys, self).__init__(completekey, stdin, stdout, stderr)
+        super().__init__(completekey, stdin, stdout, stderr)
         self.quote_char = quote_char
         self.verbose = verbose
         self.is_looping = False
@@ -72,7 +72,7 @@ class GPGKeys(kmd.Kmd):
         os.umask(UMASK)
 
     def preloop(self):
-        super(GPGKeys, self).preloop()
+        super().preloop()
         self.is_looping = True
         # Setup completions
         self.completefilename = FilenameCompletion(self.quote_char)
@@ -82,20 +82,20 @@ class GPGKeys(kmd.Kmd):
 
     def postloop(self):
         self.is_looping = False
-        super(GPGKeys, self).postloop()
+        super().postloop()
 
     def input(self, prompt):
         # Allow surrogates in input
         # See http://bugs.python.org/issue13342
         with surrogateescape():
-            return super(GPGKeys, self).input(prompt)
+            return super().input(prompt)
 
     def onecmd(self, line):
         self.rc = 0
-        return super(GPGKeys, self).onecmd(line)
+        return super().onecmd(line)
 
     def run(self, args=None):
-        rc = super(GPGKeys, self).run(args)
+        rc = super().run(args)
         if rc == 1: # KeyboardInterrupt
             self.rc = rc
         return self.rc
