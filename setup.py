@@ -33,9 +33,9 @@ setup(name='gpgkeys',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'rl >= 3.2',
-          'kmd >= 2.4',
-          'term >= 2.5',
+          'rl >= 4.0',
+          'kmd >= 3.0',
+          'term >= 3.0',
       ],
       python_requires='>=3.8',
       entry_points = {
